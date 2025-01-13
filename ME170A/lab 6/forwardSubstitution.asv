@@ -1,0 +1,16 @@
+function Y=forwardSubstitution(L,b,P)
+
+B=P*b;
+
+Y=zeros(R,1);
+% Y(R)=agmented(R,R+1)/agmented(R,R);
+% for i=R:-1:2
+%     Y(i-1)=agmented(i-1,R+1)-agmented(i-1,i-1+1:R)*Y(i-1+1:R,1)/agmented(i-1,i-1);
+% end
+for i=1:R
+x=B(i);
+    for j=1:R-1
+        y=agmented(i,j)*Y(j)-y
+    end
+    Y(R)
+end

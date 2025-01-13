@@ -1,0 +1,31 @@
+function lagrangeInterpolation(x,y,xx)
+Lx=length(x);
+Ly=length(y);
+[R,C]=size(xx);
+top=1;
+bottom=1;
+fx=zeros(1,Lx);
+for k=1:C
+
+for j=1:Lx
+    xj=x;
+     xj(j)=[];
+for i=1:Lx-1
+    
+top= (xx(k)-xj(i))*top;% top
+
+bottom=(x(j)-xj(i))*bottom;
+end
+fx(j)=(top/bottom)*y(j);
+top=1;
+bottom=1;
+end
+fx=sum(fx);
+
+end
+
+
+end
+
+   
+  
