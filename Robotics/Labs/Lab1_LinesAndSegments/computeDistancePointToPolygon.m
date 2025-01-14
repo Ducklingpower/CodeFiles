@@ -1,12 +1,23 @@
 function D = computeDistancePointToPolygon(P,q)
+%% Error checking
+if length(P(1,:)) ~= 2
+error ("Dimensions of P must be [x1 y1, x2 y2, ... xn yn]")
 
+elseif length(q) ~= 2
+    error ("Dimensions of q must be in the form [x,y]")
+end
+
+
+
+
+%% Solving all solutons 
 for i = 1:length(P(:,1))+1
 
     Counter(i) = i ;
 end
-
 Counter(end) = 1;
-%% Solving all solutons 
+
+
 for i = 1:length(P(:,1))
 
     p1 = P(Counter(i),:);
@@ -17,7 +28,7 @@ end
 
 %% output
 D = min(dist);
-finder = find(dist == D);
+finder = dist == D;
 point = point(finder,:);
 
 
@@ -34,6 +45,8 @@ plot([point(1,1),q(1)],[point(1,2),q(2)])%Short line
 xlim([-10,10])
 ylim([-10,10])
 grid on
+axis normal;
+axis square;
 
 
 end
