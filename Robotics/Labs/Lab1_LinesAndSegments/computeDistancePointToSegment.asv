@@ -26,7 +26,7 @@ Zvec= p1+S*Z;
 
 
 %% output
-if Z>0 && Z<=1
+if Z>=0 && Z<=1
     
     point = Zvec;
     D = norm(W-Zvec);
