@@ -33,15 +33,13 @@ D = min(dist);
 finder  = dist == D;
 point   = point(finder,:);
 
-if length(point(:,1)) == 1
+if length(point(:,1)) == 1 %#ok<ISCL>
 Segment(1,:) = P(finder,:);
 point2 = find(finder ==1)+1;
 Segment(2,:) = P(point2,:);
 else 
 Segment = point(1,:);
 end
-
-
 
 %% Plotting 
 figure 
@@ -57,7 +55,6 @@ ylim([-10,10])
 grid on
 axis normal;
 axis square;
-
 
 end
 
