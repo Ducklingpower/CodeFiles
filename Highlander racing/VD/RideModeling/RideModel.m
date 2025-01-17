@@ -1,7 +1,7 @@
 clc;
 clear;
 close all;
-%% Paramsss
+%% Params
 ms = 300;
 
 mfl = 4;
@@ -235,7 +235,7 @@ noise =rand(100000,1)*noiseLevel;
     D(15,5) = 1/ms;
 %% running simulink, extracting from simulink
 
-
+tireModelCoefs = load("TireModelCoefs.mat");
 output = sim('RideModel_sim.slx',[0 tmax]);
 
 states = output.states.data;
