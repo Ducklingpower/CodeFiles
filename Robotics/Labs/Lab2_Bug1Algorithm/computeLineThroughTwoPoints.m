@@ -32,27 +32,27 @@ a = m(1);
 b = m(2);
 c = C;
 
-%% Additional plotting 
-PositionX = [x1,x2];
-PositionY = [y1,y2];
-x = min(PositionX):0.1:max(PositionX);
-y = @(x) (m(1)/m(2))*x+C; 
-
-figure
-plot(x,y(x));
-hold on
-plot(x1,y1,"*");
-hold on
-plot(x2,y2,"*");
-grid on
-legend("Line connection","p1","p2")
-xlow = min(PositionX)-1;
-xup  = max(PositionX)+1;
-ylow = min(PositionY)-1;
-yup  = max(PositionY)+1;
-
-xlim([xlow,xup])
-ylim([ylow,yup])
+% Additional plotting 
+% PositionX = [x1,x2];
+% PositionY = [y1,y2];
+% x = min(PositionX):0.1:max(PositionX);
+% y = @(x) (m(1)/m(2))*x+C; 
+% 
+% figure
+% plot(x,y(x));
+% hold on
+% plot(x1,y1,"*");
+% hold on
+% plot(x2,y2,"*");
+% grid on
+% legend("Line connection","p1","p2")
+% xlow = min(PositionX)-1;
+% xup  = max(PositionX)+1;
+% ylow = min(PositionY)-1;
+% yup  = max(PositionY)+1;
+% 
+% xlim([xlow,xup])
+% ylim([ylow,yup])
 
 end
 

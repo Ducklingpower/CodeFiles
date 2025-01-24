@@ -1,8 +1,7 @@
 function Path = computeBug1(Pstart,Pgoal,Obsticle,stepsize)
 
 
-%% creating algebraic line from start to goal
-[a,b,c] = computeLineThroughTwoPoints(Pstart,Pgoal);
+%% initializing
 
 x1 = Pstart(1);
 y1 = Pstart(2);
@@ -11,72 +10,242 @@ x2 = Pgoal(1);
 y2 = Pgoal(2);
 
 
-PositionX = [x1,x2];
-PositionY = [y1,y2];
-x = min(PositionX):stepsize:max(PositionX);
-Start_to_Goal = @(x) (a/b)*x+c;  % Direct line from start to goal
+Pcurrent = Pstart;
+Path = Pstart;
+
 %% main line intersection to line segment
 
-x1 = Pstart(1); 
-y1 = Pstart(2);
-x2 = Pgoal(1);  
-y2 = Pgoal(2);
+for i = 1:length(Obsticle(:,1,1))+1
 
-
-x3 = P1(1);     
-y3 = P1(2);
-x4 = P2(1);     
-y4 = P2(2);
- 
-denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-
-% Checking for parallel lines
-if denominator == 0
-    intersection = []; 
-    return;
+    Counter(i) = i ;
 end
+Counter(end) = 1;
 
-t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
-u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator;
+for j = 1:length(Obsticle(1,1,:))
+for i = 1:length(Obsticle(:,1,1))
 
-if u >= 0 && u <= 1
+    P1 = Obsticle(Counter(i),:,j);
+    P2 = Obsticle(Counter(i+1),:,j);
+
+    x3 = P1(1);     
+    y3 = P1(2);
+    x4 = P2(1);     
+    y4 = P2(2);
+ 
+    denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+    % Checking for parallel lines
+    if denominator == 0
+        intersection(i,:,j) = [NaN NaN]; 
+        d(i,j) = 0;
+    end
+
+    t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
+    u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator;
+
+    if u >= 0 && u <= 1
         intersect_x = x1 + t * (x2 - x1);
         intersect_y = y1 + t * (y2 - y1);
-        intersection = [intersect_x, intersect_y];
+        intersection(i,:,j) = [intersect_x, intersect_y];
+        d(i,j) = norm([x1 y1]-[intersect_x intersect_y]);
     else
-        intersection = []; % Void lol
+        intersection(i,:,j) = [NaN NaN]; % Void lol
+        d(i,j) = NaN;
+    end
+end
+
+if all(isnan(d), 'all')
+  
+else 
+     finder = find(min(d(:,j)) == d(:,j));
+     Obsticle_Hit = intersection(finder,:,j);% I dentifiy where hit is at
+     PNext = Obsticle_Hit;
+     CurrentObsticle = j;
+     CurrentSegmentNumber = [Counter(finder) Counter(finder+1)] ;
+     break
+end
+
+end
+
+%% Going from point A to point B
+
+[a,b,c] = computeLineThroughTwoPoints(Pcurrent,PNext);
+
+x1 = Pcurrent(1);
+y1 = Pcurrent(2);
+
+x2 = PNext(1);
+y2 = PNext(2);
+
+
+PositionX = [x1,x2];
+PositionY = [y1,y2];
+
+Delta = sqrt((x1-x2)^2 + (y1 -y2)^2)/stepsize;
+x = linspace(min(PositionX),max(PositionX),Delta);
+
+Pcurrent_to_PNext = @(x) (a/b)*x+c;  % Direct line from start to goal
+
+
+for i = length(Path(:,1)): length(Path(:,1))+length(x)-1
+Path(i,1) = x(i);
+Path(i,2) = Pcurrent_to_PNext(x(i));
+end
+
+Pcurrent = PNext;
+%% Going around object
+c=0;
+n=0;
+
+
+  for m = CurrentSegmentNumber(1):length(Obsticle(:,1,1))+CurrentSegmentNumber(1)
+        n = n+1;
+        if m >= length(Counter)
+            c=c+1;
+            Order(n) = c;
+        else
+            Order(n) = m;
+        end
+  end
+
+
+for i = 1:length(Obsticle(:,1,1))
+
+x1 = Obsticle(Order(i),1,CurrentObsticle); % point 1
+y1 = Obsticle(Order(i),2,CurrentObsticle);
+x2 = Obsticle(Order(i+1),1,CurrentObsticle); % point 2
+y2 = Obsticle(Order(i+1),2,CurrentObsticle);
+PositionX = [x1,x2];
+PositionY = [y1,y2];
+
+q = Obsticle_Hit;
+S = [x2,y2] - [x1,y1];
+W = q-[x1,y1];
+Z = (dot(W,S))/(dot(S,S)); % scalar 0-1 if with in segment
+
+k=0;
+if x1 ==x2 % verticle 
+    
+    Delta = sqrt((x1-x2)^2 + (y1 -y2)^2)/stepsize;
+    y = linspace((max(PositionY)-min(PositionY))-(max(PositionY)-min(PositionY)*(1-Z)),max(PositionY),Delta);
+ 
+    for n = length(Path(:,1)): length(Path(:,1))+length(y)-1
+   
+    k = k+1;
+    Path(n,1) = x1;
+    Path(n,2) =y(k);
+    end
+
+else % None verticle
+
+Ymax = max(PositionY);
+finder = find(Ymax == PositionY);
+Pcurrent = [Path(end,1) Path(end,2)];
+PNext    = [x2 y2];
+    
+[a,b,c] = computeLineThroughTwoPoints(Pcurrent,PNext);
+
+x1 = Pcurrent(1);
+y1 = Pcurrent(2);
+
+x2 = PNext(1);
+y2 = PNext(2);
+
+
+PositionX = [x1,x2];
+PositionY = [y1,y2];
+
+
+Delta = sqrt((x1-x2)^2 + (y1 -y2)^2)/stepsize;
+x = linspace(x1,x2,Delta);
+Pcurrent_to_PNext = @(x) (a/b)*x+c;  % Direct line from start to goal
+
+
+k =0;
+for N = length(Path(:,1)): length(Path(:,1))+length(x)-1
+    k = k+1;
+    Path(N,1) = x(k);
+    Path(N,2) = Pcurrent_to_PNext(x(k));
 end
 
 
-% %% Solving near obsticle (Aka nearest segment) 
-% for i = 1:length(Obsticle(1,1,:))
-% 
-% P = Obsticle(:,:,i);
-% 
-% [D(i),Segment(:,i)] = computeDistancePointToPolygon(P,Pstart);
-% 
-% end
-% 
-% finder = find(min(D) == D);
-% NearestSegment = Segment(finder,:);
-% 
-% 
-% %% Creating line of nearest segment 
-% 
-% [a,b,c] = computeLineThroughTwoPoints(Pstart,Pgoal);
-% 
-% x1 = Pstart(1);
-% y1 = Pstart(2);
-% 
-% x2 = Pgoal(1);
-% y2 = Pgoal(2);
-% 
-% 
-% PositionX = [x1,x2];
-% PositionY = [y1,y2];
-% x = min(PositionX):stepsize:max(PositionX);
-% Start_to_Goal = @(x) (a/b)*x+c;  % Direct line from start to goal
-% 
-% 
+end
+
+end
+
+
+%% Going to Hit spot
+
+
+Pcurrent = [Path(end,1) Path(end,2)];
+PNext    = Obsticle_Hit;
+[a,b,c] = computeLineThroughTwoPoints(Pcurrent,PNext);
+
+x1 = Pcurrent(1);
+y1 = Pcurrent(2);
+
+x2 = PNext(1);
+y2 = PNext(2);
+
+
+if x1==x2
+    Delta = sqrt((x1-x2)^2 + (y1 -y2)^2)/stepsize;
+    y = linspace(min(PositionY),max(PositionY),Delta);
+    k =0;
+    for n = length(Path(:,1)): length(Path(:,1))+length(y)-1
+   
+    k = k+1;
+    Path(n,1) = x1;
+    Path(n,2) =y(k);
+    end
+
+else
+    
+    PositionX = [x1,x2];
+    PositionY = [y1,y2];
+    
+    
+    Delta = sqrt((x1-x2)^2 + (y1 -y2)^2)/stepsize;
+    x = linspace(x1,x2,Delta);
+    Pcurrent_to_PNext = @(x) (a/b)*x+c;  % Direct line from start to goal
+    
+    
+    k =0;
+    for N = length(Path(:,1)): length(Path(:,1))+length(x)-1
+        k = k+1;
+        Path(N,1) = x(k);
+        Path(N,2) = Pcurrent_to_PNext(x(k));
+    end
+end
+
+
+
+
+
+%%
+figure
+
+
+for j = 1:length(Obsticle(1,1,:))
+hold on
+X = Obsticle(:,1,j);
+Y = Obsticle(:,2,j);
+fill(X,Y,[0.8 0.7 0.8])
+hold on 
+xlim([-10,10])
+ylim([-10,10])
+grid on
+axis normal;
+axis square;
+end
+plot(Path(:,1),Path(:,2),"o")
+hold on
+plot(x1,y1,"*")
+hold on
+plot(x2,y2,"*")
+grid on
+legend("Line connection","p1","p2")
+
+
 
 end
