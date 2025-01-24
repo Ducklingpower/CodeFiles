@@ -12,7 +12,11 @@ y2 = Pgoal(2);
 
 Pcurrent = Pstart;
 Path = Pstart;
-
+for i = 1:length(Obsticle(:,1,1))+1
+    if Pcurrent == Pgoal
+        break
+    else 
+    end
 %% main line intersection to line segment
 
 for i = 1:length(Obsticle(:,1,1))+1
@@ -55,7 +59,7 @@ for i = 1:length(Obsticle(:,1,1))
 end
 
 if all(isnan(d), 'all')
-  
+  Obsticle_Hit =  [0 0];
 else 
      finder = find(min(d(:,j)) == d(:,j));
      Obsticle_Hit = intersection(finder,:,j);% I dentifiy where hit is at
@@ -65,10 +69,45 @@ else
      break
 end
 
+
+
+
+
+
+
 end
 
-%% Going from point A to point B
+if isempty(Obsticle_Hit)
+    PNext = Pgoal;
+    [a,b,c] = computeLineThroughTwoPoints(Pcurrent,PNext);
 
+x1 = Pcurrent(1);
+y1 = Pcurrent(2);
+
+x2 = PNext(1);
+y2 = PNext(2);
+
+
+PositionX = [x1,x2];
+PositionY = [y1,y2];
+
+Delta = sqrt((x1-x2)^2 + (y1 -y2)^2)/stepsize;
+x = linspace(min(PositionX),max(PositionX),Delta);
+
+Pcurrent_to_PNext = @(x) (a/b)*x+c;  % Direct line from start to goal
+
+n = 1;
+for i = length(Path(:,1)): length(Path(:,1))+length(x)-1
+Path(i,1) = x(n);
+Path(i,2) = Pcurrent_to_PNext(x(n));
+n = n+1;
+end
+
+break
+else
+end
+%% Going from point A to point B
+% Pcurrent = Path(end,:);
 [a,b,c] = computeLineThroughTwoPoints(Pcurrent,PNext);
 
 x1 = Pcurrent(1);
@@ -86,10 +125,11 @@ x = linspace(min(PositionX),max(PositionX),Delta);
 
 Pcurrent_to_PNext = @(x) (a/b)*x+c;  % Direct line from start to goal
 
-
+n = 1;
 for i = length(Path(:,1)): length(Path(:,1))+length(x)-1
-Path(i,1) = x(i);
-Path(i,2) = Pcurrent_to_PNext(x(i));
+Path(i,1) = x(n);
+Path(i,2) = Pcurrent_to_PNext(x(n));
+n = n+1;
 end
 
 Pcurrent = PNext;
@@ -187,6 +227,9 @@ y1 = Pcurrent(2);
 x2 = PNext(1);
 y2 = PNext(2);
 
+PositionX = [x1,x2];
+PositionY = [y1,y2];
+
 
 if x1==x2
     Delta = sqrt((x1-x2)^2 + (y1 -y2)^2)/stepsize;
@@ -218,10 +261,40 @@ else
     end
 end
 
+%% Going to closest point around object
+
+
+P = Obsticle(:,:,CurrentObsticle);
+[D,Segment,JumpPoint] = computeDistancePointToPolygon(P,Pgoal);
+
+
+X = 0;
+Y = 0;
+A = length(Path(:,1));
+B = length(Path(:,1));
+
+threshold = stepsize*1; 
+step = Pgoal;
+JumpPoint = JumpPoint(1,:);
+while abs(step - JumpPoint) > [threshold threshold]
+
+A = A+1;
+  
+Path(A,1) = Path(B-X,1) ;
+Path(A,2) = Path(B-X,2) ;
+
+X = X+1;
+Y = Y+1;
+
+step = Path(A,:);
+
+end
+PNext = Pgoal;
+Pcurrent = JumpPoint;
 
 
 
-
+end
 %%
 figure
 

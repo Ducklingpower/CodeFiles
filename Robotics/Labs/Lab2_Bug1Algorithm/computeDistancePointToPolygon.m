@@ -1,4 +1,4 @@
-function [D,Segment] = computeDistancePointToPolygon(P,q)
+function [D,Segment,point] = computeDistancePointToPolygon(P,q)
 %% Error checking
 if length(P(1,:)) ~= 2
 error ("Dimensions of P must be [x1 y1, x2 y2, ... xn yn]")
