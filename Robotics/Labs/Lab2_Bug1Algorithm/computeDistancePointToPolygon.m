@@ -35,7 +35,7 @@ point   = point(finder,:);
 
 if length(point(:,1)) == 1 %#ok<ISCL>
 Segment(1,:) = P(finder,:);
-point2 = find(finder ==1)+1;
+point2 = find(finder ==1);% there was a plus one here idky so I got rid of it
 Segment(2,:) = P(point2,:);
 else 
 Segment = point(1,:);
