@@ -107,7 +107,11 @@ break
 else
 end
 %% Going from point A to point B
-% Pcurrent = Path(end,:);
+Pcurrent = Path(end,:);
+
+if PNext == Pcurrent
+PNext    = [x2 y2];
+end
 [a,b,c] = computeLineThroughTwoPoints(Pcurrent,PNext);
 
 x1 = Pcurrent(1);
@@ -132,7 +136,7 @@ Path(i,2) = Pcurrent_to_PNext(x(n));
 n = n+1;
 end
 
-Pcurrent = PNext;
+
 %% Going around object
 c=0;
 n=0;
@@ -182,6 +186,10 @@ Ymax = max(PositionY);
 finder = find(Ymax == PositionY);
 Pcurrent = [Path(end,1) Path(end,2)];
 PNext    = [x2 y2];
+
+if PNext == Pcurrent
+PNext    = [x1 y1];
+end
     
 [a,b,c] = computeLineThroughTwoPoints(Pcurrent,PNext);
 
@@ -276,7 +284,7 @@ B = length(Path(:,1));
 threshold = stepsize*1; 
 step = Pgoal;
 JumpPoint = JumpPoint(1,:);
-while abs(step - JumpPoint) > [threshold threshold]
+while abs(step(1,1) - JumpPoint(1,1)) >  threshold || abs(step(1,2) - JumpPoint(1,2)) > threshold 
 
 A = A+1;
   
