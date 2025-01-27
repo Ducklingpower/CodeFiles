@@ -12,8 +12,11 @@ y2 = Pgoal(2);
 
 Pcurrent = Pstart;
 Path = Pstart;
-for i = 1:length(Obsticle(:,1,1))+1
-    if Pcurrent == Pgoal
+
+CurrentObsticle = 0;
+
+for i = 1:length(Obsticle(:,1,1))+2
+    if abs(Pcurrent(1,1) - Pgoal(1,1)) <  stepsize*1.5 && abs(Pcurrent(1,2) - Pgoal(1,2)) < stepsize*1.5
         break
     else 
     end
@@ -26,7 +29,20 @@ end
 Counter(end) = 1;
 
 for j = 1:length(Obsticle(1,1,:))
+    if j == CurrentObsticle
+        if j == length(Obsticle(1,1,:))
+           j= j+1;
+        end
+
+    else
 for i = 1:length(Obsticle(:,1,1))
+
+x1 = Pcurrent(1);
+y1 = Pcurrent(2);
+
+x2 = Pgoal(1);
+y2 = Pgoal(2);
+
 
     P1 = Obsticle(Counter(i),:,j);
     P2 = Obsticle(Counter(i+1),:,j);
@@ -58,14 +74,19 @@ for i = 1:length(Obsticle(:,1,1))
     end
 end
 
-if all(isnan(d), 'all')
-  Obsticle_Hit =  [0 0];
+if all(isnan(d(:,j)), 'all')
+  Obsticle_Hit =  [NaN NaN];
 else 
      finder = find(min(d(:,j)) == d(:,j));
      Obsticle_Hit = intersection(finder,:,j);% I dentifiy where hit is at
+     Obsticle_Hit = Obsticle_Hit(1,:);
      PNext = Obsticle_Hit;
      CurrentObsticle = j;
      CurrentSegmentNumber = [Counter(finder) Counter(finder+1)] ;
+     if sqrt((Pgoal(1)-Pcurrent(1))^2+(Pgoal(2)-Pcurrent(2))^2) <= sqrt((PNext(1)-Pcurrent(1))^2+(PNext(2)-Pcurrent(2))^2)
+          Obsticle_Hit =  [NaN NaN];
+     else 
+     end
      break
 end
 
@@ -75,9 +96,10 @@ end
 
 
 
+    end
 end
 
-if isempty(Obsticle_Hit)
+if isnan(Obsticle_Hit)
     PNext = Pgoal;
     [a,b,c] = computeLineThroughTwoPoints(Pcurrent,PNext);
 
@@ -107,7 +129,7 @@ break
 else
 end
 %% Going from point A to point B
-Pcurrent = Path(end,:);
+% Pcurrent = Path(end,:);
 
 if PNext == Pcurrent
 PNext    = [x2 y2];
@@ -135,6 +157,15 @@ Path(i,1) = x(n);
 Path(i,2) = Pcurrent_to_PNext(x(n));
 n = n+1;
 end
+
+Pcurrent = Path(end,:);
+
+
+if abs(Pcurrent(1,1) - Pgoal(1,1)) <  stepsize*1.5 && abs(Pcurrent(1,2) - Pgoal(1,2)) < stepsize*1.5
+        break
+    else 
+ end
+
 
 
 %% Going around object
@@ -171,7 +202,8 @@ k=0;
 if x1 ==x2 % verticle 
     
     Delta = sqrt((x1-x2)^2 + (y1 -y2)^2)/stepsize;
-    y = linspace((max(PositionY)-min(PositionY))-(max(PositionY)-min(PositionY)*(1-Z)),max(PositionY),Delta);
+    y = linspace((max(PositionY))-((max(PositionY)-min(PositionY))*(1-Z)),max(PositionY),Delta);
+    y = (max(PositionY))-((max(PositionY)-min(PositionY))*(1-Z)):stepsize:max(PositionY);
  
     for n = length(Path(:,1)): length(Path(:,1))+length(y)-1
    
@@ -222,7 +254,7 @@ end
 end
 
 
-%% Going to Hit spot
+%% Going to Hit spot to complete 1 loop around object
 
 
 Pcurrent = [Path(end,1) Path(end,2)];
@@ -269,7 +301,7 @@ else
     end
 end
 
-%% Going to closest point around object
+%% Going to closest point from object to goal
 
 
 P = Obsticle(:,:,CurrentObsticle);
