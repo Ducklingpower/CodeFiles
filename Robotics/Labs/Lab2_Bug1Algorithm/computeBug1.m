@@ -20,15 +20,13 @@ function Path = computeBug1(Pstart,Pgoal,Obsticle,stepsize)
                 
             else
                 for i = 1:length(Obsticle(:,1,1))
+                    P1 = Obsticle(Counter(i),:,j);
+                    P2 = Obsticle(Counter(i+1),:,j);
                     
                     x1 = Pcurrent(1);
                     y1 = Pcurrent(2);
                     x2 = Pgoal(1);
                     y2 = Pgoal(2);
-                   
-                    P1 = Obsticle(Counter(i),:,j);
-                    P2 = Obsticle(Counter(i+1),:,j);
-                    
                     x3 = P1(1);     
                     y3 = P1(2);
                     x4 = P2(1);     
@@ -43,8 +41,7 @@ function Path = computeBug1(Pstart,Pgoal,Obsticle,stepsize)
                     end
                     
                     t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
-                    u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator;
-                    
+                    u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator;                 
                     if u >= 0 && u <= 1
                         intersect_x = x1 + t * (x2 - x1);
                         intersect_y = y1 + t * (y2 - y1);

@@ -6,6 +6,7 @@ function Path = computeBug(Pstart,Pgoal,Obsticle,stepsize)
     
    while abs(Pcurrent(1,1) - Pgoal(1,1)) >  stepsize*1.5 && abs(Pcurrent(1,2) - Pgoal(1,2)) > stepsize*1.5
         if length(Path(:,1))>=2
+            fprintf("Fail: An obsticle as been hit")
         break
         else 
         end

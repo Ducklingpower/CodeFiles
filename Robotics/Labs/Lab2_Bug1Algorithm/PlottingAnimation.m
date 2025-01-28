@@ -11,9 +11,10 @@ stepsize = 0.1;
 tic;
 Path = computeBug1(Pstart,Pgoal,P,stepsize);
 close all
-%%
+%% Plotting dist vs time
 
-% Compute distances from each point in Path to Pgoal
+computation_time = toc;
+
 x_path = Path(:, 1);
 y_path = Path(:, 2);
 x_goal = Pgoal(1);
@@ -25,10 +26,6 @@ distances_to_goal = sqrt((x_path - x_goal).^2 + (y_path - y_goal).^2);
 path_segments = sqrt(diff(x_path).^2 + diff(y_path).^2); % Length of each segment
 total_path_length = sum(path_segments);
 
-% End timer
-computation_time = toc;
-
-% Plot distances to goal as a function of time
 time_steps = linspace(0, computation_time, length(distances_to_goal)); % Simulated time steps
 
 figure;
@@ -37,6 +34,8 @@ xlabel('Time (s)');
 ylabel('Distance to Goal');
 title('Distance to Goal as a Function of Time');
 grid on;
+axis normal;
+axis square;
 
 % Display results
 fprintf('Total Path Length: %.2f units\n', total_path_length);
@@ -59,6 +58,9 @@ hold on
 
 xlim([-1,6])
 ylim([-1,6])
+title("Path from start to goal")
+xlabel("X position")
+ylabel("Y position")
 grid on
 axis normal;
 axis square;
