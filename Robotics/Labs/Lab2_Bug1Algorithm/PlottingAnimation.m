@@ -9,7 +9,7 @@ P(:,:,2) = [2 3; 4 1; 5 2];
 stepsize = 0.1;
 
 tic;
-Path = computeBug1(Pstart,Pgoal,P,stepsize);
+Path = computeBug(Pstart,Pgoal,P,stepsize);
 close all
 %% Plotting dist vs time
 
