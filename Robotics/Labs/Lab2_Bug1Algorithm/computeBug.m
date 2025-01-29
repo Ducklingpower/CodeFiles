@@ -18,14 +18,14 @@ function Path = computeBug(Pstart,Pgoal,Obsticle,stepsize)
             end
             Counter(end) = 1;
             
-        for j = 1:length(Obsticle(1,1,:))
+        for j = 1:length(Obsticle(1,1,:)) %checking each obsticles distance
             if j == CurrentObsticle
                 if j == length(Obsticle(1,1,:))
                 j= j+1;
                 end
                 
             else
-                for i = 1:length(Obsticle(:,1,1))
+                for i = 1:length(Obsticle(:,1,1)) % Iterating through each obsticles segment
                     
                     x1 = Pcurrent(1);
                     y1 = Pcurrent(2);     
@@ -63,7 +63,7 @@ function Path = computeBug(Pstart,Pgoal,Obsticle,stepsize)
                 
                 if all(isnan(d(:,j)), 'all')
                     Obsticle_Hit =  [NaN NaN];
-                else 
+                else                                % If obstecle has been hit
                     finder = find(min(d(:,j)) == d(:,j));
                     Obsticle_Hit = intersection(finder,:,j);% I dentifiy where hit is at
                     Obsticle_Hit = Obsticle_Hit(1,:);

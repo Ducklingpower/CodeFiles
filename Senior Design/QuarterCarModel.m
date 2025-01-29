@@ -1,0 +1,122 @@
+clc
+close all
+clear
+%% Params
+
+m1 = 1; %kg
+m2 = 20; %kg
+
+k1 = 200; %N/m
+k2 = 12; %N/m
+
+c1 = 5; %Ns/m
+c2 = 5; %Ns/m
+
+%% Mass/Stiffness matrices
+
+M = [m1  0 ; 
+     0  m2];
+
+K = [k1+k2  -k2 ;
+       -k2   k2 ];
+
+
+[Evect,Eval] = eig(K,M);
+NaturalFrequency = diag(sqrt(Eval)) / (2 * pi);
+
+
+
+%% state space dx/dt = Ax+Bu  y = Cx+Du
+
+
+IC = [0 0 0 0]; % Initial conditions
+
+
+A = [      0             1            0         0   ;
+     (-k1-k2)/(m1) (-c1-c2)/(m1)    k2/m1     c2/m1 ;
+           0             0            0         1   ;
+         k2/m2         c2/m2       -k2/m2    -c2/m2];
+
+B = [  0     0     0   ;
+     -1/m1 k1/m1 c1/m1 ;
+       0     0     0   ;
+      1/m2   0     0  ];
+
+C = [1 0 0 0 ;
+     0 1 0 0 ;
+     0 0 1 0 ;
+     0 0 0 1];
+
+% D = 0 No feed through neededd
+D = zeros(4,3);
+
+%% Time-span and sampling rate
+sr= 0.01;
+tmax=40;
+t_span = 0:sr:tmax;
+
+% parameters for swept sign Might just use chirp
+    T = 0.5;
+    r = 0.2;
+    f = 1;
+
+%% Road input (janky) as a function meters + accleoration vehicle acceloration Input
+
+noiseLevel = 0;
+noise =rand(100000,1)*noiseLevel;
+                         
+%Vehicle acceloration a(t)
+    acceloration_Func_long= @(t) 0;                                      %m/s^2 long                       
+    Vehic_acc_long = timeseries(acceloration_Func_long(t_span'),t_span);
+    Vehicle_acceloration_long = Vehic_acc_long.data;
+
+% Calc velocity and position
+    x_i = 0;
+    v_i = 1;    
+
+    for i = 1:length(t_span)
+        Vehicle_Velocity(1,i) = v_i + Vehicle_acceloration_long(i,1).*t_span(1,i); % m/s 
+        position(1,i) = x_i + v_i*t_span(1,i) + 0.5*Vehicle_acceloration_long(i,1).*t_span(1,i).^2;
+    end
+
+% road input y(t) dy(t)/dt
+
+    y_input   = @(x) 1*sin(2*pi*(x));
+    y_input_t = timeseries(y_input(position'),t_span); % Y(t)
+
+    dy_input    = @(x) 1*cos(2*pi*(x));
+    dy_input_dt = timeseries(dy_input(position'),t_span); % dY(t)/dt
+
+% force inpurt F(t)
+
+    force_input   = @(t) t*0;
+    force_input_t = timeseries(force_input(t_span),t_span); 
+    
+   
+    input_storage = zeros(length(y_input_t.data),3);   % stores input
+    input_storage(:,1) = y_input_t.data;               % inserting y(t)
+    input_storage(:,2) = dy_input_dt.data;             % inserting dy(t)/dt
+    input_storage(:,3) = force_input_t.data;
+ 
+    time = y_input_t.Time;
+    
+    
+%% running simulink, extracting from simulink
+
+output = sim('Model_sim.slx',[0 tmax]);
+
+states = output.states.data;
+% systemInputs = output.input.data;
+
+
+figure(1)
+plot(states(:,1),time)
+
+
+
+
+
+
+
+
+
