@@ -18,7 +18,7 @@ function Path = computeBug1(Pstart,Pgoal,Obsticle,stepsize)
                 j= j+1;
                 end
                 
-            else
+            else 
                 for i = 1:length(Obsticle(:,1,1))
                     P1 = Obsticle(Counter(i),:,j);
                     P2 = Obsticle(Counter(i+1),:,j);

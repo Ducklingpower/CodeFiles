@@ -10,7 +10,7 @@ k1 = 2000; %N/m
 k2 = 1000; %N/m
 
 c1 = 0; %Ns/m
-c2 = 50; %Ns/m
+c2 = 150; %Ns/m
 
 %% Mass/Stiffness matrices
 
@@ -52,7 +52,7 @@ D = zeros(4,3);
 
 %% Time-span and sampling rate
 sr= 0.001;
-tmax=10;
+tmax=5.9;
 t_span = 0:sr:tmax;
 
 % parameters for swept sign Might just use chirp
@@ -114,31 +114,54 @@ Inputs = output.Inputs.data;
 
 figure(1)
 plot(time,states(:,1),LineWidth=2); % Mass 1
-
 hold on
 plot(time,states(:,3),LineWidth=2); % Mass 2
-
-
+hold on
+plot(time,Inputs(:,2),LineWidth=2); % Y input
+grid on
+legend("m_1 position","m_2 positon","Y(t)")
+xlabel("Time");
+ylabel("Displacment")
 %% Energy Calcs
 
 %Power to whole system at time step delta
+delta_Y = 0;
+for i = 2:length(states(:,1))
+delta_Y(i) = Inputs(i-1,2)-Inputs(i,2);
+end
 
-P_system = abs((k1.*(Inputs(:,2)- states(:,1)) + c1.*(Inputs(:,2)-states(:,2)) ) .*Inputs(:,2)); % Watts
+E_system = -(k1.*(Inputs(:,2)- states(:,1)) + c1.*(Inputs(:,2)-states(:,2)) ) .*delta_Y' ; % J
 
 KE_system = (1/2).*(m1).*(states(:,2).^2) + (1/2).*(m2).*(states(:,4).^2);
 PE_system = (1/2).*k2.*(states(:,3)-states(:,1)).^2 + (1/2).*k1.*(states(:,1)-Inputs(:,2)).^2;
-
 Etot_system = KE_system+PE_system;
 
+E_stored = 0;
+for i = 2:length(Etot_system)
+E_stored(i) = E_stored(i-1)+ Etot_system(i);
+end
+
 figure(name = "Power")
-% plot(time,P_system,LineWidth=2);
-% hold on 
+ plot(time,E_system,LineWidth=2);
+ hold on 
 plot(time,KE_system,LineWidth=2);
 hold on
 plot(time,PE_system,LineWidth=2);
 grid on
 plot(time,Etot_system,"black",LineWidth=1);
-legend("KE","PE","System Energy")
+legend("Energy Input","KE","PE","System Energy")
+title("Energy of system")
+xlabel("Time");
+ylabel("Energy J")
+
+figure(name = "Energy storage")
+title("Energy stored")
+stem(time,E_stored,LineWidth=1)
+hold on
+plot(time,E_stored,LineWidth=5)
+grid on
+xlabel("Time");
+ylabel("Total Energy J")
 
 
 
