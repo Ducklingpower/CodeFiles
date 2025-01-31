@@ -3,14 +3,14 @@ close all
 clear
 %% Params
 
-m1 = 1; %kg
-m2 = 20; %kg
+m1 = 5; %kg
+m2 = 10; %kg
 
-k1 = 200; %N/m
-k2 = 12; %N/m
+k1 = 2000; %N/m
+k2 = 1000; %N/m
 
-c1 = 5; %Ns/m
-c2 = 5; %Ns/m
+c1 = 0; %Ns/m
+c2 = 50; %Ns/m
 
 %% Mass/Stiffness matrices
 
@@ -51,8 +51,8 @@ C = [1 0 0 0 ;
 D = zeros(4,3);
 
 %% Time-span and sampling rate
-sr= 0.01;
-tmax=40;
+sr= 0.001;
+tmax=10;
 t_span = 0:sr:tmax;
 
 % parameters for swept sign Might just use chirp
@@ -81,10 +81,10 @@ noise =rand(100000,1)*noiseLevel;
 
 % road input y(t) dy(t)/dt
 
-    y_input   = @(x) 1*sin(2*pi*(x));
+    y_input   = @(x) 1*sin((1/2)*pi*(x));
     y_input_t = timeseries(y_input(position'),t_span); % Y(t)
 
-    dy_input    = @(x) 1*cos(2*pi*(x));
+    dy_input    = @(x) 1*cos((1/2)*pi*(x));
     dy_input_dt = timeseries(dy_input(position'),t_span); % dY(t)/dt
 
 % force inpurt F(t)
@@ -106,11 +106,50 @@ noise =rand(100000,1)*noiseLevel;
 output = sim('Model_sim.slx',[0 tmax]);
 
 states = output.states.data;
+Inputs = output.Inputs.data;
+
+
 % systemInputs = output.input.data;
 
 
 figure(1)
-plot(states(:,1),time)
+plot(time,states(:,1),LineWidth=2); % Mass 1
+
+hold on
+plot(time,states(:,3),LineWidth=2); % Mass 2
+
+
+%% Energy Calcs
+
+%Power to whole system at time step delta
+
+P_system = abs((k1.*(Inputs(:,2)- states(:,1)) + c1.*(Inputs(:,2)-states(:,2)) ) .*Inputs(:,2)); % Watts
+
+KE_system = (1/2).*(m1).*(states(:,2).^2) + (1/2).*(m2).*(states(:,4).^2);
+PE_system = (1/2).*k2.*(states(:,3)-states(:,1)).^2 + (1/2).*k1.*(states(:,1)-Inputs(:,2)).^2;
+
+Etot_system = KE_system+PE_system;
+
+figure(name = "Power")
+% plot(time,P_system,LineWidth=2);
+% hold on 
+plot(time,KE_system,LineWidth=2);
+hold on
+plot(time,PE_system,LineWidth=2);
+grid on
+plot(time,Etot_system,"black",LineWidth=1);
+legend("KE","PE","System Energy")
+
+
+
+
+
+
+
+
+
+
+
 
 
 
