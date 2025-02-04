@@ -205,6 +205,7 @@ D = [0 0 ;
      0 0 ; 
      0 0];
 
+IC = [0 0 0];
 % Inputs
 
 delta_v     = ones(1,length(t_span));
@@ -234,13 +235,21 @@ ylabel("states")
 legend("x","y",'\theta')
 grid on
 
-%% Part 6
+%% part 5 linearized model vs normal
 
-% inputs
-v     = ones(1,length(t_span));
-v     = timeseries(v',t_span);
-omega = sin(0.1.*t_span);
-omega = timeseries(omega',t_span);
+clc
+clear
+
+%%Time-span and sampling rate
+sr= 0.001;
+tmax=10;
+t_span = 0:sr:tmax;
+
+% inputs unicycle
+velocity = ones(1,length(t_span));
+velocity = timeseries(velocity',t_span);
+omega    = sin(0.1.*t_span);
+omega    = timeseries(omega',t_span);
 
 %IC
 x_o     = ones(1,length(t_span))*0;
@@ -250,31 +259,12 @@ y_o     = timeseries(y_o',t_span);
 theta_o = ones(1,length(t_span))*0;
 theta_o = timeseries(theta_o',t_span);
 
-%%Run sim
-output = sim('UnicycleRobot.slx',[0 tmax]);
+% inputs linearized
+delta_v     = ones(1,length(t_span));
+delta_v     = timeseries(delta_v',t_span);
+delta_omega = sin(0.1*t_span);
+delta_omega = timeseries(delta_omega',t_span);
 
-% Obtain outputs
-states = output.states.data;
-
-x     = states(:,1);
-y     = states(:,2);
-theta = states(:,3);
-
-%output plots
-plot(t_span,theta,'o',LineWidth=2)
-hold on
-plot(t_span,x,'o',LineWidth=2)
-hold on
-plot(t_span,y,'o',LineWidth=2)
-hold on
-title("Unicycle outputs")
-xlabel("time")
-ylabel("states")
-grid on
-
-clearvars v omega
-
-% Running linerized unicycle
 % Stright line solution
 theta_sol = 0;
 v         = 1;
@@ -298,31 +288,89 @@ D = [0 0 ;
      0 0 ; 
      0 0];
 
-% Inputs
 
-delta_v     = ones(1,length(t_span));
-delta_v     = timeseries(delta_v',t_span);
-delta_omega = sin(0.1*t_span);
-delta_omega = timeseries(delta_omega',t_span);
 
 %%Run sim
-output = sim('linearizedUnicycleRobot.slx',[0 tmax]);
+output = sim('linearizedUnicycleRobotVSUnicycleRobot.slx',[0 tmax]);
 
-% Obtain outputs
-states = output.states.data;
+% Obtain outputs Uncicyle
+states = output.statesUnicycle.data;
 
-x     = states(:,1);
-y     = states(:,2);
-theta = states(:,3);
+x_unicycle      = states(:,1);
+y_unicycle      = states(:,2);
+theta_unicycle  = states(:,3);
+
+% Obtain outputs LinearIzed
+states = output.statesLinearized.data;
+
+x_Linear     = states(:,1);
+y_Linear     = states(:,2);
+theta_Linear = states(:,3);
 
 %output plots
-plot(t_span,theta,LineWidth=2)
+plot(t_span,theta_unicycle ,'o',LineWidth=2)
 hold on
-plot(t_span,x,LineWidth=2)
+plot(t_span,x_unicycle ,'o',LineWidth=2)
 hold on
-plot(t_span,y,LineWidth=2)
-title("Unicycle outputs")
+plot(t_span,y_unicycle ,'o',LineWidth=2)
+hold on
+plot(t_span,theta_Linear,LineWidth=2)
+hold on
+plot(t_span,x_Linear,LineWidth=2)
+hold on
+plot(t_span,y_Linear,LineWidth=2)
+title("Unicycle Vs Linearized")
 xlabel("time")
 ylabel("states")
 legend('\theta_{unicycle}',"x_{unicycle}","y_{unicycle}",'\theta_{linearized}',"x_{linearized}","y_{linearized}")
 grid on
+
+
+
+
+%% Part 6
+clc
+
+% Stright line solution
+theta_sol = 0;
+v         = 4;
+
+k1 = -2;
+k2 = -4;
+k3 = -6;
+
+% inputs unicycle (zero)
+velocity = ones(1,length(t_span)).*0;
+velocity = timeseries(velocity',t_span);
+omega    = sin(0.1.*t_span).*0;
+omega    = timeseries(omega',t_span);
+
+% state space
+
+A = [ k1*v*cos(theta_sol) 0 -v*sin(theta_sol);
+      k1*v*sin(theta_sol) 0  v*cos(theta_sol);
+             0            k2          k3    ];
+
+EiganVals = eig(A)
+
+B = [  0    0;
+       0    0;
+       0    0];
+
+C = [1 0 0 ;
+     0 1 0 ;
+     0 0 1];
+
+D = [0 0 ;
+     0 0 ; 
+     0 0];
+
+IC = [3 1 pi/4];
+
+
+%%Run sim
+output = sim('linearizedUnicycleRobot.slx',[0 tmax]);
+
+% Obtain outputs Uncicyle
+states = output.states.data;
+
