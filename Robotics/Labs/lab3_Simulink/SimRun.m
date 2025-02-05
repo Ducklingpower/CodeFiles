@@ -173,7 +173,7 @@ xlabel("time")
 ylabel("states")
 legend("x_{unicycle}","y_{unicycle}",'\theta_{unicycle}',"x_{DiffDrive}","y_{DiffDrive}",'\theta_{DiffDrive}')
 
-%% part 4
+%% part 4 Linearized unix
 clc
 clear
 
@@ -212,6 +212,18 @@ delta_v     = ones(1,length(t_span));
 delta_v     = timeseries(delta_v',t_span);
 delta_omega = sin(0.1*t_span);
 delta_omega = timeseries(delta_omega',t_span);
+
+
+% Sol inputs
+
+x_sol     = v.*t_span;
+x_sol     = timeseries(x_sol',t_span);
+y_sol     = zeros(1,length(t_span));
+y_sol     = timeseries(y_sol',t_span);
+theta_sol = zeros(1,length(t_span));
+theta_sol = timeseries(theta_sol',t_span);
+
+
 
 %%Run sim
 output = sim('linearizedUnicycleRobot.slx',[0 tmax]);
@@ -332,8 +344,8 @@ grid on
 clc
 
 % Stright line solution
-theta_sol = 0;
-v         = 4;
+theta = 0;
+v     = 2;
 
 k1 = -2;
 k2 = -4;
@@ -345,13 +357,41 @@ velocity = timeseries(velocity',t_span);
 omega    = sin(0.1.*t_span).*0;
 omega    = timeseries(omega',t_span);
 
+% Sol inputs
+
+x_sol     = v.*t_span;
+x_sol     = timeseries(x_sol',t_span);
+y_sol     = zeros(1,length(t_span));
+y_sol     = timeseries(y_sol',t_span);
+theta_sol = zeros(1,length(t_span));
+theta_sol = timeseries(theta_sol',t_span);
+
+% inputs Diff drive
+
+%%Inputs
+R  = 0.1;
+L  = 0.5;
+% vr = ones(1,length(t_span))*10;
+% vr = timeseries(vr',t_span);
+% vl = ones(1,length(t_span))*5;
+% vl = timeseries(vl',t_span);
+
+%%IC
+x_o     = ones(1,length(t_span)).*-1;
+x_o     = timeseries(x_o',t_span);
+y_o     = ones(1,length(t_span));
+y_o     = timeseries(y_o',t_span);
+theta_o = ones(1,length(t_span)).*(pi/4);
+theta_o = timeseries(theta_o',t_span);
+
+
 % state space
 
-A = [ k1*v*cos(theta_sol) 0 -v*sin(theta_sol);
-      k1*v*sin(theta_sol) 0  v*cos(theta_sol);
-             0            k2          k3    ];
+A = [ k1*v*cos(theta) 0 -v*sin(theta);
+      k1*v*sin(theta) 0  v*cos(theta);
+             0        k2      k3    ];
 
-EiganVals = eig(A)
+EiganVals = eig(A);
 
 B = [  0    0;
        0    0;
@@ -365,11 +405,11 @@ D = [0 0 ;
      0 0 ; 
      0 0];
 
-IC = [3 1 pi/4];
+IC = [-1 1 pi/4];
 
 
 %%Run sim
-output = sim('linearizedUnicycleRobot.slx',[0 tmax]);
+output = sim('ControlledUnicycleAndDifferentialDrive.slx',[0 tmax]);
 
 % Obtain outputs Uncicyle
 states = output.states.data;
