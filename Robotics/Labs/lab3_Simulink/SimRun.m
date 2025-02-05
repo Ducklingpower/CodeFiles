@@ -193,10 +193,10 @@ A = [ 0 0 -v*sin(theta_sol);
       0 0  v*cos(theta_sol);
       0 0          0      ];
 
+
 B = [v*cos(theta_sol) 0 ;
      v*sin(theta_sol) 0 ;
             0         1];
-
 C = [1 0 0 ;
      0 1 0 ;
      0 0 1];
@@ -342,6 +342,13 @@ grid on
 
 %% Part 6
 clc
+clear
+
+%%Time-span and sampling rate
+sr= 0.001;
+tmax=10;
+t_span = 0:sr:tmax;
+
 
 % Stright line solution
 theta = 0;
@@ -371,10 +378,12 @@ theta_sol = timeseries(theta_sol',t_span);
 %%Inputs
 R  = 0.1;
 L  = 0.5;
-% vr = ones(1,length(t_span))*10;
-% vr = timeseries(vr',t_span);
-% vl = ones(1,length(t_span))*5;
-% vl = timeseries(vl',t_span);
+
+% inputs linearized
+delta_v     = ones(1,length(t_span));
+delta_v     = timeseries(delta_v',t_span);
+delta_omega = sin(0.1*t_span);
+delta_omega = timeseries(delta_omega',t_span);
 
 %%IC
 x_o     = ones(1,length(t_span)).*-1;
@@ -414,3 +423,272 @@ output = sim('ControlledUnicycleAndDifferentialDrive.slx',[0 tmax]);
 % Obtain outputs Uncicyle
 states = output.states.data;
 
+%% Part 7
+
+clc
+clear
+
+%%Time-span and sampling rate
+sr= 0.001;
+tmax=10;
+t_span = 0:sr:tmax;
+
+
+% Stright line solution tan(alpha) x+0
+theta = 0.6918;
+v     = 2;
+
+k1 = -5;
+k2 = -10;
+k3 = -4;
+
+% inputs unicycle (zero)
+velocity = ones(1,length(t_span)).*0;
+velocity = timeseries(velocity',t_span);
+omega    = sin(0.1.*t_span).*0;
+omega    = timeseries(omega',t_span);
+
+% Sol inputs
+
+x_sol     = v.*t_span;
+y_sol     = ones(1,length(t_span)).*(tan(pi/8).*x_sol);
+x_sol     = timeseries(x_sol',t_span);
+y_sol     = timeseries(y_sol',t_span);
+theta_sol = ones(1,length(t_span))*1.107;
+theta_sol = timeseries(theta_sol',t_span);
+
+% inputs Diff drive
+
+%%Inputs
+R  = 0.1;
+L  = 0.5;
+
+%%inputs linearized
+delta_v     = ones(1,length(t_span));
+delta_v     = timeseries(delta_v',t_span);
+delta_omega = sin(0.1*t_span);
+delta_omega = timeseries(delta_omega',t_span);
+
+%%IC
+x_o     = ones(1,length(t_span)).*-1;
+x_o     = timeseries(x_o',t_span);
+y_o     = ones(1,length(t_span));
+y_o     = timeseries(y_o',t_span);
+theta_o = ones(1,length(t_span)).*(pi/4);
+theta_o = timeseries(theta_o',t_span);
+
+
+% state space
+
+A = [ k1*v*cos(theta) 0 -v*sin(theta);
+      k1*v*sin(theta) 0  v*cos(theta);
+             0        k2      k3    ];
+
+EiganVals = eig(A);
+
+B = [  0    0;
+       0    0;
+       0    0];
+
+C = [1 0 0 ;
+     0 1 0 ;
+     0 0 1];
+
+D = [0 0 ;
+     0 0 ; 
+     0 0];
+
+IC = [-1 1 pi/4];
+
+
+%%Run sim
+output = sim('ControlledUnicycleAndDifferentialDrive.slx',[0 tmax]);
+
+
+%% part 8
+
+clc
+clear
+
+%%Time-span and sampling rate
+sr= 0.001;
+tmax=30;
+t_span = 0:sr:tmax;
+
+
+% Stright line solution tan(alpha) x+0
+theta = 0.6918;
+v     = 2;
+
+k1 = -5;
+k2 = -10;
+k3 = -4;
+
+% inputs unicycle (zero)
+velocity = ones(1,length(t_span)).*0;
+velocity = timeseries(velocity',t_span);
+omega    = sin(0.1.*t_span).*0;
+omega    = timeseries(omega',t_span);
+
+% Sol inputs
+
+x_sol     = v.*t_span;
+y_sol     = ones(1,length(t_span)).*sin(t_span*v);
+x_sol     = timeseries(x_sol',t_span);
+y_sol     = timeseries(y_sol',t_span);
+theta_sol = ones(1,length(t_span))*1.107;
+theta_sol = timeseries(theta_sol',t_span);
+
+% inputs Diff drive
+
+%%Inputs
+R  = 0.1;
+L  = 0.5;
+
+%%inputs linearized
+delta_v     = ones(1,length(t_span));
+delta_v     = timeseries(delta_v',t_span);
+delta_omega = sin(0.1*t_span);
+delta_omega = timeseries(delta_omega',t_span);
+
+%%IC
+x_o     = ones(1,length(t_span)).*-1;
+x_o     = timeseries(x_o',t_span);
+y_o     = ones(1,length(t_span));
+y_o     = timeseries(y_o',t_span);
+theta_o = ones(1,length(t_span)).*(pi/4);
+theta_o = timeseries(theta_o',t_span);
+
+
+% state space
+
+A = [ k1*v*cos(theta) 0 -v*sin(theta);
+      k1*v*sin(theta) 0  v*cos(theta);
+             0        k2      k3    ];
+
+EiganVals = eig(A);
+
+B = [v*cos(1.17) 0 ;
+     v*sin(1.17) 0 ;
+            0         1];
+
+C = [1 0 0 ;
+     0 1 0 ;
+     0 0 1];
+
+D = [0 0 ;
+     0 0 ; 
+     0 0];
+
+IC = [-1 1 pi/4];
+
+
+%%Run sim
+output = sim("SineWaveTrojectory.slx",[0 tmax]);
+
+
+%% part 9
+
+clc
+clear
+
+%%Time-span and sampling rate
+sr= 0.001;
+tmax=20;
+t_span = 0:sr:tmax;
+
+
+% Stright line solution tan(alpha) x+0
+theta = 0.6918;
+v     = 2;
+
+k1 = -5;
+k2 = -10;
+k3 = -4;
+
+% inputs unicycle (zero)
+velocity = ones(1,length(t_span)).*0;
+velocity = timeseries(velocity',t_span);
+omega    = sin(0.1.*t_span).*0;
+omega    = timeseries(omega',t_span);
+
+% Sol inputs
+
+x_sol     = ones(1,length(t_span)).*5.*cos(v.*t_span);
+y_sol     = ones(1,length(t_span)).*5.*sin(v.*t_span);
+x_sol     = timeseries(x_sol',t_span);
+y_sol     = timeseries(y_sol',t_span);
+theta_sol = ones(1,length(t_span))*1.107;
+theta_sol = timeseries(theta_sol',t_span);
+
+% inputs Diff drive
+
+%%Inputs
+R  = 0.1;
+L  = 0.5;
+
+%%inputs linearized
+delta_v     = ones(1,length(t_span));
+delta_v     = timeseries(delta_v',t_span);
+delta_omega = sin(0.1*t_span);
+delta_omega = timeseries(delta_omega',t_span);
+
+%%IC
+x_o     = ones(1,length(t_span)).*-1;
+x_o     = timeseries(x_o',t_span);
+y_o     = ones(1,length(t_span));
+y_o     = timeseries(y_o',t_span);
+theta_o = ones(1,length(t_span)).*(pi/4);
+theta_o = timeseries(theta_o',t_span);
+
+
+% state space
+
+A = [ k1*v*cos(theta) 0 -v*sin(theta);
+      k1*v*sin(theta) 0  v*cos(theta);
+             0        k2      k3    ];
+
+EiganVals = eig(A);
+
+B = [v*cos(1.17) 0 ;
+     v*sin(1.17) 0 ;
+            0         1];
+
+C = [1 0 0 ;
+     0 1 0 ;
+     0 0 1];
+
+D = [0 0 ;
+     0 0 ; 
+     0 0];
+
+IC = [5 0 pi/4];
+
+
+%%Run sim
+output = sim("SineWaveTrojectory.slx",[0 tmax]);
+
+%%Outputs
+circle = output.circle.data;
+
+x      = circle(:,1);
+y      = circle(:,2);
+x_diff = circle(:,3);
+y_diff = circle(:,4);
+
+figure(name ="circle plot")
+plot(x,y+.75,"--.",LineWidth=1);
+hold on
+plot(x_diff,y_diff+0.5,"--.",LineWidth=1);
+hold on
+plot(5.*cos(v.*t_span),5.*sin(v.*t_span),"Black",Linewidth = 2);
+
+
+grid on
+axis normal 
+axis square
+
+legend("Linearized robot","Diff robot controlled","Desired path")
+xlabel("x Position")
+ylabel("y position")
+title("Circle Path")
