@@ -6,11 +6,11 @@ clear
 m1 = 5; %kg
 m2 = 10; %kg
 
-k1 = 2000; %N/m
+k1 = 30000; %N/m
 k2 = 1000; %N/m
 
 c1 = 0; %Ns/m
-c2 = 150; %Ns/m
+c2 = 10; %Ns/m
 
 %% Mass/Stiffness matrices
 
