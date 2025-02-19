@@ -3,11 +3,11 @@ close all
 clear
 %% Params
 
-m1 = 5; %kg
-m2 = 10; %kg
+m1 = 1; %kg
+m2 = 5; %kg
 
-k1 = 30000; %N/m
-k2 = 1000; %N/m
+k1 = 20000; %N/m
+k2 = 300; %N/m
 
 c1 = 0; %Ns/m
 c2 = 10; %Ns/m
@@ -33,6 +33,11 @@ IC = [0 0 0 0]; % Initial conditions
 
 
 A = [      0             1            0         0   ;
+     (-k1-k2)/(m1) (-c1-c2)/(m1)    k2/m1     c2/m1 ;
+           0             0            0         1   ;
+         k2/m2         c2/m2       -k2/m2    -c2/m2];
+c2 =0;
+A_Nodamp = [      0             1            0         0   ;
      (-k1-k2)/(m1) (-c1-c2)/(m1)    k2/m1     c2/m1 ;
            0             0            0         1   ;
          k2/m2         c2/m2       -k2/m2    -c2/m2];
