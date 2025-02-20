@@ -6,7 +6,7 @@ clear
 m1 = 1; %kg
 m2 = 5; %kg
 
-k1 = 20000; %N/m
+k1 = 2000; %N/m
 k2 = 300; %N/m
 
 c1 = 0; %Ns/m
@@ -54,6 +54,29 @@ C = [1 0 0 0 ;
 
 % D = 0 No feed through neededd
 D = zeros(4,3);
+
+%% For sky model 
+
+
+m_sky = m2; %kg
+
+
+k_sky = k2; %N/m
+
+c_sky = 50; %Ns/m
+
+
+A_sky = [      0           1      ;
+        -k_sky/m_sky -c_sky/m_sky];
+
+B_sky = [      0      ;
+          k_sky/m_sky];
+
+C_sky = [ 1 0  ;
+          0 1 ];
+
+D_sky = zeros(2,1);
+
 
 %% Time-span and sampling rate
 sr= 0.001;
