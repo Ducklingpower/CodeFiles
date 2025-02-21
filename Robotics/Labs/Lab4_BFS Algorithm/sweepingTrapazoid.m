@@ -1,5 +1,5 @@
 clc
-
+close all
 clear 
 %% Input 
 
@@ -25,7 +25,7 @@ WorkSpace = [w1; w2; w3; w4; w5];
 % Obsticles
 
 Q1 = [-4 4 ;-2 4 ;0 0 ; -1 -3;-3 -2];
-Q2 = [1 1; 2 1; 4 3; 3 5; 2 4];
+Q2 = [1 1; 2 4; 3 5; 4.5 3; 2 1];
 
 P(:,:,1) = Q1;
 P(:,:,2) = Q2;
@@ -103,73 +103,80 @@ for i =1:length(P(1,1,:))
     end
 end
 
-
-
-%% Plotting
-
-figure
-plot(WorkSpace(:,1),WorkSpace(:,2),LineWidth=3);
-grid on
-hold on
-for j =1: length(P(1,1,:))
-X = P(:,1,j);
-Y = P(:,2,j);
-fill(X,Y,[rand(1) rand(1) rand(1)])
-hold on 
-end
-hold on
-plot(STGx,STGy,"*",LineWidth=3)
-hold on
-
-for i = 1:length(STGx)
-plot(Xobj(:,i),Vliney(:,i),"black",linestyle = "--")
-end
-
-for i = 1:length(STGx)
-plot(Xobj(:,i),Vliney(:,i),"b*")
-end
-legend("Work space","Obsticle 1","Obsticle 2","Vetex")
-
 %% Getting polygons
 
 %sweeping from left to right
 
-
-
 n=0;
 m=0;
-xlast  = -W(3)/2;
-ylast1 = Ymax;
-ylast2 = Ymin;
+k=0;
+
 for i =1:length(P(1,1,:))
      
+    xlast  = -W(3)/2;
+    ylast1 = Ymax;
+    ylast2 = Ymin;
+
+    if i>1
+    
+    xlast  = max(P(:,1,i-1));
+    else
+    end
+
      Que = 1:length(P);
      Que = [length(P) Que 1];
-    for j =1:length(P)
+
+  
+       
+   
+    for j =1:length(P)+1
         n = n+1;
         m = m+1;
+        k = k+1;
 
+       
+
+    
+     if j == length(P)+1
+        k = k-1;
+
+        P_current    = [P(1,1,i) P(1,2,i)];
+        P_node_back  = [P(Que(1),1,i) P(Que(j),2,i)];
+        P_node_front = [P(Que(1+2),1,i) P(Que(1+2),2,i)];
+
+
+
+
+       x1 = P(1,1,i);
+       x4 = x1;
+       x2 = xlast;
+       x3 = x2;
+
+        y1 =  P(1,2,i);
+        y4 =  Vliney(2,k);
+
+        if x1 <= x2
+        y2 = P(Que(1),2,i);
+        y3 = Ymin;
+        else
+        y2 = ylast1;
+        y3 = P(Que(1),2,i);
+        end
+
+        Poly(:,:,m) = [x1 x2 x3 x4; y1 y2 y3 y4];
+     else 
 
         P_current    = [P(j,1,i) P(j,2,i)];
         P_node_back  = [P(Que(j),1,i) P(Que(j),2,i)];
         P_node_front = [P(Que(j+2),1,i) P(Que(j+2),2,i)];
 
+
+
        if (P_current(1) < min(P_node_front(1), P_node_back(1))) || (P_current(1) > max(P_node_front(1), P_node_back(1)))
             
-            
-        x1 = P(j,1,i);
-        x2 = x1;
-      
-        x3 = xlast;
-        x4 = x3;
+        y3 = ylast2;
+        
 
-
-        y1 =  Ymax;
-        y2 =  Ymin;
-
-        y3 = ylast1;
-        y4 = ylast2;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         x1 = P(j,1,i);
         x4 = x1;
       
@@ -200,11 +207,17 @@ for i =1:length(P(1,1,:))
         x3 = x2;
 
 
-        y1 =  Vliney(1,j);
-        y4 =  Vliney(2,j);
+        y1 =  Vliney(1,k);
+        y4 =  Vliney(2,k);
 
+        if x1 <= x2
+        y2 = P(Que(j),2,i);
+        y3 = Ymin;
+        else
         y2 = ylast1;
         y3 = P(Que(j),2,i);
+        end
+       
 
 
         Poly(:,:,m) = [x1 x2 x3 x4; y1 y2 y3 y4];    
@@ -212,12 +225,118 @@ for i =1:length(P(1,1,:))
 
         xlast  = x1;
         Ylast1 = y1;
-        ylast2 = y3;
-hold on
-X = Poly(1,:,n);
-Y = Poly(2,:,n);
-fill(X,Y,[rand(1) rand(1) rand(1)])
-hold on 
+        ylast2 = y4;
+     end
+    
     end
 end
 
+% last segment
+xlast  = max(P(:,1,length(P(1,1,:))));
+x1 = xlast;
+x4 = x1;
+x2 = Xwidth/2;
+x3 = x2;
+
+y1 = Ymax;
+y2 = Ymax;
+y4 = Ymin;
+y3 = Ymin;
+Poly(:,:,m+1) = [x1 x2 x3 x4; y1 y2 y3 y4]; 
+
+
+
+%% Plotting
+
+
+figure(1)
+title("WorkSpace")
+plot(WorkSpace(:,1),WorkSpace(:,2),LineWidth=3);
+xlim([-Xwidth/2-1 Xwidth/2+1])
+ylim([Ymin-1 Ymax+1])
+grid on
+hold on
+for j =1: length(P(1,1,:))
+X = P(:,1,j);
+Y = P(:,2,j);
+fill(X,Y,[rand(1) rand(1) rand(1)])
+hold on 
+end
+
+
+figure(2)
+title("Sweeping Trap")
+plot(WorkSpace(:,1),WorkSpace(:,2),LineWidth=3);
+xlim([-Xwidth/2-1 Xwidth/2+1])
+ylim([Ymin-1 Ymax+1])
+grid on
+hold on
+for j =1: length(P(1,1,:))
+X = P(:,1,j);
+Y = P(:,2,j);
+fill(X,Y,[rand(1) rand(1) rand(1)])
+hold on 
+end
+hold on
+plot(STGx,STGy,"*",LineWidth=3)
+hold on
+
+for i = 1:length(STGx)
+plot(Xobj(:,i),Vliney(:,i),"black",linestyle = "--")
+end
+
+legend("Work space","Obsticle 1","Obsticle 2","Vetex")
+hold off
+
+%% Plotting shapes Animation
+
+figure(3)
+title("Segment Break Up")
+% plotting work space
+plot(WorkSpace(:,1), WorkSpace(:,2), 'LineWidth', 3);
+xlim([-Xwidth/2-1 Xwidth/2+1])
+ylim([Ymin-1 Ymax+1])
+grid on
+hold on
+
+% plotting polygon obstacles 
+for j = 1:length(P(1,1,:))
+    X = P(:,1,j);
+    Y = P(:,2,j);
+    fill(X, Y, [rand(1) rand(1) rand(1)]);
+    hold on
+end
+
+% plotting vertices
+for i = 1:length(STGx)
+    plot(STGx(i), STGy(i), '*', 'LineWidth', 3, 'Color', 'red');
+    pause(0.3)
+    hold on
+end
+
+% plotting line segments 
+for i = 1:length(STGx)
+    plot(Xobj(:,i), Vliney(:,i), 'k--', 'LineWidth', 2);
+    pause(0.3)
+    hold on
+end
+
+% plotting segments with dynamic legend updates
+segment_handles = []; % Array to store handles for segments
+legend_labels = {};   % Array to store labels
+
+for i = 1:length(Poly(1,1,:))
+    X = Poly(1,:,i);
+    Y = Poly(2,:,i);
+    % Plot segment and store handle with display name
+    h_seg = fill(X, Y, [rand(1) rand(1) rand(1)], 'DisplayName', ['Segment ' num2str(i)]);
+    segment_handles = [segment_handles, h_seg];
+    legend_labels = [legend_labels, {['Segment ' num2str(i)]}];
+    
+    % Update legend dynamically
+    legend(segment_handles, legend_labels, 'Location', 'bestoutside');
+    drawnow; % Force MATLAB to update the figure window
+    
+    pause(0.3)
+    hold on
+end
