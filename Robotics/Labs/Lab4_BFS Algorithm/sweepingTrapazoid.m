@@ -32,7 +32,7 @@ P(:,:,2) = Q2;
 
 
 
-%% algo
+%% algo, vertex and lines
 
 % Getting all x and y Vales
 n=0;
@@ -89,21 +89,19 @@ for i =1:length(P(1,1,:))
         P_node_front = P(Que(j+2),1,i);
 
        if (P_current < min(P_node_front, P_node_back)) || (P_current > max(P_node_front, P_node_back))
-            
-
+         
        else 
-
            if mean(P(:,2,i)) > P(j,2,i)
                 Vliney(:,n) = [P(j,2,i) Ymin];
            else
                 Vliney(:,n) = [Ymax P(j,2,i)];
            end
            
-        end
+       end
     end
 end
 
-%% Getting polygons
+%% Getting Segments
 
 %sweeping from left to right
 
@@ -112,122 +110,94 @@ m=0;
 k=0;
 
 for i =1:length(P(1,1,:))
-     
     xlast  = -W(3)/2;
     ylast1 = Ymax;
     ylast2 = Ymin;
 
     if i>1
-    
     xlast  = max(P(:,1,i-1));
     else
     end
 
-     Que = 1:length(P);
-     Que = [length(P) Que 1];
+    Que = 1:length(P);
+    Que = [length(P) Que 1];
 
-  
-       
-   
     for j =1:length(P)+1
         n = n+1;
         m = m+1;
         k = k+1;
 
-       
-
+         if j == length(P)+1
+            k = k-1;
+            P_current    = [P(1,1,i) P(1,2,i)];
+            P_node_back  = [P(Que(1),1,i) P(Que(j),2,i)];
+            P_node_front = [P(Que(1+2),1,i) P(Que(1+2),2,i)];
     
-     if j == length(P)+1
-        k = k-1;
-
-        P_current    = [P(1,1,i) P(1,2,i)];
-        P_node_back  = [P(Que(1),1,i) P(Que(j),2,i)];
-        P_node_front = [P(Que(1+2),1,i) P(Que(1+2),2,i)];
-
-
-
-
-       x1 = P(1,1,i);
-       x4 = x1;
-       x2 = xlast;
-       x3 = x2;
-
-        y1 =  P(1,2,i);
-        y4 =  Vliney(2,k);
-
-        if x1 <= x2
-        y2 = P(Que(1),2,i);
-        y3 = Ymin;
-        else
-        y2 = ylast1;
-        y3 = P(Que(1),2,i);
-        end
-
-        Poly(:,:,m) = [x1 x2 x3 x4; y1 y2 y3 y4];
-     else 
-
-        P_current    = [P(j,1,i) P(j,2,i)];
-        P_node_back  = [P(Que(j),1,i) P(Que(j),2,i)];
-        P_node_front = [P(Que(j+2),1,i) P(Que(j+2),2,i)];
-
-
-
-       if (P_current(1) < min(P_node_front(1), P_node_back(1))) || (P_current(1) > max(P_node_front(1), P_node_back(1)))
+            x1 = P(1,1,i);
+            x4 = x1;
+            x2 = xlast;
+            x3 = x2;
+    
+            y1 =  P(1,2,i);
+            y4 =  Vliney(2,k);
+    
+            if x1 <= x2
+    
+            y2 = P(Que(1),2,i);
+            y3 = Ymin;
+            else
+    
+            y2 = ylast1;
+            y3 = P(Que(1),2,i);
+            end
+    
+            Poly(:,:,m) = [x1 x2 x3 x4; y1 y2 y3 y4];
+         else 
+            P_current    = [P(j,1,i) P(j,2,i)];
+            P_node_back  = [P(Que(j),1,i) P(Que(j),2,i)];
+            P_node_front = [P(Que(j+2),1,i) P(Que(j+2),2,i)];
+    
+            if (P_current(1) < min(P_node_front(1), P_node_back(1))) || (P_current(1) > max(P_node_front(1), P_node_back(1))) 
+                y3 = ylast2;
             
-        y3 = ylast2;
-        
-
-        x1 = P(j,1,i);
-        x4 = x1;
-      
-        x2 = xlast;
-        x3 = x2;
-
-
-        y1 =  Ymax;
-
-        if y3 == Ymin
-        y4 =  Ymin;
-        else
-        y4 = P(j,2,i);
-        end
-        y2 = ylast1;
-        y3 = ylast2;
-
-
-        Poly(:,:,m) = [x1 x2 x3 x4; y1 y2 y3 y4];
-
-       else 
- 
-          
-        x1 = P(j,1,i);
-        x4 = x1;
-      
-        x2 = xlast;
-        x3 = x2;
-
-
-        y1 =  Vliney(1,k);
-        y4 =  Vliney(2,k);
-
-        if x1 <= x2
-        y2 = P(Que(j),2,i);
-        y3 = Ymin;
-        else
-        y2 = ylast1;
-        y3 = P(Que(j),2,i);
-        end
-       
-
-
-        Poly(:,:,m) = [x1 x2 x3 x4; y1 y2 y3 y4];    
-       end
-
-        xlast  = x1;
-        Ylast1 = y1;
-        ylast2 = y4;
-     end
+                x1 = P(j,1,i);
+                x4 = x1;
+                x2 = xlast;
+                x3 = x2;
+                y1 =  Ymax;
     
+                if y3 == Ymin
+                   y4 =  Ymin;
+                else
+                   y4 = P(j,2,i);
+                end
+                y2 = ylast1;
+                y3 = ylast2;
+                Poly(:,:,m) = [x1 x2 x3 x4; y1 y2 y3 y4];
+    
+           else   
+                x1 = P(j,1,i);
+                x4 = x1;
+                x2 = xlast;
+                x3 = x2;
+                y1 =  Vliney(1,k);
+                y4 =  Vliney(2,k);
+    
+                if x1 <= x2
+                y2 = P(Que(j),2,i);
+                y3 = Ymin;
+                else
+                y2 = ylast1;
+                y3 = P(Que(j),2,i);
+                end
+          
+            Poly(:,:,m) = [x1 x2 x3 x4; y1 y2 y3 y4];    
+           end
+    
+           xlast  = x1;
+           Ylast1 = y1;
+           ylast2 = y4;
+        end
     end
 end
 
@@ -244,13 +214,10 @@ y4 = Ymin;
 y3 = Ymin;
 Poly(:,:,m+1) = [x1 x2 x3 x4; y1 y2 y3 y4]; 
 
-
-
 %% Plotting
 
 
 figure(1)
-title("WorkSpace")
 plot(WorkSpace(:,1),WorkSpace(:,2),LineWidth=3);
 xlim([-Xwidth/2-1 Xwidth/2+1])
 ylim([Ymin-1 Ymax+1])
@@ -262,10 +229,9 @@ Y = P(:,2,j);
 fill(X,Y,[rand(1) rand(1) rand(1)])
 hold on 
 end
-
+title("WorkSpace")
 
 figure(2)
-title("Sweeping Trap")
 plot(WorkSpace(:,1),WorkSpace(:,2),LineWidth=3);
 xlim([-Xwidth/2-1 Xwidth/2+1])
 ylim([Ymin-1 Ymax+1])
@@ -282,10 +248,11 @@ plot(STGx,STGy,"*",LineWidth=3)
 hold on
 
 for i = 1:length(STGx)
-plot(Xobj(:,i),Vliney(:,i),"black",linestyle = "--")
+plot(Xobj(:,i),Vliney(:,i),"black",linestyle = "--",LineWidth=2)
 end
 
 legend("Work space","Obsticle 1","Obsticle 2","Vetex")
+title("Sweeping Trap")
 hold off
 
 %% Plotting shapes Animation
