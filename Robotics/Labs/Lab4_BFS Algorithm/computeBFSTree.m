@@ -1,6 +1,4 @@
 function [Parent,G] = computeBFSTree(AdjTable,vStart)
-
-
 %% Intilize
 
 Parent = nan(1,length(AdjTable));
@@ -12,6 +10,7 @@ Que(1) = vStart;
 Node   = [];
 Branch = [];
 
+%% main looop
 while length(Que)>0
     vCurrent = Que(1);
     Que(1) = [];
