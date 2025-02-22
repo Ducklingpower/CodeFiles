@@ -1,14 +1,10 @@
-
+function [Poly] = SweepingAlgo(W,P)
 %% Input 
 
 %Workspace
-
-Ymax   = 6;
-Ymin   =-5;
-Xwidth =10;
-
-W = [Ymax Ymin Xwidth]; % Assume (0,0) is origin
-
+Ymax   = W(1);
+Ymin    = W(2);
+Xwidth  = W(3);
 
 %extracting work space
 w1 = [-W(3)/2 W(1)];
@@ -19,15 +15,6 @@ w5 = [-W(3)/2 W(1)];
 
 
 WorkSpace = [w1; w2; w3; w4; w5];
-
-% Obsticles
-
-Q1 = [-4 4 ;-2 4 ;0 0 ; -1 -3;-3 -2];
-Q2 = [1 1; 2 4; 3 5; 4.5 3; 2 1];
-
-P(:,:,1) = Q1;
-P(:,:,2) = Q2;
-
 
 
 %% algo, vertex and lines
@@ -304,4 +291,5 @@ for i = 1:length(Poly(1,1,:))
     
     pause(0.3)
     hold on
+end
 end
