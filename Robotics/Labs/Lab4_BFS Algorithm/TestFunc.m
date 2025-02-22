@@ -26,3 +26,34 @@ vGoal  = 9;
 plotPathOnBFSTree(AdjTable, Parent, Path);
 
 plotWorkspaceFromAdjTable(AdjTable,Parent, Path);
+
+
+
+
+%% Runing sweepig trap 
+
+% Inputa
+
+%Workspace
+
+Ymax   = 6;
+Ymin   =-5;
+Xwidth =20;
+W = [Ymax Ymin Xwidth]; % Assume (0,0) is origin
+
+% Obsticles
+
+Q1 = [-4 4 ;-2 4 ;0 0 ; -1 -3;-3 -2];
+Q2 = [1 1; 2 4; 3 5; 4.5 3; 2 1];
+Q3 = [5 -4; 6 -1; 7 0; 8 -2; 6 -3];
+Q4 = [-9 1; -8 4; -7 5; -5.5 -1; -7 2];
+
+P(:,:,2) = Q1;
+P(:,:,3) = Q2;
+P(:,:,4) = Q3;
+P(:,:,1) = Q4;
+
+
+% Running function
+segment = SweepingAlgo(W,P);
+

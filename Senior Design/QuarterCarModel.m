@@ -7,10 +7,10 @@ m1 = 1; %kg
 m2 = 5; %kg
 
 k1 = 2000; %N/m
-k2 = 300; %N/m
+k2 = 400; %N/m
 
-c1 = 0; %Ns/m
-c2 = 10; %Ns/m
+c1 = 10; %Ns/m
+c2 = 40; %Ns/m
 
 %% Mass/Stiffness matrices
 
@@ -31,16 +31,16 @@ NaturalFrequency = diag(sqrt(Eval)) / (2 * pi);
 
 IC = [0 0 0 0]; % Initial conditions
 
-
 A = [      0             1            0         0   ;
      (-k1-k2)/(m1) (-c1-c2)/(m1)    k2/m1     c2/m1 ;
            0             0            0         1   ;
          k2/m2         c2/m2       -k2/m2    -c2/m2];
-c2 =0;
+
+
 A_Nodamp = [      0             1            0         0   ;
-     (-k1-k2)/(m1) (-c1-c2)/(m1)    k2/m1     c2/m1 ;
-           0             0            0         1   ;
-         k2/m2         c2/m2       -k2/m2    -c2/m2];
+            (-k1-k2)/(m1) (-c1-0)/(m1)    k2/m1     0/m1 ;
+                  0             0            0         1   ;
+                k2/m2         0/m2       -k2/m2    -0/m2];
 
 B = [  0     0     0   ;
      -1/m1 k1/m1 c1/m1 ;
@@ -63,7 +63,7 @@ m_sky = m2; %kg
 
 k_sky = k2; %N/m
 
-c_sky = 50; %Ns/m
+c_sky = 40; %Ns/m
 
 
 A_sky = [      0           1      ;
@@ -133,35 +133,35 @@ noise =rand(100000,1)*noiseLevel;
 
 output = sim('Model_sim.slx',[0 tmax]);
 
-states = output.states.data;
+%% Obtain states
+statesControlled   = output.statesControlled.data;
+statesUncontrolled = output.statesUncontrolled.data;
 Inputs = output.Inputs.data;
 
-
-% systemInputs = output.input.data;
-
-
+%%
 figure(1)
-plot(time,states(:,1),LineWidth=2); % Mass 1
+
+plot(time,statesControlled(:,3),LineWidth=2); % Mass 2
 hold on
-plot(time,states(:,3),LineWidth=2); % Mass 2
+plot(time,statesUncontrolled(:,3),LineWidth=2); % Mass 2
 hold on
 plot(time,Inputs(:,2),LineWidth=2); % Y input
 grid on
-legend("m_1 position","m_2 positon","Y(t)")
+legend("m_2 position Controlled","m_2 positon Uncontrolled","Y(t)")
 xlabel("Time");
 ylabel("Displacment")
 %% Energy Calcs
 
 %Power to whole system at time step delta
 delta_Y = 0;
-for i = 2:length(states(:,1))
+for i = 2:length(statesControlled(:,1))
 delta_Y(i) = Inputs(i-1,2)-Inputs(i,2);
 end
 
-E_system = -(k1.*(Inputs(:,2)- states(:,1)) + c1.*(Inputs(:,2)-states(:,2)) ) .*delta_Y' ; % J
+E_system = -(k1.*(Inputs(:,2)- statesControlled(:,1)) + c1.*(Inputs(:,2)-statesControlled(:,2)) ) .*delta_Y' ; % J
 
-KE_system = (1/2).*(m1).*(states(:,2).^2) + (1/2).*(m2).*(states(:,4).^2);
-PE_system = (1/2).*k2.*(states(:,3)-states(:,1)).^2 + (1/2).*k1.*(states(:,1)-Inputs(:,2)).^2;
+KE_system = (1/2).*(m1).*(statesControlled(:,2).^2) + (1/2).*(m2).*(statesControlled(:,4).^2);
+PE_system = (1/2).*k2.*(statesControlled(:,3)-statesControlled(:,1)).^2 + (1/2).*k1.*(statesControlled(:,1)-Inputs(:,2)).^2;
 Etot_system = KE_system+PE_system;
 
 E_stored = 0;
