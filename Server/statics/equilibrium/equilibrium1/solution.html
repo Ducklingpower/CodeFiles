@@ -1,0 +1,61 @@
+<pl-solution-panel>
+    <pl-figure file-name="Equilibrium1.png"></pl-figure>
+    <pl-hint level="1" data-type="text">The first step is to set convert all of the forces into forces vectors.This can be done by multiplying the force magnitude by the unit vector that follows the path of the force.</pl-hint>
+    <pl-hint level="2" data-type="text">To compute the unit vector all you have to due is divide the length of the vector by its self.</pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul>
+                Computing the Force vectors:
+                <li>$\vec{F}_O = (F_O)(\vec{U}_O)$. let the unit vector $\vec{U}_O = \frac{-L_3\hat{i}-L_1\hat{j}+L_1\hat{k} }{\sqrt{(L_3)^2+(L_1)^2+(L_1)^2} }$ </li>
+                <p>So the force vector $\vec{F}_O = (F_O)\frac{-L_3\hat{i}-L_1\hat{j}+L_1\hat{k} }{\sqrt{(L_3)^2+(L_1)^2+(L_1)^2} }$.</p>
+              
+                <li>$\vec{F}_P = (F_P)(\vec{U}_P)$. let the unit vector $\vec{U}_P = \frac{-L_2\hat{i}+L_2\hat{j}+0\hat{k} }{\sqrt{(L_2)^2+(L_2)^2} }$ .</li>
+                <p>So the force vector $\vec{F}_P = (F_P) \frac{-L_2\hat{i}+L_2\hat{j}+0\hat{k} }{\sqrt{(L_2)^2+(L_2)^2} }$.</p>
+              
+                <li>$\vec{F}_B = (F_B)(\vec{U}_B)$. let the unit vector $\vec{U}_B = \frac{L_2\hat{i}+L_1\hat{j}+L_2\hat{k} }{\sqrt{(L_2)^2+(L_2)^2+(L_1)^2} }$ .</li>
+                <p>So the force vector $\vec{F}_B = (F_B) \frac{L_2\hat{i}+L_1\hat{j}+L_2\hat{k} }{\sqrt{(L_2)^2+(L_2)^2+(L_1)^2} }$</p>
+
+                <li>$\vec{F}_R = (F_R)(\vec{U}_R)$. let the unit vector $\vec{U}_R = \frac{L_2\hat{i}-L_2\hat{j}-L_3\hat{k} }{\sqrt{(L_2)^2+(L_2)^2+(L_3)^2} }$ .</li>
+                <p>So the force vector $\vec{F}_R = (F_R) \frac{L_2\hat{i}-L_2\hat{j}-L_3\hat{k} }{\sqrt{(L_2)^2+(L_2)^2+(L_3)^2} }$</p>
+                    
+
+                <li>Now that you have all of the force vectors, set up the static equilibrium force equations.</li>
+                
+                </ul>
+            </pl-hint>
+        
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+            Setting up static equilibrium force equations:
+           <Li>$\Sigma{F}_x= 0 \implies -\vec{F}_O\hat{i}-\vec{F}_P\hat{i}+\vec{F}_B\hat{i}+\vec{F}_R\hat{i}+\vec{F}\hat{i} = 0$</Li>
+           <Li>$\Sigma{F}_y= 0 \implies -\vec{F}_O\hat{j}+\vec{F}_P\hat{j}+\vec{F}_B\hat{j}-\vec{F}_R\hat{j}+\vec{F}\hat{j} = 0$</Li>
+           <Li>$\Sigma{F}_z= 0 \implies \vec{F}_O\hat{z}+\vec{F}_B\hat{z}-\vec{F}_R\hat{z}+\vec{F}\hat{z} = 0$</Li>
+            <p>Where $\vec{F}$ is the messing vector we want to find. </p>
+
+           <p>Solving each equation for $\vec{F}\hat{i}$,$\vec{F}\hat{j}$, and $\vec{F}\hat{k}$ </p>
+           <li>$\vec{F}\hat{i} = \vec{F}_O\hat{i}+\vec{F}_P\hat{i}-\vec{F}_B\hat{i}-\vec{F}_R\hat{i}$</li>
+           <li>$\vec{F}\hat{j} = \vec{F}_O\hat{j}+\vec{F}_R-\vec{F}_P\hat{j}\hat{j}-\vec{F}_B\hat{j}$</li>
+           <li>$\vec{F}\hat{k} = -\vec{F}_O\hat{k}-\vec{F}_B\hat{k}+\vec{F}_F\hat{k}$</li>
+
+            Now that you have the missing vector, compute the magnitude and the unit vector.
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+            
+        Computing magnitude:
+        <li>$F = \sqrt{\vec{F}\hat{i}^2+\vec{F}\hat{j}^2+\vec{F}\hat{k}^2} = {{correct_answers.F}} {{params.unitsForce}}$.</li>
+   
+        Computing unit vector:
+        <li>$\vec{U}_F = \frac{\vec{F}\hat{i}+\vec{F}\hat{j}+\vec{F}\hat{k} }{\sqrt{(\vec{F}\hat{i})^2+(\vec{F}\hat{j})^2+(\vec{F}\hat{k})^2} }$</li>
+        <li>$\vec{U}_F \hat{i} = {{correct_answers.Ufx}}$</li>
+        <li>$\vec{U}_F \hat{j} = {{correct_answers.Ufy}}$</li>
+        <li>$\vec{U}_F \hat{k} = {{correct_answers.Ufz}}$</li>
+
+        </ul>
+    </pl-hint>
+

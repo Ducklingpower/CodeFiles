@@ -1,0 +1,12 @@
+<pl-question-panel>
+    <pl-figure file-name="flangedshaft.png"></pl-figure>
+<p>
+Two shafts are coupled by flanges that are bolted togather by four bolts. The bolts are located on a circle on diameter {{params.D}} {{params.unitsDiameter}}. One of the shafts is connected to a motor that supplies {{params.power}} {{params.unitsPower}} and that rotates at {{params.rpm}} rpm.
+</p>
+<p> The bolts are made of {{params.materialName}} with yield strength {{params.sult}} {{params.unitsStress}}, shear strength {{params.tult}} {{params.unitsStress}}, modulus of elasticity {{params.E}} {{params.unitsModulusElasticity}} and Poisson's ratio {{params.nud}}</p>
+</pl-question-panel>
+
+What is the minimum diameter (in {{params.unitsDiameter}}) required for the bolts if the factor of safety is to be {{params.fs}}?
+<pl-number-input answers-name="d" comparison="sigfig" digits="3" label="Bolt Diameter  (in {{params.unitsDiameter}})"></pl-number-input>
+
+

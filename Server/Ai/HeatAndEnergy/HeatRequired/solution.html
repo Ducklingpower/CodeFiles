@@ -1,0 +1,44 @@
+```html
+<pl-solution-panel>
+    <!-- Problem Statement -->
+    <pl-hint level="1" data-type="text">
+        The problem requires calculating the energy needed to increase the temperature of a given mass of water from an initial temperature to a final temperature, using its specific heat capacity.
+    </pl-hint>
+
+    <!-- Known Variables Description -->
+    <pl-hint level="1" data-type="text">
+        We know:
+        <ul>
+            <li>Mass of water ($m$): {{params.m}} {{params.unitsMass}}</li>
+            <li>Initial temperature ($T_i$): {{params.Ti}} {{params.unitsTemperature}}</li>
+            <li>Final temperature ($T_f$): {{params.Tf}} {{params.unitsTemperature}}</li>
+            <li>Specific heat capacity ($C_p$): {{params.Cp}} {{params.unitsCp}}</li>
+        </ul>
+    </pl-hint>
+
+    <!-- Equation Setup -->
+    <pl-hint level="1" data-type="text">
+        The amount of heat required ($Q$) can be calculated using the formula:
+        $Q = m \cdot C_p \cdot (T_f - T_i)$
+    </pl-hint>
+
+    <!-- Solution Process -->
+    <pl-hint level="1" data-type="text">
+        Substitute the known values into the equation:
+        <ul>
+            <li>Calculate the temperature change: \( \Delta T = T_f - T_i = {{params.Tf}} - {{params.Ti}} \)</li>
+            <li>Calculate the heat required: \( Q = {{params.m}} \cdot {{params.Cp}} \cdot \Delta T \)</li>
+        </ul>
+    </pl-hint>
+
+    <!-- Explanation and Clarification -->
+    <pl-hint level="1" data-type="text">
+        This calculation assumes no heat loss to the surroundings, and the specific heat capacity ($C_p$) remains constant over the temperature range.
+    </pl-hint>
+
+    <!-- Final Calculated Answer -->
+    <pl-hint level="1" data-type="text">
+        Therefore, the heat required is calculated as: \( Q = {{correct_answers.Q}} {{params.unitsHeat}} \)
+    </pl-hint>
+</pl-solution-panel>
+```

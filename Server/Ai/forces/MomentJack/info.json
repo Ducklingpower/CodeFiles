@@ -1,0 +1,26 @@
+{
+    "uuid": "123e4567-e89b-12d3-a456-426614174000",
+    "title": "EffectiveLengthOfHandleForJack",
+    "stem": "Calculating mechanical advantage using moments and forces",
+    "topic": "Physics - Mechanics",
+    "tags": [
+        "mechanical advantage",
+        "moments",
+        "force",
+        "lifting jack",
+        "physics",
+        "engineering"
+    ],
+    "prereqs": [
+        "Understanding of moments and torques",
+        "Basic algebra"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

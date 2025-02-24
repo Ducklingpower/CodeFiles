@@ -1,0 +1,63 @@
+<pl-question-panel>
+    <p>A machine specialized for use in the manufacture of motor vehicles is purchased for {{params.cost}} USD. The machine is purchased with a {{params.loan}} USD loan and {{params.payed}} USD of equity.</p>
+ 
+    <p>The loan has an interest rate of {{params.rate}}% and is paid off in five years.</p>
+    <p>The machine is depreciated using the MACRS 3-year schedule. The revenue minus cost for each of the five years of operation is {{params.BTLCF}}. The tax rate is {{params.taxrate}}%. Complete the table below. </p>
+
+    <p>\[
+        \small % Reduce font size for the table
+        \begin{array}{|c|c|c|c|c|c|c|c|c|c|}
+        \hline
+        \textbf{EOY} & 
+        \textbf{BTLCF} & 
+        \textbf{MACRS Deduction} & 
+        \textbf{Book Value} & 
+        \textbf{Loan Principal Payment} & 
+        \textbf{Loan Interest Payment} & 
+        \textbf{Remaining Principal} & 
+        \textbf{Taxable Income} & 
+        \textbf{Tax} & 
+        \textbf{ATCF} \\ 
+        \hline
+        0 & & & & & & & & & \\ \hline
+        1 & & & & & & & & & \\ \hline
+        2 & & & & & & & & & \\ \hline
+        3 & & & & & & & & & \\ \hline
+        4 & & & & & & & & & \\ \hline
+        5 & & & & & & & & & \\ \hline
+        \end{array}
+        \]</p>
+
+
+</pl-question-panel>
+
+
+<p>Loan Payments</p>
+<pl-number-input answers-name="A" comparison="sigfig" digits="3" label="Monthly Loan Payment = "></pl-number-input>
+
+<p>EOY 1</p>
+<pl-number-input answers-name="ip1" comparison="sigfig" digits="3" label="Interest Payed at EOY1 = "></pl-number-input>
+<pl-number-input answers-name="delta1" comparison="sigfig" digits="3" label="Remaining Principle at EOY1 = "></pl-number-input>
+<pl-number-input answers-name="ti1" comparison="sigfig" digits="3" label="Taxable Income at EOY 1 = "></pl-number-input>
+<pl-number-input answers-name="ATCF1" comparison="sigfig" digits="3" label="After Tax Cash Flow (AFCF) at EOY 1 = "></pl-number-input>
+
+<p>EOY 3</p>
+
+<pl-number-input answers-name="ip3" comparison="sigfig" digits="3" label="Interest Payed at EOY3 = "></pl-number-input>
+<pl-number-input answers-name="delta3" comparison="sigfig" digits="3" label="Remaining Principle at EOY3 = "></pl-number-input>
+<pl-number-input answers-name="ti3" comparison="sigfig" digits="3" label="Taxable Income at EOY 3 = "></pl-number-input>
+<pl-number-input answers-name="ATCF3" comparison="sigfig" digits="3" label="After Tax Cash Flow (AFCF) at EOY 3 = "></pl-number-input>
+
+<p>EOY 5</p>
+
+<pl-number-input answers-name="ip5" comparison="sigfig" digits="3" label="Interest Payed at EOY5 = "></pl-number-input>
+<pl-number-input answers-name="delta5" comparison="sigfig" digits="3" label="Remaining Principle at EOY5 = "></pl-number-input>
+<pl-number-input answers-name="ti5" comparison="sigfig" digits="3" label="Taxable Income at EOY 5 = "></pl-number-input>
+<pl-number-input answers-name="ATCF5" comparison="sigfig" digits="3" label="After Tax Cash Flow (AFCF) at EOY 5 = "></pl-number-input>
+
+
+
+
+
+
+

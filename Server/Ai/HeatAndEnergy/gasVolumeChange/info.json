@@ -1,0 +1,25 @@
+{
+    "title": "GasVolumeChange",
+    "stem": "Determining the volume of a gas when temperature changes at constant pressure.",
+    "topic": "Gas Laws",
+    "tags": [
+        "gas laws",
+        "volume",
+        "temperature",
+        "ideal gas",
+        "thermal expansion"
+    ],
+    "prereqs": [
+        "Understanding of the ideal gas law",
+        "Basic knowledge of temperature scales",
+        "Concept of constant pressure processes"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

@@ -1,0 +1,24 @@
+{
+    "title": "HeatCapacityCalculation",
+    "stem": "Calculating heat transfer in thermodynamic systems",
+    "topic": "Thermodynamics",
+    "tags": [
+        "heat transfer",
+        "thermodynamics",
+        "specific heat capacity",
+        "calorimetry"
+    ],
+    "prereqs": [
+        "Basic understanding of thermodynamics",
+        "Familiarity with specific heat capacity",
+        "Knowledge of heat transfer calculations"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

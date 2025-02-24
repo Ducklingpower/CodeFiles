@@ -1,0 +1,26 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To determine the annual payment for the loan, we can use the formula for the annuity payment, which is given by:
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        \[ PMT = \frac{P \times r}{1 - (1 + r)^{-n} } \]
+        where:
+
+         <p>PMT is the annual payment</p>
+         <p>P is the principal loan amount (\( {{params.loan_amount}} \) {{params.unitsCurrency}})</p>
+            <p>r is the annual interest rate (as a decimal)</p>
+            <p>n is the total number of payments (years)</p>
+
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        First, we need to convert the interest rate from a percentage to a decimal by dividing by 100:
+        \[ r = \frac{ {{params.interest_rate}} } {100} \]
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        Next, substitute the values into the annuity payment formula:
+        \[ PMT = \frac{ { {{params.loan_amount}} \times \left(\frac{ {{params.interest_rate}} } {100}\right)} } {1 - \left(1 + \frac{ {{params.interest_rate}} } {100}\right)^{-{{params.years}} } } \]
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        This formula allows us to calculate the annual payment required to pay off the loan over the specified number of years. The final annual payment will be approximately \( {{correct_answers.annual_payment}} \) {{params.unitsCurrency}}.
+    </pl-hint>
+</pl-solution-panel>

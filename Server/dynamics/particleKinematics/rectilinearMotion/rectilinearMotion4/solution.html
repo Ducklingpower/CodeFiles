@@ -1,0 +1,27 @@
+<pl-solution-panel>
+    <pl-figure file-name="rectilinearMotion4.png"></pl-figure>
+    <pl-hint level="1" data-type="text">   First separate the problem into two components. Up and down and left and right. In the Horizontal direction, the velocity will be constant, and in the vertical direction, the acceleration will be constant pointing downwards.</pl-hint>
+     
+    <pl-hint level="2" data-type="text">
+        <ul>
+          Writing equations of motion for the horizontal and verticle components.
+     
+         <p>Horizontal: $ v = \frac{D}{t} $  $\implies$ $ vcos(\theta + \phi) = \frac{Dcos(\theta)}{t} $ $\implies$ $D = \frac{vcos(\theta+\phi)t}{cos(\theta)}$</p>
+         <p>Vertical: $D = vt+\frac{1}{2}at^2$ $\implies$ $Dsin(\theta) = vsin(\theta+\phi)t-\frac{1}{2}gt^2$</p>
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="3" data-type="text">
+        <ul>
+           You now have two equations and two unknowns. You can plug in $D = \frac{vcos(\theta+\phi)t}{cos(\theta)}$ into $Dsin(\theta) = vsin(\theta+\phi)t-\frac{1}{2}gt^2$
+           <p>After plugging in D you should get $0 = [-\frac{vcos(\theta+\phi)}{cos(\theta)}sin(\theta) +vsin(\theta+\phi)]t-\frac{1}{2}gt^2$</p>
+           <p>Solving for t using the quadratic formula we get t = {{correct_answers.t}} seconds</p>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+To solve for the total distance traveled, all you have to do is plug in t into your original distance equation.
+<p>Solution: $D = \frac{vcos(\theta+\phi)t}{cos(\theta)}$ $\implies$  $D = \frac{ {{params.V}}cos({{params.theta}}^o+{{params.phi}}^o) {{correct_answers.t}} }{cos({{params.theta}}^o)}$ = {{correct_answers.D}} m</p>
+        </ul>
+    </pl-hint>

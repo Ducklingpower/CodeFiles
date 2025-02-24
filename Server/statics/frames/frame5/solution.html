@@ -1,0 +1,49 @@
+<pl-solution-panel>
+    <pl-figure file-name="frame5.png"></pl-figure>
+    <pl-hint level="1" data-type="text">Draw a free body diagram on member CB and try and solve for the unkowns. </pl-hint>
+    <pl-hint level="2" data-type="text">When drawing a free body diagram on member CB we can draw the reaction forces on point C as down and left for Cy and Cx. 
+        Since member AB is a two force member we can draw the reaction force at point B as a single force point towards B and at an angle that follows a line from point A to B. 
+        Lastly you can draw the tension forces causes by the pully and the weight. The tension points left and down coming from the pully.  </pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul>
+                    Solving using member CB:
+
+
+                    <p>Let $\theta = tan^{-1}(\frac{2_1}{L_2}) $</p>
+
+                    <li>$\Sigma{M}_C = 0 $ $\implies$ $B_rSin(\theta)L_2+ W(R) - W (L_2+L_3+R) = 0$</li>
+                    <p> Solving for $B_R$ (the reaction force on point B) we get:</p>
+                    <li>$B_R = \frac{W(L_2+L_3+R)-W(R)}{Sin(\theta)L_2}$</li>
+                    
+
+
+                    We can break the reaction force $B_R$ into $B_x$ and $B_y$:
+                    <li>$B_x = cos(\theta)B_R$ </li>
+                    <li>$B_y = sin(\theta)B_R$ </li>
+
+                    Now you can try to solve for $C_x$ and $C_y$
+
+                </ul>
+            </pl-hint>
+        
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+            Solving for $C_x$ and $C_y$:
+            <li>$\Sigma{F}_x = 0 $ $\implies$ $ B_x - C_x -W = 0$ $\implies$ $C_x = W-B_x$ </li>
+            <li>$\Sigma{F}_y = 0 $ $\implies$ $ B_y - C_y -W = 0$ $\implies$ $C_y = W-B_y$ </li>
+
+            Solutions:
+           $ B_x = {{correct_answers.Bx}} {{params.unitsForce}}$
+           $ B_y = {{correct_answers.By}} {{params.unitsForce}}$
+           $ C_x = {{correct_answers.Cx}} {{params.unitsForce}}$
+           $ C_y = {{correct_answers.Cy}} {{params.unitsForce}}$
+             
+             
+        
+        
+        </ul>
+    </pl-hint>
+

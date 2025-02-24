@@ -1,0 +1,15 @@
+<pl-question-panel>
+    <pl-figure file-name="Performance.png"></pl-figure>
+
+    <p>An inventor claims to have developed a device requiring no energy transfer by work or heat transfer, yet able to produce hot and cold streams of air from a single stream of air at an intermediate temperature. The image illustrates the process.</p>
+    <p>When air enters at a temperature of $\mathbf{T_{in} } = {{params.T_in}}^\circ C$ and a pressure of $\mathbf{P_{in} } = {{params.P_in}}~bar$, separate streams of air exit at temperatures of $\mathbf{T_{cold} } = {{params.T_cold}}^\circ C$ and $\mathbf{T_{hot} } = {{params.T_hot}}^\circ C$, and each at a pressure of $\mathbf{P_{out} } = {{params.P_out}}~bar$. Sixty percent of the mass entering the device exits at the lower temperature. Evaluate the inventor's claim by solving for the chnage in entropy by employing the ideal gas model for air and ignoring changes in the kinetic and potential energies of the streams from inlet to exit.</p>
+    <p>Assume the air is modeled as an ideal gas with $c_p = 1 ~kJ/(kg \cdot K)$ </p>
+</pl-question-panel>
+
+<pl-number-input answers-name="entropyBalance" comparison="sigfig" digits="3" label="Entropy balance check result (kJ/kg·K) ="></pl-number-input>
+
+<p>Does the inventers claim violate the principles of thermodynamics?</p>
+<pl-multiple-choice answers-name="validity" weight = "1" inline="true">
+    <pl-answer correct ="false">Yes</pl-answer>
+    <pl-answer correct ="true">No</pl-answer>
+</pl-multiple-choice-input>

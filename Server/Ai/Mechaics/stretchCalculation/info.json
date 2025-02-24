@@ -1,0 +1,25 @@
+{
+    "uuid": "123e4567-e89b-12d3-a456-426614174000",
+    "title": "WireExtensionCalculation",
+    "stem": "Determining the extension of a wire under tensile load due to strain",
+    "topic": "Mechanical Engineering",
+    "tags": [
+        "Tensile Force",
+        "Strain",
+        "Wire Extension",
+        "Mechanical Properties"
+    ],
+    "prereqs": [
+        "Understanding of basic mechanics",
+        "Knowledge of strain and elongation concepts",
+        "Familiarity with tensile forces"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

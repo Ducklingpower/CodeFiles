@@ -1,0 +1,45 @@
+
+<pl-solution-panel>
+    <pl-figure file-name="torsion3.png"></pl-figure>
+    <pl-hint level="1" data-type="text">To complete this problem we have two unknowns which means we need two equations. </pl-hint>
+    <pl-hint level="2" data-type="text"> The two equations we need are:
+
+
+
+
+<li>$\Sigma{M} = 0 ~\implies -M_B+\tau_2-\tau_1-M_A = 0$</li>
+<li>$\Sigma{\Phi} = 0$</li>
+
+
+
+
+To compute the change in twist in each section we have to find the torque acting on each segment.
+
+
+    </pl-hint>  
+    <pl-hint level="3" data-type="text">
+        <ul>
+         Torque in each segment:
+        <p> Segment $L_3$ = $ -M_B$</p>
+        <p> Segment $L_2$ =  $-M_B+\tau_2$</p>
+        <p> Segment $L_1$ =  $-M_B+\tau_2-\tau_1$</p>
+        So now you can write the full equation:
+        <li>$\Sigma{\Phi} = 0 ~\implies \frac{-M_B ~ L_3}{J ~G} + \frac{(-M_B+\tau_2) ~ L_3}{J ~G} +\frac{(-M_B+\tau_2-\tau_1) ~ L_3}{J ~G} = 0$</li>
+        Now you can solve for the moment reaction at B ($M_B$)
+
+        </ul>
+    </pl-hint>
+
+
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+        Solution:
+        <p> Solving for the moment reaction ($M_B$) we get the equation: $  \frac{(\tau_2 ~ L_2) + L_1(\tau_2 - \tau_1) }{L_1 +L_2 + L_3}  $</p>
+        <li>M_B = ${{correct_answers.reactionB}}$ Nm</li>
+        <p></p>
+            We can use our first equation to solve for $M_A$.
+         <p>$\Sigma{M} = 0 ~\implies -M_B+\tau_2-\tau_1-M_A = 0$</p>
+         <li>$M_A = -M_B+\tau_2-\tau_1 = {{correct_answers.reactionA}}$ Nm</li>
+        </ul>
+    </pl-hint>

@@ -1,0 +1,39 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">To solve this problem, we use the Carnot cycle efficiency formula.</pl-hint>
+
+    <pl-hint level="2" data-type="text">
+        <p><strong>Assumption:</strong> The Carnot engine operates under ideal conditions with no irreversibilities.</p>
+        <p>The efficiency of a Carnot cycle is given by:</p>
+        <p>\[ \eta = 1 - \frac{T_C}{T_H} \]</p>
+        <p>This equation is derived based on the second law of thermodynamics, assuming a reversible heat engine operating between two temperature reservoirs.</p>
+        <p>Substituting the given values:</p>
+        <p>\[ \eta = 1 - \frac{ {{params.T_C}} }{ {{params.T_H}} } \]</p>
+        <p>\[ \eta = {{correct_answers.efficiency}} \]</p>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <p><strong>Assumption:</strong> The engine converts heat energy into work without any losses.</p>
+        <p>To find the heat supplied:</p>
+        <p>The relationship between efficiency, work output, and heat input is derived from the first law of thermodynamics:</p>
+        <p>\[ \eta = \frac{W_{net} }{Q_{in} } \]</p>
+        <p>This equation states that efficiency is the ratio of useful work output to total heat input.</p>
+        <p>Solving for \( Q_{in} \):</p>
+        <p>\[ Q_{in} = \frac{P}{\eta} \]</p>
+        <p>Substituting values:</p>
+        <p>\[ Q_{in} = \frac{ {{params.P}} }{ {{correct_answers.efficiency}} } \]</p>
+        <p>\[ Q_{in} = {{correct_answers.heat_supplied}}~kW \]</p>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        <p><strong>Assumption:</strong> The engine operates at a constant rate, meaning the power output remains steady over time.</p>
+        <p>To find the work done per cycle:</p>
+        <p>The number of cycles per second is determined by converting revolutions per minute (RPM) into cycles per second:</p>
+        <p>\[ N_{cycles} = \frac{N}{60} \]</p>
+        <p>The work per cycle is then found using the definition of power:</p>
+        <p>\[ W_{cycle} = \frac{P \times 1000}{N_{cycles} } \]</p>
+        <p>This equation is derived by rearranging the power formula \( P = W/t \) and solving for work per cycle.</p>
+        <p>Substituting values:</p>
+        <p>\[ W_{cycle} = \frac{ {{params.P}} \times 1000}{ {{params.N}} / 60} \]</p>
+        <p>\[ W_{cycle} = {{correct_answers.work_per_cycle}}~J \]</p>
+    </pl-hint>
+</pl-solution-panel>

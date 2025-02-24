@@ -1,0 +1,79 @@
+<pl-solution-panel>
+    
+    <pl-figure file-name="Rankine.png"></pl-figure>
+
+    <pl-hint level="1" data-type="text">
+        Start by identifying the main components of the ideal Rankine cycle: the turbine, boiler, condenser, and pump. Use the provided data:
+        <ul>
+            <li>Saturated vapor enters the turbine at $P_{turbine\_in} = {{params.P_turbine_in}}~\mathrm{MPa}$.</li>
+            <li>Saturated liquid exits the condenser at $P_{condenser\_out} = {{params.P_condenser_out}}~\mathrm{MPa}$.</li>
+            <li>The net power output of the cycle is $W_{net} = {{params.netpower}}~\mathrm{MW}$.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="2" data-type="text">
+        Use thermodynamic tables to find the enthalpy ($h$) and entropy ($s$) at key points in the cycle:
+        <ul>
+            <li><b>At state 1:</b> For saturated vapor at $P_{turbine\_in} = {{params.P_turbine_in}}~\mathrm{MPa}$, look up the specific entropy $s_1 = {{params.s1}}~\mathrm{kJ/kg\cdot K}$ and specific enthalpy $h_1 = {{params.h1}}~\mathrm{kJ/kg}$.</li>
+            <li><b>At state 2:</b> The turbine expansion is isentropic, so $s_2 = s_1 = {{params.s1}}~\mathrm{kJ/kg\cdot K}$. Using the condenser pressure $P_{condenser\_out} = {{params.P_condenser_out}}~\mathrm{MPa}$:
+                <p>Calculate the quality, $x_2$:</p>
+                <p>$x_2 = \frac{s_2 - s_f}{s_g - s_f}$</p>
+                <p>Then find the isentropic enthalpy at state 2:</p>
+                <p>$h_{2s} = h_f + x_2(h_g - h_f) = {{params.h2s}}~\mathrm{kJ/kg}$</p>
+                <p>Using the isentropic efficiency n = {{params.efficiency}} %, $ h_2$ can be computed<p>
+                <p>$h_2 = h_1 - n(h_1 -h_{2s}) = {{params.h2}}~\mathrm{kJ/kg}$</p>
+            </li>
+            <li><b>At state 3:</b> At the condenser outlet, the fluid is saturated liquid. From the thermodynamic tables:
+                <p>$h_3 = h_f = {{params.h3}}~\mathrm{kJ/kg}$</p>
+            </li>
+            <li><b>At state 4:</b> The pump process is isentropic, so $s_4 = s_3 = {{params.s1}}~\mathrm{kJ/kg\cdot K}$. Using the pump work equation:
+                <p>$h_4 = h_3 + \frac{\dot{W}_p }{\dot{m} }$</p>
+                <p>Calculate $h_4 = {{params.h4}}~\mathrm{kJ/kg}$</p>
+            </li>
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="3" data-type="text">
+        Calculate the thermal efficiency ($\eta$) of the cycle:
+        <p>The thermal efficiency is given by:</p>
+        <p>$\eta = \frac{W_{net} }{\dot{Q}_{in} } = \frac{(h_1 - h_2) - (h_4 - h_3)}{h_1 - h_4}$</p>
+        <p>Substitute the values:</p>
+        <p>$\eta = \frac{({{params.h1}} - {{params.h2}}) - ({{params.h4}} - {{params.h3}})}{ {{params.h1}} - {{params.h4}} }$</p>
+        <p>$\eta = {{correct_answers.thermal_efficiency}}~\%$</p>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        Determine the mass flow rate of the steam:
+        <p>The mass flow rate is calculated using the net power output:</p>
+        <p>$\dot{m} = \frac{\dot{W}_{net} }{(h_1 - h_2) - (h_4 - h_3)}$</p>
+        <p>Substitute the values:</p>
+        <p>$\dot{m} = \frac{ {{params.netpower}} }{({{params.h1}} - {{params.h2}}) - ({{params.h4}} - {{params.h3}})}$</p>
+        <p>Convert to $\mathrm{kg/h}$:</p>
+        <p>$\dot{m} = {{correct_answers.mass_flow_steam}}~\mathrm{kg/h}$</p>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        Calculate the rate of heat transfer into the boiler ($\dot{Q}_{in}$):
+        <p>$\dot{Q}_{in} = \dot{m}(h_1 - h_4)$</p>
+        <p>Substitute the values:</p>
+        <p>$\dot{Q}_{in} = {{correct_answers.mass_flow_steam}} \cdot ({{params.h1}} - {{params.h4}})$</p>
+        <p>$\dot{Q}_{in} = {{correct_answers.heat_transfer_in}}~\mathrm{MW}$</p>
+    </pl-hint>
+
+    <pl-hint level="6" data-type="text">
+        Calculate the rate of heat transfer from the condenser ($\dot{Q}_{out}$):
+        <p>$\dot{Q}_{out} = \dot{m}(h_2 - h_3)$</p>
+        <p>Substitute the values:</p>
+        <p>$\dot{Q}_{out} = {{correct_answers.mass_flow_steam}} \cdot ({{params.h2}} - {{params.h3}})$</p>
+        <p>$\dot{Q}_{out} = {{correct_answers.heat_transfer_out}}~\mathrm{MW}$</p>
+    </pl-hint>
+
+    <pl-hint level="7" data-type="text">
+        Calculate the mass flow rate of the cooling water ($\dot{m}_{cw}$):
+        <p>$\dot{m}_{cw} = \frac{\dot{m}(h_2 - h_3)}{h_{cw,out} - h_{cw,in} }$</p>
+        <p>Substitute the values:</p>
+        <p>$\dot{m}_{cw} = \frac{ {{correct_answers.mass_flow_steam}} }{({{params.cooling_water_out}} - {{params.cooling_water_in}})}$</p>
+        <p>$\dot{m}_{cw} = {{correct_answers.mass_flow_cooling_water}}~\mathrm{kg/h}$</p>
+    </pl-hint>
+</pl-solution-panel>

@@ -1,0 +1,25 @@
+{
+    "title": "HeliumCylinderPressureCalculation",
+    "stem": "Calculating gas pressure using the ideal gas law.",
+    "topic": "Thermodynamics",
+    "tags": [
+        "helium",
+        "gas law",
+        "pressure",
+        "thermodynamics",
+        "ideal gas"
+    ],
+    "prereqs": [
+        "Understanding of the ideal gas law",
+        "Basic knowledge of thermodynamics"
+       
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

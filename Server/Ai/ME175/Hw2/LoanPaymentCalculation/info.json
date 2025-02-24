@@ -1,0 +1,25 @@
+{
+    "title": "LoanPaymentCalculation",
+    "stem": "Calculating annual payments for a loan with compound interest",
+    "topic": "Finance",
+    "tags": [
+        "loan",
+        "payment",
+        "interest",
+        "annual payments",
+        "financial mathematics"
+    ],
+    "prereqs": [
+        "Understanding of loan concepts",
+        "Basic knowledge of interest calculations",
+        "Familiarity with annuity formulas"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

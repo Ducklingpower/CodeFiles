@@ -1,0 +1,56 @@
+<pl-solution-panel>
+  <pl-figure file-name="curvilinearMotion4.png"></pl-figure>
+  <pl-hint level="1" data-type="text">The first step is to find the time (t), when $\theta = {{params.theta}}^o$. You can do this by solving the given function $\theta = {{params.c}} t^{3/2}$ for t and plugging in $\theta = {{params.theta}}^o.$
+
+
+    <p>t = {{params.t}} seconds.</p>
+
+
+
+
+  </pl-hint>
+                     
+
+
+  <pl-hint level="2" data-type="text">
+<p>Now that we have time t where $\theta   = {{params.theta}}^o$, we can differentiate both of the functions with respect to time and theta.</p>
+
+
+<p>$\theta = {{params.c}} t^{3/2}$</p>
+<li>Plugging in time to, $\dot{\theta}$ and $\dot{\dot{\theta} }$ </li>
+<li>$\dot{\theta} = \frac{ {{params.c}} (3)}{2}t^{1/2}$ = {{params.theta1}} $\frac{rad}{s}$</li>
+<li>$\dot{\dot{\theta} } = \frac{ {{params.c}} (3)}{4}t^{-1/2}$ = {{params.theta2}} $\frac{rad}{s^2}$</li>
+
+
+<p>$r = 4sin(2\theta)$ = {{params.r}}</p>
+<li>Plugging in $\dot{\theta}$ and $\dot{\dot{\theta} }$ to $\dot{r}$ and $\dot{\dot{r} }$</li>
+<li>$\dot{r} = 8cos(2\theta)\dot{\theta}$ = {{params.r1}} $\frac{m}{s}$</li>
+<li>$\dot{\dot{r} } = -16sin(2\theta)\dot{\theta}^2+8cos(2\theta)\dot{\dot{\theta} }$ = {{params.r2}}$\frac{m}{s^2}$</li>
+
+
+Now that we have all of the values we can solve for velocity and acceleration.
+
+
+ </pl-hint>
+
+
+
+
+
+
+  <pl-hint level="3" data-type="text">
+      <ul>
+ 
+   Solving for velocity and acceleration:
+   <p>$V = \sqrt{(\dot{r})^2+(r\dot{\theta})^2}$ = {{correct_answers.V}} $\frac{m}{s}$</p>
+   <p>$A = \sqrt{(\dot{\dot{r} }-r\dot{\theta}^2)^2+(r\dot{\dot{\theta} }+2\dot{r}\dot{\theta})^2}$ = {{correct_answers.A}} $\frac{m}{s^2}$</p>
+      </ul>
+  </pl-hint>
+
+
+  <pl-hint level="4" data-type="text">
+    <ul>
+
+ 
+    </ul>
+</pl-hint>

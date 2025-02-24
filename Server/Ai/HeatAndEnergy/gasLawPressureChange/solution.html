@@ -1,0 +1,6 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text"> To find the final pressure of the gas, we can use the ideal gas law, which states that for a constant volume, the pressure is directly proportional to the temperature. This can be expressed as:  \( \frac{P_1}{T_1} = \frac{P_2}{T_2} \)</pl-hint>
+    <pl-hint level="2" data-type="text"> Given the known variables: \( P_1 = {{params.Pressure1}} \), \( T_1 = {{params.T1}} \), \( T_2 = {{params.T2}} \), we can rearrange the equation to find the final pressure \( P_2 \):  \( P_2 = P_1 \cdot \frac{T_2}{T_1} \)</pl-hint>
+    <pl-hint level="3" data-type="text"> Substitute the known values into the equation to calculate \( P_2 \):  \( P_2 = {{params.Pressure1}} \cdot \frac{ {{params.T2}} }{ {{params.T1}} } \)</pl-hint>
+    <pl-hint level="4" data-type="text"> Thus, the final pressure of the gas is \( P_2 = {{correct_answers.PressureFinal}} \) {{params.unitsPressure}}. </pl-hint>
+</pl-solution-panel>

@@ -1,0 +1,25 @@
+{
+    "title": "MortgageInterestCalculation",
+    "stem": "Calculating the reduction of interest portion in a mortgage payment over time.",
+    "topic": "Finance",
+    "tags": [
+        "mortgage",
+        "interest rate",
+        "monthly payment",
+        "financial calculation",
+        "amortization"
+    ],
+    "prereqs": [
+        "Understanding of mortgages",
+        "Basic knowledge of interest rates",
+        "Familiarity with amortization schedules"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

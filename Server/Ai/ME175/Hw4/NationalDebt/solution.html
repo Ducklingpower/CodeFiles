@@ -1,0 +1,26 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        
+     Using present given annual: 
+     <p>$P = A \frac{(1+i)^n-1}{i(1+i)^n}$</p>
+Where:
+<li>P = {{params.debt}}</li>
+<li>A = {{params.taxrev}}</li>
+<li>i = {{params.ii}} % </li>
+<p>Pugging in we get: $ {{params.debt}} = {{params.taxrev}} \frac{(1+{{params.i}})^n-1}{ {{params.i}}(1+{{params.i}})^n }$</p>
+We can now use a nonlinear solver to obtain  the answer as n = {{correct_answers.years}}
+    </pl-hint>
+
+    <pl-hint level="1" data-type="text">
+ 
+        <p>For the second probelm we can get the smallest interest value from : $i = \frac{A}{P}$</p>
+        Where: 
+        <li>P = {{params.debt}}</li>
+        <li>A = {{params.taxrev}}</li>
+        <p>Plugging in our values we get: $i = \frac{A}{P} = \frac{ {{params.taxrev}} }{ {{params.debt}} } = {{correct_answers.interest}}$%</p>
+
+
+       </pl-hint>
+
+
+</pl-solution-panel>

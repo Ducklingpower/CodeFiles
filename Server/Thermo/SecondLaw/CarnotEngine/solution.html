@@ -1,0 +1,51 @@
+<pl-solution-panel>
+    <p>A Carnot engine operates between temperature limits of <strong>T<sub>1</sub></strong> = {{params.T1}} K and <strong>T<sub>2</sub></strong> = {{params.T2}} K, using <strong>m</strong> = {{params.m}} kg of air and running at <strong>N</strong> = {{params.N}} rev/min. The pressure at the beginning of heat addition is <strong>P<sub>1</sub></strong> = {{params.P1}} kPa and at the end of heat addition is <strong>P<sub>2</sub></strong> = {{params.P2}} kPa.</p>
+
+    <pl-hint level="1" data-type="text">First, determine the thermal efficiency of the Carnot cycle.</pl-hint>
+    <pl-hint level="2" data-type="text">
+        <p>The thermal efficiency is given by:</p>
+        <p>\( \eta_{th} = 1 - \frac{T_2}{T_1} \)</p>
+        <p>Substituting the given values:</p>
+        <p>\( \eta_{th} = 1 - \frac{ {{params.T2}} }{ {{params.T1}} } = {{correct_answers.Efficiency}} \% \)</p>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">Now, calculate the heat added during the cycle.</pl-hint>
+    <pl-hint level="4" data-type="text">
+        <p>The heat added per cycle is determined using the formula:</p>
+        <p>\( Q_{in} = m R T_1 \ln \left( \frac{P_1}{P_2} \right) \)</p>
+        <p>Substituting the values:</p>
+        <p>\( Q_{in} = ({{params.m}}) (0.287) ({{params.T1}}) \ln( \frac{ {{params.P1}} }{ {{params.P2}} } ) = {{correct_answers.Qin}} \) kJ</p>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">Calculate the work output per cycle.</pl-hint>
+    <pl-hint level="6" data-type="text">
+        <p>\( W_{net} = \eta_{th} \cdot Q_{in} \)</p>
+        <p>\( W_{net} = ({{correct_answers.Efficiency}} / 100) \times {{correct_answers.Qin}} = {{correct_answers.Power}} \) kJ/cycle</p>
+    </pl-hint>
+
+    <pl-hint level="7" data-type="text">Determine the power output.</pl-hint>
+    <pl-hint level="8" data-type="text">
+        <p>\( \dot{W} = N \times W_{net} \)</p>
+        <p>\( \dot{W} = \left( \frac{ {{params.N}} }{60} \right) \times {{correct_answers.Power}} = {{correct_answers.Power}} \) kW</p>
+    </pl-hint>
+
+    <pl-hint level="9" data-type="text">Compute the heat rejected per cycle.</pl-hint>
+    <pl-hint level="10" data-type="text">
+        <p>\( Q_{out} = W_{net} - Q_{in} \)</p>
+        <p>\( Q_{out} = {{correct_answers.Power}} - {{correct_answers.Qin}} = {{correct_answers.Qout}} \) kJ</p>
+    </pl-hint>
+
+    <pl-hint level="11" data-type="text">Find the volume at the end of heat addition.</pl-hint>
+    <pl-hint level="12" data-type="text">
+        <p>\( V_1 = \frac{m R T_1}{P_1} \)</p>
+        <p>\( V_2 = V_1 \times \left( \frac{P_1}{P_2} \right) \)</p>
+        <p>\( V_2 = {{correct_answers.V2}} \) m³</p>
+    </pl-hint>
+
+    <pl-hint level="13" data-type="text">Calculate the mean effective pressure.</pl-hint>
+    <pl-hint level="14" data-type="text">
+        <p>The mean effective pressure is given by:</p>
+        <p>\( p_m = \frac{ W_{net} }{ V_{PD} } \)</p>
+        <p>\( p_m = \frac{ {{correct_answers.Power}} }{ V_{PD} } = {{correct_answers.MEP}} \) kPa</p>
+    </pl-hint>
+</pl-solution-panel>

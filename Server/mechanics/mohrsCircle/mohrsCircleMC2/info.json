@@ -1,0 +1,15 @@
+{
+    "uuid": "1f435c36-1126-43b0-aba5-627eeb2e10f9",
+    "title": "Mohr's Circle Multiple Choice 2",
+	"stem": "Mechanics of Materials", 
+    "topic": "Mohr's Circle",
+    "tags": ["Mohr's Circle", "principal stress", "stress", "shear stress"],
+	"prereqs": "",
+	"isAdaptive": "false",
+	"createdBy": "dbare004@ucr.edu",
+    "qType": "mc",
+	"nSteps": 1,
+	"updatedBy":"", 
+	"difficulty": 1,
+	"codelang": "javascript"
+}

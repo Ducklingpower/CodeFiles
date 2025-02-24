@@ -1,0 +1,33 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text"> Consider the relationship from Hooke's Law, which states that the force $F$ is proportional to the extension $\delta$ for a material within the elastic limit: $F = k \delta$, where $k$ is the stiffness or spring constant of the material.</pl-hint>
+    <pl-hint level="2" data-type="text">
+        Identify and describe the known variables:
+        <ul>
+            <li> Initial stretch $\delta_1 = {{params.delta1}} {{params.unitsDist}}$</li>
+            <li> Force for initial stretch $F = {{params.forceF}} {{params.unitsForce}}$</li>
+            <li> Desired stretch $\delta_2 = {{params.delta2}} {{params.unitsDist}}$</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        Establish the equation based on Hooke's Law for the initial condition:
+        <ul>
+            <li> Initial force equation: $F = k \delta_1$</li>
+            <li> Rearrange to find stiffness constant: $k = \frac{F}{\delta_1}$</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        Apply the equation to find the force for the desired stretch:
+        <ul>
+            <li> New force equation: $F_{\delta_2} = k \delta_2$</li>
+            <li> Substitute $k = \frac{F}{\delta_1}$ from earlier: $F_{\delta_2} = \left(\frac{F}{\delta_1}\right) \delta_2$</li>
+            <li> Simplifying gives: $F_{\delta_2} = \frac{F \cdot \delta_2}{\delta_1}$</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        Perform the calculation to find $F_{\delta_2}$:
+        <ul>
+            <li> Calculate $F_{\delta_2} = {{params.forceF}} \cdot \frac{{{params.delta2}}}{{{params.delta1}}}$ to find the force required for $\delta_2$.</li>
+            <li> Therefore, the force required to stretch the wire to $\delta_2$ is $F_{\delta_2} = {{correct_answers.force_delta2}} {{params.unitsForce}}$.</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

@@ -1,0 +1,26 @@
+{
+    "uuid": "123e4567-e89b-12d3-a456-426614174000",
+    "title": "ShearStressAndStrainInPlasticBlock",
+    "stem": "Uniform deformation analysis of materials under shear force",
+    "topic": "Mechanical Properties of Materials",
+    "tags": [
+        "shear stress",
+        "shear strain",
+        "mechanics",
+        "plastic materials",
+        "engineering mechanics"
+    ],
+    "prereqs": [
+        "Basic mechanics of materials",
+        "Understanding of stress and strain",
+        "Knowledge of shear force"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

@@ -1,0 +1,58 @@
+<pl-solution-panel>
+    <pl-figure file-name="axailLoad1.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> The first step is to compute the normal force on the wall. You can do that by doing $\Sigma{F}_x = 0 $</pl-hint>
+    <pl-hint level="2" data-type="text">  By doing $\Sigma{F}_x = 0 ~\implies F_1 +F_2 -F_3 - N ~\implies N = F_1+F_2-F_3$
+
+
+        <p>With all of the forces available you can start breaking the beam into sections:</p>
+        <p>The first section you should try is the section with length $L_3$. Draw a free-body diagram of the cutout section and compute the net force acting on it.</p>
+
+
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+    <p>Free body diagram of the cutout section of length $L_3$: The forces acting on the beam on the right side is $F_3$ pointing left, and the forces acting on the left side are ($F_1+F_2-N$) pointing right.
+        The member is in compression.    </p>
+        Since the member is in compression we know the net change of the segment of length $L_3$ is going to be negative.
+        <p>Now try and draw the free body diagrams of the segments with lengths $L_1$ and $L_2$. </p>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+       <p>After drawing the free body diagrams of all 3 segments you should have come to the conclusion that forces acting on each member is:
+        <li>Section of length $L_3$ = $F_3$, compression </li>
+        <li>Section of length $L_2$ = $F_2 - F_3$, compression</li>
+        <li>section of length $L_1$ = $F_1+F_2 - F_3$, tension</li>
+        <p>Now that we have all of the forces acting on each segment we can sum up how each segment changes in length using this equation. $\delta = \frac{F~L}{A~E}$</p>
+        Try to calculate all of the lengths and sum them up to get the net change in length.
+       </p>
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="5" data-type="text">
+        <ul>
+      <p>Calculating the net change in length:</p>
+     <li>$\delta ~L_3 =\frac{(F_3) ~ L_3}{A ~ 200(10)^9}$</li>
+     <li>$\delta ~L_2 =\frac{(F_2-F_3) ~ L_2}{A ~ 200(10)^9}$</li>
+     <li>$\delta ~L_1 =\frac{(F_1+F_2-F_3) ~ L_1}{A ~ 200(10)^9}$</li>
+           <p>Where A = $\pi (\frac{ {{params.d}} }{2})^2$</p>
+
+
+    <p>Adding up the change in lengths:</p>
+    <li>$\delta = -\frac{(F_3) ~ L_3}{A ~ 200(10)^9}-\frac{(F_2-F_3) ~ L_2}{A ~ 200(10)^9}+\frac{(F_1+F_2-F_3) ~ L_1}{A ~ 200(10)^9}$</li>
+    <li>$\delta = {{correct_answers.change}} ~\mu m$</li>
+
+
+
+
+
+
+
+
+
+
+
+
+        </ul>
+    </pl-hint>

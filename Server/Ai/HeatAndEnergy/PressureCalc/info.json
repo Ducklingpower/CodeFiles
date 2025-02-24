@@ -1,0 +1,24 @@
+{
+    "title": "GasLawCalculations",
+    "stem": "Determining gas properties using the ideal gas law under constant temperature conditions.",
+    "topic": "Gas Laws",
+    "tags": [
+        "gas laws",
+        "pressure",
+        "volume",
+        "ideal gas",
+        "temperature"
+    ],
+    "prereqs": [
+        "Understanding of the ideal gas law",
+        "Basic algebra skills"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

@@ -1,0 +1,31 @@
+<pl-solution-panel>
+    <pl-figure file-name="strain3.png"></pl-figure>
+    <pl-hint level="1" data-type="text">Compute the lengths of AC and AC compressed.</pl-hint>
+    <pl-hint level="2" data-type="text">
+<p>Computing lengths of AC:</p>
+<li>Before compression: $L_{AC} = \sqrt{L^2+L^2}$</li>
+<li>After compression:  $L'_{AC} = \sqrt{(L_2+L_2+L)^2+(L-L_3)^2}$</li>
+Now try and Compute the strain along AC.
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+           Computing strain along AC:
+           <li>strain AC = $\frac{L'{AC}-L_{AC} } {L_{AC} } = {{correct_answers.strain}}~ (\frac{mm}{mm})$</li>
+<p></p>
+   Now try and compute the shear strain at point E    
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+           
+          <p>We can compute the new angle between the positive x' and y' axis to be: </p>
+          <li>$\theta = 2tan(\frac{L_2+L_2+L1}{L1-L_3})$</li>
+          Making sure our $\theta$ is in radians we can compute shear strain.
+          <li>Shear strain = $\frac{\pi}{2}-\theta  = {{correct_answers.shear}}~(Radians)$</li>
+       
+        </ul>
+    </pl-hint>
+ 
+ 

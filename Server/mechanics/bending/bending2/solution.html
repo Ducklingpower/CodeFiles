@@ -1,0 +1,78 @@
+<pl-solution-panel>
+    <pl-figure file-name="bending2.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> To compute the central axis we can use the equation: $\frac{\Sigma y~A}{\Sigma A}$
+        <p>Where y is the location of the subshape centroid in the y direction with respect to some reference point, and A is the area. In our case, we can make our reference point at the top of the cross-sectional area. </p>
+        <li> yA for the middle rectangle: $(\frac{L_2}{2})(L_2)(L_1)$</li>
+        <li> yA for the other 2 side rectangles: $2[(\frac{L_4}{2})(L_4)(L_3)]$. Since they have the same geometry we can just solve for yA for one of them, then multiply by 2.</li>
+       <p>Now try and fill out the equation.</p>
+
+
+
+
+
+
+
+
+    </pl-hint>
+    <pl-hint level="2" data-type="text"> <p>Putting the two together we get $\bar{y} = \frac{\Sigma y~A}{\Sigma A} = \frac{(\frac{L_2}{2})(L_2)(L_1) ~+~ 2[(\frac{L_4}{2})(L_4)(L_3)]}{(L_2)(L_1)~ + ~2(L_4)(L_3)} = {{correct_answers.ybar}}$ mm</p>
+
+
+
+
+        <p>In order to compute the bending moment at the cross-section AA, you have to draw a cut at the cross-section and do a free-body diagram.</p>
+        <p>In making a cut at AA we can analyze the side of the bar of length $L_1$. Breaking down the force into x and y components we get: $F_y = Fsin(\theta)$ down and $F_x = Fcos(\theta)$ right.   </p>
+        <p>We can take the moment about the central axis, which is ${{correct_answers.ybar}}$ mm down from the top, in order to compute the bending moment reaction.</p>
+        <p>By doing so we get $\Sigma{M}_{C} = 0 ~\implies~ (F_y)(L_1) + (F_x)(\bar{y}) - M= 0  $</p>
+        Solving for bending moment reaction we get M = $(F_y)(L_1) + (F_x)(\bar{y}) = {{correct_answers.moment}}$ kN*m
+
+
+
+
+        <p>We can now start working on the moment of inertia using the equation:  I = $\Sigma(\bar{I}+Ad^2)$.  Where $\bar{I} = \frac{1}{12}b(h^3) $ and d = distance from sub shape centroid to centrial axis.</p>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+            Solving I:
+            <p>$\bar{I} + Ad^2$ for the top rectangle =$[ \frac{1}{12}(L_1)(L_2)^3] + [(L_1)(L_2)(\bar{y} - \frac{L_2}{2})^2]$</p>
+            <p>$\bar{I} + Ad^2$ for the two side rectangles = $2[\frac{1}{12}(L_3)(L_4)^3] + [(L_3)(L_4)(\frac{L_4}{2}-\bar{y})^2]$</p>
+            <li>Putting them together we get I = $[ \frac{1}{12}(L_1)(L_2)^3] + [(L_1)(L_2)(\bar{y} - \frac{L_2}{2})^2] ~ +~2[\frac{1}{12}(L_3)(L_4)^3] + [(L_3)(L_4)(\frac{L_4}{2}-\bar{y})^2] = {{correct_answers.I}}$ $\mu m^4$</li>
+
+
+
+
+            Now that we have the internal bending moment and Interia of the shape, we can compute the maximum bending stress. $\sigma_{max} = \frac{M~C}{I}$
+       
+
+
+
+
+
+
+
+
+ </ul>
+    </pl-hint>
+   
+
+
+
+
+
+
+
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+
+
+
+
+            Solving for the maximum bending stress:
+            <li>Since we want the absolute maximum stress we have to choose a C that is far from the central axis. That is $L_4-\bar{y}$. This is just the distance from the bottom of the cross-section to the central axis.</li>
+           <li>$\sigma_{max} = \frac{M~C}{I} = {{correct_answers.stress}}$ Mpa</li>
+
+
+
+
+              </ul>
+    </pl-hint>

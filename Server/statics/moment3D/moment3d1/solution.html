@@ -1,0 +1,27 @@
+<pl-solution-panel>
+    <pl-figure file-name="Moment3d1.png"></pl-figure>
+    <pl-hint level="1" data-type="text">First, you must identify the force vector. The red vector in the picture is just there to show the location and direction of the force, but it is not the actual force vector. In order to obtain the force vector you must multiply the force $\mathbf{F} = {{params.force}} $ to the unit vector of the red vector. </pl-hint>
+    <pl-hint level="2" data-type="text">To obtain the unit vector of the red vector, you must identify the location of the head and tail of the red vector. In our case, the tail of the red vector is equal to $ L_2 \hat{i} + L_1 \hat{j} + L_3 \hat{k}$ and the head of the red vector is equal to $ V_2 \hat{i} + V_1 \hat{j} + V_3 \hat{k}$. Now we can find the direction of the red vector by moving from the tail to the head. 
+        Moving from the tail to the head $ \implies (V_2 - L_2 ) \hat{i} + (V_1 - L_1 ) \hat{j} + (V_3 - L_3) \hat{k} $. Now that we have the direction we can divide the length of the vector by itself to obtain the unit vector. $ \frac {(V_2 - L_2 ) \hat{i} + (V_1 - L_1 ) \hat{j} + (V_3 - L_3) \hat{k} }{\sqrt{(V_2 - L_2 )^2 + (V_1 - L_1 )^2 + (V_3 - L_3)^2} } $
+        </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul> 
+            Now all we have to do is multiply the force by the unit vetcor.
+        <li> $\mathbf{\vec{F} } =   \mathbf(F) \frac {(V_2 - L_2 ) \hat{i} + (V_1 - L_1 ) \hat{j} + (V_3 - L_3) \hat{k} }{\sqrt{(V_2 - L_2 )^2 + (V_1 - L_1 )^2 + (V_3 - L_3)^2} } $ </li>
+        Now that we have the true force vector we can now take the moment about point O using the cross product $M_o = \vec{d} X \vec{F} $
+        </ul>
+    </pl-hint>
+
+
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+            When computing the moment about point O using the cross product we must chose any distance ($\vec{d}$) starting from the point O and ending anywhere along the line of action of the force vector.
+            In our case we can just use the blue beam since it starts at point o and ends at the tail of the force vector.  
+        <li>$\vec{d} = L_2 \hat{i} +L_1 \hat{j} + L_3 \hat{k}$</li>
+        <li>$M_o = \vec{d} X \vec{F} $ $\implies $ $M_o = (L_2, L_1,L_3) X (F_x,F_y,F_z)$ $\implies $  $M_o = ({{correct_answers.momenti}}) \hat{i} + ({{correct_answers.momentj}}) \hat{j} + ({{correct_answers.momentk}}) \hat{k} $   </li>
+        
+        </ul>
+    </pl-hint>
+
+

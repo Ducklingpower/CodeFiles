@@ -1,0 +1,33 @@
+<pl-solution-panel>
+    <pl-figure file-name="compressiveStress.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> Identify all known variables for the problem.</pl-hint>
+    <pl-hint level="2" data-type="text">
+        <ul>
+            <li>Outside Diameter $D_o = {{params.outside_diameter}} {{params.unitsDiameter}}$</li>
+            <li>Inside Diameter $D_i = {{params.inside_diameter}} {{params.unitsDiameter}}$</li>
+            <li>Length $L = {{params.length}} {{params.unitsLength}}$</li>
+            <li>Compressive Load $F = {{params.load}} {{params.unitsLoad}}$</li>
+            <li>Shortening $\delta = {{params.shortening}} {{params.unitsShortening}}$</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="3" data-type="text"> Establish the formula for the cross-sectional area of the pipe.</pl-hint>
+    <pl-hint level="4" data-type="text">
+        The cross-sectional area of the pipe $A$ can be calculated as follows:
+        $$ A = \frac{\pi}{4} \left( D_o^2 - D_i^2 \right) $$
+    </pl-hint>
+    <pl-hint level="5" data-type="text"> Apply the formula to find the compressive stress $\sigma$. </pl-hint>
+    <pl-hint level="6" data-type="text">
+        The compressive stress $\sigma$ is determined by the formula:
+        $$ \sigma = \frac{F}{A} $$
+        Substituting $A$ from the area formula:
+        $$ \sigma = \frac{F}{\frac{\pi}{4} (D_o^2 - D_i^2)} $$
+    </pl-hint>
+    <pl-hint level="7" data-type="text"> Ensure thorough clarification of the solution process. </pl-hint>
+    <pl-hint level="8" data-type="text">
+        <ul>
+            <li>Calculate the cross-sectional area using the outside and inside diameters.</li>
+            <li>Substitute the values for $F$, $D_o$, and $D_i$ to find $\sigma$.</li>
+            <li>Compressive stress provides an understanding of the force distribution per unit area under compression.</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

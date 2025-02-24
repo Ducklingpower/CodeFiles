@@ -1,0 +1,25 @@
+{
+    "title": "RetirementWithdrawalCalculation",
+    "stem": "Calculating retirement withdrawals based on previous deposits and interest rates.",
+    "topic": "Finance",
+    "tags": [
+        "retirement",
+        "withdrawal",
+        "financial planning",
+        "compound interest",
+        "investment"
+    ],
+    "prereqs": [
+        "Understanding of compound interest",
+        "Basic knowledge of annuities",
+        "Familiarity with financial calculations"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

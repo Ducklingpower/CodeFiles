@@ -1,0 +1,115 @@
+<pl-solution-panel>
+
+
+    <pl-hint level="0" data-type="text">
+       
+        <p>First solve for the monthly payment using the equation:</p>
+        <li>A = loan amount $\frac{i(1+i)^n}{(i+1)^n -1 }$</li>
+        <p>Plugging in we can solve the monthly payment to be:</p>
+        <li>A = ${{params.loan}} \frac{ {{params.i}}(1+{{params.i}})^5}{ (1+{{params.i}})^5 -1  } = {{params.A}}$</li>
+        </pl-hint>
+
+
+    <pl-hint level="1" data-type="text">
+       
+        <p>BTLCF (Before-Tax-and-Loan Cash Flow):</p>
+            <li>This is the given revenue minus cost, which is constant at {{params.BTLCF}} each year.</li>
+
+        </pl-hint>
+
+
+        <pl-hint level="2" data-type="text">
+       
+            <p>MACRS Deduction:</p>
+            <P>Multiply the machine's purchase price {{params.cost}} by the MACRS percentage for the respective year:</P>
+            <li>Year 1: 33.33%</li>
+                <li> Year 2: 44.45%</li>
+                    <li>Year 3: 14.81%</li>
+                        <li>Year 4: 7.41%</li>
+                            <li>Year 5: 0% (fully depreciated).</li>
+       
+            <p>MACRS Deduction = (Machine Cost) $\times$ (MACRS Percentage)</p>
+    
+        </pl-hint>
+
+            <pl-hint level="3" data-type="text">
+       
+                <p>Book Value:</p>
+
+                <li>Subtract the cumulative MACRS deductions from the machine's purchase price {{params.cost}}. This tracks the remaining depreciation value of the machine:</li>
+                <li>Book Value at t= (Book value at t-1) - (depreciation at t)</li>
+            </pl-hint>
+
+            
+            <pl-hint level="4" data-type="text">
+                <p>Loan Interest Payment:</p>
+                <li>Multiply the remaining loan principal at the start of the year by the annual interest rate {{params.rate}}%.</li>
+                <p>Loan Interest Payment = Remaining Principal $\times$ {{params.rate}}%</p>
+            </pl-hint>
+            <pl-hint level="5" data-type="text">
+                <p>Loan Principal Payment:</p>
+                <li>Subtract the loan interest payment from the total fixed annual loan payment {{params.A}}.</li>
+                <li>The principal payment increases each year as the interest decreases.</li>
+                <p>Principal Payment = Total Payment - Loan Interest Payment</p>
+            </pl-hint>
+            <pl-hint level="6" data-type="text">
+                <p>Remaining Principal:</p>
+                <li>Subtract the principal payment from the loan balance at the start of the year. This tracks the outstanding loan balance.</li>
+                <p>Remaining Principal = Previous Principal - Principal Payment</p>
+            </pl-hint>
+            
+            <pl-hint level="7" data-type="text">
+                <p>Taxable Income:</p>
+                <li>Calculate this by subtracting the MACRS deduction and loan interest payment from the BTLCF.</li>
+                <p>Taxable Income = BTLCF - MACRS Deduction - Loan Interest Payment</p>
+            </pl-hint>
+            
+            <pl-hint level="8" data-type="text">
+                <p>Tax:</p>
+                <li>Multiply the taxable income by the tax rate {{params.taxrate}}%.</li>
+                <li>If the taxable income is negative, treat it as a negitive value.</li>
+                <p>Tax = Taxable Income $\times$ {{params.taxrate}}%</p>
+            </pl-hint>
+            
+            <pl-hint level="9" data-type="text">
+                <p>ATCF (After-Tax Cash Flow):</p>
+                <li>Subtract the total loan payment and tax from the BTLCF. This represents the cash available after all expenses and taxes.</li>
+                <p>ATCF = BTLCF - Total Loan Payment - Tax</p>
+            </pl-hint>
+           
+
+
+    <pl-hint level="10" data-type="text">
+        
+
+<p>\[
+    \small % Reduce font size for the table
+    \begin{array}{|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+    \textbf{EOY} & 
+    \textbf{BTLCF} & 
+    \textbf{MACRS Deduction} & 
+    \textbf{Book Value} & 
+    \textbf{Loan Principal Payment} & 
+    \textbf{Loan Interest Payment} & 
+    \textbf{Remaining Principal} & 
+    \textbf{Taxable Income} & 
+    \textbf{Tax} & 
+    \textbf{ATCF} \\ 
+    \hline
+    0 &-{{params.cost}} & 0             &{{params.cost}}                        &0              &0              &{{params.loan}}   &0              &0               & -{{params.payed}} \\ \hline
+    1 &{{params.BTLCF}} &{{params.dp1}} &{{correct_answers.bookValueEndYear1}} &{{params.pp1}} &{{params.ip1}} &{{params.delta1}} &{{params.ti1}} &{{params.tax1}} &{{params.ATCF1}} \\ \hline
+    2 &{{params.BTLCF}} &{{params.dp2}} &{{correct_answers.bookValueEndYear2}} &{{params.pp2}} &{{params.ip2}} &{{params.delta2}} &{{params.ti2}} &{{params.tax2}} &{{params.ATCF2}} \\ \hline
+    3 &{{params.BTLCF}} &{{params.dp3}} &{{correct_answers.bookValueEndYear3}} &{{params.pp3}} &{{params.ip3}} &{{params.delta3}} &{{params.ti3}} &{{params.tax3}} &{{params.ATCF3}}\\ \hline
+    4 &{{params.BTLCF}} &{{params.dp4}} &{{correct_answers.bookValueEndYear4}} &{{params.pp4}} &{{params.ip4}} &{{params.delta4}} &{{params.ti4}} &{{params.tax4}} &{{params.ATCF4}}\\ \hline
+    5 &{{params.BTLCF}} & 0             &0                                      &{{params.pp5}} &{{params.ip5}} &0 &{{params.ti5}} &{{params.tax5}} &{{params.ATCF5}}\\ \hline
+    \end{array}
+    \]</p>
+
+
+
+
+    </pl-hint>
+    
+
+</pl-solution-panel>

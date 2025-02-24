@@ -1,0 +1,150 @@
+
+<pl-solution-panel>
+    <pl-figure file-name="bending3.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> In computing the reaction forces at A and B you have to set up your equilibrium equations:
+        <li>$\Sigma{F}_y = 0 \implies -(F~\frac{L_1}{2})+A_y+B_y =0$</li>
+        <li>$\Sigma{M}_A = 0 \implies  -(F~\frac{L_1}{2}) (\frac{3~L_1}{4}) + B_y (L_1)=0$</li>
+        Solving the 2 equations we get
+        <li>$reaction A_y = {{correct_answers.reactionA}}$ kN</li>
+        <li>$reaction B_y = {{correct_answers.reactionB}}$kN</li>
+
+
+
+
+        With these forces, you can draw the shear force diagram and conclude that the max shear force is $B_y$. We can keep that in mind for the final solution.
+       
+
+
+
+
+
+
+
+
+   
+   
+   
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+
+
+
+
+        You can compute the central axis using the equation $\bar{y} = \frac{\Sigma y~A}{\Sigma A}$.
+        <p>Computing $\Sigma y~A$ for the top rectangle:  </p>
+        <li>$(L_3+\frac{L_4}{2})(L_2 ~L_4)$</li>
+        <p>Computing $Sigma y~A$ for the bottom rectangle:  </p>
+        <li>$\frac{l3}{2} (L_3~ L_4)$</li>
+        Putting the equation together we get
+        <li>$\bar{y} = \frac{(L_3+\frac{L_4}{2})(L_2 ~L_4)~+~\frac{l3}{2} (L_3~ L_4)}{(L_2 ~L_4)~+~(L_3~ L_4)} = {{correct_answers.ybar}}~mm$</li>
+
+
+
+
+        Now that we have the location of the central axis with respect to the bottom of the cross-sectional area, we can compute the moment of inertia.
+
+
+
+
+
+
+
+
+
+
+
+
+        </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+           We can compute the moment of inertia using the equation:  I = $\Sigma(\bar{I}+Ad^2)$.  Where $\bar{I} = \frac{1}{12}b(h^3) $ and d = distance from sub shape centroid to central axis.
+           <p>Solving $\bar{I}+Ad^2$ for the top rectangle:</p>
+           <li>$\frac{1}{12}(L_2~L_4^4) + (L_2~L_4)(L_3+\frac{L_4}{2}-\bar{y})^2$</li>
+           <p>Solving $\bar{I}+Ad^2$ for the bottom rectangle:</p>
+           <li>$\frac{1}{12}(L_4~L_3^4) + (L_4~L_3)(\bar{y}-\frac{L_3}{2})^2$</li>
+           <p>Putting the two together we get:</p>
+           <li>$I = [\frac{1}{12}(L_2~L_4^4) + (L_2~L_4)(L_3+\frac{L_4}{2}-\bar{y})^2] ~+ ~ [\frac{1}{12}(L_4~L_3^4) + (L_4~L_3)(\bar{y}-\frac{L_3}{2})^2] = {{correct_answers.I}}~\mu m^4$</li>
+           <p></p>
+           Computing Q=$\bar{y}'~A'$ is similar. In our case, the area we are going to analyze is the top rectangle.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ </ul>
+    </pl-hint>
+   
+
+
+
+
+
+
+
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+           <p> Computing Q:</p>
+           <li> Q = $(L_3+\frac{L_4}{2}-\bar{y})(L_4~L_2) = {{correct_answers.Q}} ~mm^3$</li>
+            <p>Notice that Q is the same format as when we computed ${Ad^2}$ for the top rectangle, just without the square.</p>
+            <p> Now we have everything we need to compute the shear max given the fact the welds are $t = {{params.t}}$ m thick. </p>
+
+
+
+
+                The equation for the max shear stress is : $\tau_{max} = \frac{V~Q}{I~t}$
+                <p>We have all of the variables we need, now we just need to convert everything into standard SI and plugin. (ie, V = max shear force which we calculated to be $B_y$)</p>
+
+
+
+
+
+
+
+
+         </ul>
+    </pl-hint>
+
+
+
+
+   
+    <pl-hint level="4" data-type="text">
+        <ul>
+         Computing max shear:
+<p></p>
+         <li>$\tau_{max} = \frac{V~Q}{I~t} = {{correct_answers.shear}}$</li>
+
+
+
+
+         </ul>
+    </pl-hint>
+
+
+
+
+
+
+
+
+
+
+
+
+

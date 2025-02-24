@@ -1,0 +1,26 @@
+{
+    "uuid": "f1c3e11b-c3b2-43df-a8f7-cf4e5745ac94",
+    "title": "SteelRailBucklingTemperature",
+    "stem": "Thermal stress analysis and its effects on steel structures.",
+    "topic": "Thermal Stress and Material Properties",
+    "tags": [
+        "steel",
+        "buckling",
+        "thermal stress",
+        "mechanics",
+        "engineering"
+    ],
+    "prereqs": [
+        "Understanding of thermal expansion",
+        "Basic principles of mechanics",
+        "Introduction to material science"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

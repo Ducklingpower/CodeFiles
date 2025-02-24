@@ -1,0 +1,38 @@
+<pl-solution-panel>
+    <pl-figure file-name="triangleForces.png"></pl-figure>
+    <pl-hint level="1" data-type="text">Understanding the problem involves calculating the resultant force using the triangle of forces method.</pl-hint>
+    <pl-hint level="2" data-type="text">We have two forces: one horizontal force of ${{params.force1}}$ N and an inclined force of ${{params.force2}}$ N at an angle of ${{params.angle}}^\circ$.</pl-hint>
+    
+    <pl-hint level="3" data-type="text">
+        To apply the triangle of forces method, represent the two forces as sides of a triangle. The resultant force is the closing side of the triangle. To find this, we'll use:
+        <ul>
+            <li>The law of cosines to find the magnitude of the resultant.</li>
+            <li>The law of sines to find the direction of the resultant.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        Set up the equations:
+        <ul>
+            <li>Magnitude: Using the law of cosines: $R^2 = ({{params.force1}})^2 + ({{params.force2}})^2 - 2({{params.force1}})({{params.force2}})\cos({{params.angle}})$</li>
+            <li>Direction (using law of sines to find angle with horizontal): $
+            \frac{\sin(\theta)}{{params.force2}} = \frac{\sin({{params.angle}})}{R}$ where $R$ is the resultant magnitude.
+            </li>
+        </ul>
+    </pl-hint>
+    
+    <pl-hint level="5" data-type="text">
+        Solve for the magnitude of the resultant:
+        <ul>
+            <li>$R = \sqrt{{{params.force1}}^2 + {{params.force2}}^2 - 2 \cdot {{params.force1}} \cdot {{params.force2}} \cdot \cos({{params.angle}})}$</li>
+        </ul>
+        Solve for the direction (angle with horizontal):
+        <ul>
+            <li>$\theta = \arcsin\left(\frac{{{params.force2}} \cdot \sin({{params.angle}})}{R}\right)$</li>
+        </ul>
+    </pl-hint>
+    
+    <pl-hint level="6" data-type="text">
+        By calculating these using the above equations, we find the resultant magnitude and its direction relative to the horizontal axis.
+    </pl-hint>
+</pl-solution-panel>

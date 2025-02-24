@@ -1,0 +1,25 @@
+{
+    "uuid": "67d45c6e-4983-4d41-b22e-f05b7b5e17ab",
+    "title": "DetermineCompressiveStress",
+    "stem": "Analysis of mechanical properties of materials under load",
+    "topic": "Mechanical Engineering",
+    "tags": [
+        "compressive stress",
+        "pipe mechanics",
+        "load analysis",
+        "material properties"
+    ],
+    "prereqs": [
+        "Understanding of basic mechanics of materials",
+        "Knowledge of stress and strain concepts",
+        "Familiarity with pipe dimensions and loading conditions"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

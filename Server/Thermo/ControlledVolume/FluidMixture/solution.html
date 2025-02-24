@@ -1,0 +1,69 @@
+<pl-solution-panel>
+    <pl-figure file-name="FluidFlow.png"></pl-figure>
+    <pl-hint level="1" data-type="text">
+        The problem involves a feedwater heater at steady state with two inlets and one exit. Begin by identifying known values and drawing a schematic.
+    </pl-hint>
+
+    <pl-hint level="2" data-type="text">
+        Known:
+        <ul>
+            <li>At inlet 1: $P_1 = 7$ bar, $T_1 = 200~ C$, $\dot{m}_1 = {{params.mdot1}}~kg/s$</li>
+            <li>At inlet 2: $P_2 = 7$ bar, $T_2 = 40~ C$, $A_2 = {{params.A2}}~cm^2$</li>
+            <li>At exit: $P_3 = 7$ bar, $\dot{V}_3 = {{params.V3}}~m^3/s$</li>
+        </ul>
+        Find:
+        <ul>
+            <li>Mass flow rate at inlet 2, $\dot{m}_2$</li>
+            <li>Mass flow rate at the exit, $\dot{m}_3$</li>
+            <li>Velocity at inlet 2, $v_2$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        Assumptions:
+        <ul>
+            <li>The control volume is at steady state, so $\frac{dm_{cv} }{dt} = 0$</li>
+            <li>One-dimensional flow is assumed at each inlet and the exit</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        Analysis:
+        <ol>
+            <li>Apply the mass rate balance equation: $\dot{m}_1 + \dot{m}_2 = \dot{m}_3$</li>
+            <li>Find $\dot{m}_3$: The volumetric flow rate and specific volume at the exit are given. Use $\dot{m}_3 = \frac{\dot{V}_3}{v_3}$. With $v_3 = 1.108 \times 10^{-3}~m^3/kg$ (from Table A-3), $\dot{m}_3 = \frac{ {{params.V3}} }{1.108 \times 10^{-3} }~kg/s$</li>
+            <li>Find $\dot{m}_2$: From the mass rate balance, $\dot{m}_2 = \dot{m}_3 - \dot{m}_1$</li>
+            <li>Find $\vec{V}_2$: From $\vec{V}_2 = \frac{\dot{m}_2 v_2}{A_2}$, convert $A_2$ to $m^2$ by dividing ${{params.A2}}$ cm by $10^4$. $v_2 = 1.0078\times 10 ^{-3}$ (from Table A-2 at 40 C)</li>
+        </ol>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        Calculations:
+        <ol>
+            <li>Compute $\dot{m}_3$:
+                \[
+                \dot{m}_3 = \frac{ {{params.V3}} }{1.108 \times 10^{-3} } = {{correct_answers.mdot3}}~kg/s
+                \]
+            </li>
+            <li>Compute $\dot{m}_2$:
+                \[
+                \dot{m}_2 = \dot{m}_3 - \dot{m}_1 = {{correct_answers.mdot3}} - {{params.mdot1}} = {{correct_answers.mdot2}}~kg/s
+                \]
+            </li>
+            <li>Compute $v_2$:
+                \[
+                v_2 = \frac{\dot{m}_2 \cdot v_2}{A_2} = \frac{ {{correct_answers.mdot2}} \cdot 1.0078 \times 10^{-3} }{\frac{ {{params.A2}} }{10^4} } = {{correct_answers.velocity2}}~m/s
+                \]
+            </li>
+        </ol>
+    </pl-hint>
+
+    <pl-hint level="6" data-type="text">
+        Final Results:
+        <ul>
+            <li>Mass flow rate at inlet 2: $\dot{m}_2 = {{correct_answers.mdot2}}~kg/s$</li>
+            <li>Mass flow rate at the exit: $\dot{m}_3 = {{correct_answers.mdot3}}~kg/s$</li>
+            <li>Velocity at inlet 2: $v_2 = {{correct_answers.velocity2}}~m/s$</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

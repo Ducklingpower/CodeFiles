@@ -1,0 +1,13 @@
+<pl-solution-panel>  
+    <pl-hint level="1" data-type="text"> To find the final temperature of the air, we can use the ideal gas law, which states that \( PV = nRT \). Since the number of moles \( n \) and the gas constant \( R \) are constant, we can set up the relationship:  
+    \[ \frac{P_1 V_1}{T_1} = \frac{P_2 V_2}{T_2} \]  
+    </pl-hint>  
+    <pl-hint level="2" data-type="text"> Rearranging the equation to solve for the final temperature \( T_2 \):  
+    \[ T_2 = \frac{P_2 V_2 T_1}{P_1 V_1} \]  
+    </pl-hint>  
+    <pl-hint level="3" data-type="text"> Now substitute the known values:  
+    $ T_2 = \frac{ {{params.Pressure2}} \cdot {{params.volumeFinal}} \cdot {{params.T1}} }{ {{params.Pressure1}} \cdot {{params.volumeInitial}} }$
+    </pl-hint>  
+    <pl-hint level="4" data-type="text"> This will give you the final temperature of the air in \( {{params.unitsTemperature}} \).  
+    </pl-hint>  
+</pl-solution-panel>

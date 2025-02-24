@@ -1,0 +1,15 @@
+<pl-question-panel>
+    <pl-figure file-name="Helium.png"></pl-figure>
+
+    <p>Helium expands polytropically through a turbine according to the process $pV^{ {{params.n}} } = C$. The inlet temperature is $\mathbf{T_1} = {{params.T1}}~K$, the inlet pressure is $\mathbf{P_1} = {{params.P1}}~kPa$, and the exit pressure is $\mathbf{P_2} = {{params.P2}}~kPa$. The turbine produces $\mathbf{W} = {{params.W}}~kW$.</p>
+    <p>Determine:</p>
+    <ul>
+        <li>(a) The exit temperature ($T_2$)</li>
+        <li>(b) The heat transferred ($Q$, in kW)</li>
+        <li>(c) The mass flow rate ($\dot{m}$)</li>
+    </ul>
+</pl-question-panel>
+
+<pl-number-input answers-name="T2" comparison="sigfig" digits="3" label="Exit temperature $T_2$ (K) ="></pl-number-input>
+<pl-number-input answers-name="Q" comparison="sigfig" digits="3" label="Heat transferred $Q$ (kW) ="></pl-number-input>
+<pl-number-input answers-name="m_dot" comparison="sigfig" digits="3" label="Mass flow rate $\dot{m}$ (kg/s) ="></pl-number-input>

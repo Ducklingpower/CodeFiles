@@ -1,0 +1,48 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">Identify the given parameters and the problem requirements.</pl-hint>
+    <pl-hint level="2" data-type="text">
+        Given:
+        <ul>
+            <li>Mass of the container: $m = {{params.mass}}~kg$</li>
+            <li>Specific heat: $c_p = {{params.cp}}~kJ/kg·K$</li>
+            <li>Initial temperature: $T_{initial} = {{params.t_initial}}~K$</li>
+            <li>Height: $h = {{params.height}}~km$</li>
+        </ul>
+        Find: Entropy change $\Delta S$ of the container.
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <ul>
+            Step 1: Convert the height into meters.
+            <li>$h_{meters} = h \cdot 1000 = {{params.height}} \cdot 1000~m$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <ul>
+            Step 2: Calculate the final temperature $T_2$ using energy conservation.
+            <li>The potential energy is converted into internal energy:</li>
+            <li>$T_2 = T_{initial} + \frac{g \cdot h_{meters} }{c_p \cdot 1000}$</li>
+            <li>Substitute the values:</li>
+            <li>$T_2 = {{params.t_initial}} + \frac{9.81 \cdot ({{params.height}} \cdot 1000)}{ {{params.cp}} \cdot 1000}~K$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <ul>
+            Step 3: Calculate the entropy change $\Delta S$.
+            <li>The formula for entropy change is:</li>
+            <li>$\Delta S = m \cdot c_p \cdot \ln\left(\frac{T_2}{T_{initial} }\right)$</li>
+            <li>Substitute the values:</li>
+            <li>$\Delta S = {{params.mass}} \cdot {{params.cp}} \cdot \ln(\frac{T_2}{ {{params.t_initial}} } )~kJ/K$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        Final Calculation:
+        <ul>
+            <li>Using the values provided, compute $T_2$ and then $\Delta S$.</li>
+            <li>$\Delta S = {{correct_answers.deltaS}}~kJ/K$</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

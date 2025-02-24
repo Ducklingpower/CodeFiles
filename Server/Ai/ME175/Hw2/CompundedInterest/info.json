@@ -1,0 +1,23 @@
+{
+    "title": "CompoundingInterestCalculation",
+    "stem": "Calculating amounts owed with different compounding frequencies",
+    "topic": "Finance",
+    "tags": [
+        "Compounding Interest",
+        "Finance",
+        "Interest Calculation",
+        "Loan"
+    ],
+    "prereqs": [
+        "Basic understanding of interest and compounding",
+        "Familiarity with mathematical operations"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

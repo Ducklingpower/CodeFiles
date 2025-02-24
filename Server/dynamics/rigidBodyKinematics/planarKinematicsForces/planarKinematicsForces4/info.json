@@ -1,0 +1,15 @@
+{
+    "uuid": "8abcd91d6-64d1-4e89-b72d-ad2133f25b2f",
+    "title": "rectilinear motion on a rigid body",
+    "stem":"dynamics",
+    "topic": "rigid body in motion",
+    "tags": ["Force anylisis", "kinematics","Vectors"],
+    "prereqs":"",
+    "isAdaptive": "true",
+    "createdBy": "epere194@ucr.edu",
+    "qType":"num",
+    "nSteps": 1,
+    "updatedBy":"", 
+    "difficulty": 1,
+	"codelang": "javascript"
+} 

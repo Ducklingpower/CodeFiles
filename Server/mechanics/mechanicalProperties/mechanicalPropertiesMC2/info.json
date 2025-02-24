@@ -1,0 +1,15 @@
+{
+    "uuid": "1f435c36-1126-43b0-aba5-627eeb2e10f9",
+    "title": "Stress-strain diagram",
+	"stem": "Mechanical Properties", 
+    "topic": "Mechanics of Materials",
+    "tags": ["modulus of elasticity", "stress", "strain"],
+	"prereqs": "",
+	"isAdaptive": "false",
+	"createdBy": "dbare004@ucr.edu",
+    "qType": "num",
+	"nSteps": 1,
+	"updatedBy":"", 
+	"difficulty": 1,
+	"codelang": "javascript"
+}

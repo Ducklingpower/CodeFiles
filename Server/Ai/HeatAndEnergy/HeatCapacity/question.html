@@ -1,0 +1,9 @@
+<pl-question-panel>
+    <p>
+      {{params.Q}} of heat energy are required to raise the temperature of {{params.masslabel}} of {{params.materialName}} from {{params.Ti}}{{params.unitsTemperature}} to {{params.Tf}}{{params.unitsTemperature}}. 
+      Determine the specific heat capacity of {{params.materialName}}.
+    </p>
+    </pl-question-panel>
+    
+    <p> Provide your answer in {{params.unitsCp}}: </p>
+    <pl-number-input answers-name="Cp" comparison="sigfig" digits="3" label="Specific Heat Capacity (in {{params.unitsCp}})"></pl-number-input>

@@ -1,0 +1,14 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text"> To determine the mass of the air, we can use the ideal gas equation: $PV = nRT$, where $P$ is the pressure, $V$ is the volume, $n$ is the number of moles, $R$ is the gas constant, and $T$ is the temperature. Here, we need to express mass ($m$) instead of moles ($n$).
+    </pl-hint>
+    <pl-hint level="2" data-type="text"> We can relate the number of moles to mass using the equation: $n = \frac{m}{M}$, where $M$ is the molar mass of air. Rearranging the ideal gas equation gives us:
+    $m = \frac{PV}{R \cdot T} \cdot M$
+    </pl-hint>
+    <pl-hint level="3" data-type="text"> Given that the characteristic gas constant for air ($R$) is provided, we can substitute the known values into the formula, ensuring we have $P$ in the appropriate units to match $R$ and $T$.
+    </pl-hint>
+    <pl-hint level="4" data-type="text"> The mass of air can then be calculated as:
+    $m = \frac{ {{params.Pressure}} \cdot {{params.Volume}} }{ {{params.R}} \cdot {{params.Temperature}} }$
+    </pl-hint>
+    <pl-hint level="5" data-type="text"> After substituting the values, we will find the mass of the air to be {{correct_answers.mass}} {{params.unitsMass}}.
+    </pl-hint>
+</pl-solution-panel>

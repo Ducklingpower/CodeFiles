@@ -1,0 +1,15 @@
+<pl-question-panel>
+    <pl-figure file-name="stress2.png"></pl-figure>
+ 
+    <p>Determine the internal forces acting at the cross sections on point C.</p>
+    <p>let the lengths on the beam be $\mathbf{L}_1 = {{params.l1}} {{params.unitsDist}}$ and $\mathbf{L}_2 = {{params.l2}} {{params.unitsDist}}$ </p>
+    <p>The beam is also under the distributed load $\mathbf{F}_d = {{params.forced}}~{{params.unitsForce}}$ and the angle $\theta = {{params.theta}}$ (deg)</p>
+</pl-question-panel>
+    
+
+  <pl-number-input answers-name="n" comparison="sigfig" digits="3" label=" Normal force at C ({{params.unitsForce}}) ="></pl-number-input>
+  <pl-number-input answers-name="v" comparison="sigfig" digits="3" label=" shear force at C ({{params.unitsForce}})="></pl-number-input>
+  <pl-number-input answers-name="m" comparison="sigfig" digits="3" label=" Moment about C ({{params.unitsForce}}{{params.unitsDist}})="></pl-number-input>
+
+ 
+  

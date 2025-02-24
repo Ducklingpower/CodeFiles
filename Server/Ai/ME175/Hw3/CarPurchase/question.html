@@ -1,0 +1,8 @@
+<pl-question-panel>
+  <p> You are considering purchasing a new car from Slimy’s Sports Car Emporium. The car costs {{params.purchasePrice}} {{params.unitsCurrency}}, and you put a down payment of {{params.downPayment}} {{params.unitsCurrency}}. Slimy is offering Henry a {{params.loanTerm}} {{params.unitsTime}} loan with an interest rate of {{params.interestRate}}% per year compounded monthly with a payment of {{params.scam}} USD. </p>
+<p>Something feels off about the monthly payment. Do some investigating and figure out what the monthly payment should be. How much money are they overcharging you per month?</p>
+
+</pl-question-panel>
+
+<pl-number-input answers-name="monthlyPayment" comparison="sigfig" digits="3" label="Monthly loan payment "></pl-number-input>
+<pl-number-input answers-name="monthlyPayment" comparison="sigfig" digits="3" label="Over charge amount per month "></pl-number-input>

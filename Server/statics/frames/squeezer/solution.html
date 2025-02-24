@@ -1,0 +1,24 @@
+<pl-solution-panel>
+    <pl-figure file-name="squeezer.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> Break up the system into 4 parts and draw the reaction forces acting on each part.</pl-hint>
+    <pl-hint level="2" data-type="text"> Try to solve for the reaction forece acting on point B</pl-hint>
+    <pl-hint level="3" data-type="text"> 
+        <ul>
+            Solving for the reaction forec at B: Using the free body diagram on member AC
+            <li>$\Sigma M_A = 0, \implies B_r$ Sin($\theta$) $\sqrt{L_1^{2}+L_3^{2}}$ - $F(L_1+L_2)$ = 0</li>
+            <li> solving for $B_r$ we get $B_r = \frac{F(L_1+L_2)}  {Sin(\theta)\sqrt{L_1^{2}+L_3^{2}} }$</li>
+            <li> Where $\theta$ = atan($\frac{L_3}{L_1}$) + atan($\frac{L_3+L_4}{L_2}$)</li>
+            Now that we have the reaction froce at B, try and find the compressive force.
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+          Solving for the compressive force: Using the free body diagram on member AC
+            <li>$\Sigma F_x = 0 \implies -A_x + B_r$ Cos($\phi$) = 0 </li>
+            <li>$A_x$ =$ B_r$ Cos($\phi$)
+            <li> Where $\phi$ = atan($\frac{L_3+L_4}{L_2}$)</li>
+            <li>Drawing the free body diagram for the dark green part and doing $\Sigma F_x = 0 \implies A_x -$CompressiveForce = 0</li>
+            <li>Compressive force = $A_x$ </li>
+    </ul>
+    </pl-hint>
+    

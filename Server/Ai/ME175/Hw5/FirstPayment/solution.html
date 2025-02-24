@@ -1,0 +1,17 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+       we can write the present worth as: $Pw = A \frac{1 - (1+i)^{-n} }{i} - G \frac{1-(1+i)^{-n} -n\cdot i (1+i)^{-n} }{i^2}$
+
+      where :
+      <li>pw = {{params.cost}}</li>
+      <li>n = {{params.n}}</li>
+      <li>i = {{params.interestRate}}</li>
+      <li> G = {{params.paymentDecrease}}</li>
+
+      <p>Solving for A and plugging in our varibles, we can obatin out first payment to be: </p>
+      <p>$A = (Pw + G \frac{1-(1+i)^{-n} -n\cdot i (1+i)^{-n} }{i^2}) \cdot \frac{i}{1-(1+i)^{-n} } = ({{params.cost}} + {{params.paymentDecrease}} \frac{1-(1+{{params.interestRate}})^{-{{params.n}} } -{{params.n}}\cdot {{params.interestRate}} (1+{{params.interestRate}})^{-{{params.n}} } }{ {{params.interestRate}}^2}) \cdot \frac{ {{params.interestRate}}  }{1-(1+{{params.interestRate}})^{-{{params.n}} } } $</p>
+      <p>A  = {{correct_answers.firstPayment}}</p>
+
+    </pl-hint>
+   
+</pl-solution-panel>

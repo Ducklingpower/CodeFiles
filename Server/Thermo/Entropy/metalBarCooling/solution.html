@@ -1,0 +1,66 @@
+<pl-solution-panel>
+    <pl-figure file-name="MetalBar.png"></pl-figure>
+    
+    <pl-hint level="1" data-type="text">
+        The problem can be analyzed using an energy balance and entropy calculation for the system.
+    </pl-hint>
+
+    <pl-hint level="2" data-type="text">
+        <ul>
+            <li>Assume the system (metal bar and water) is closed and isolated, with no energy transfer to surroundings.</li>
+            <li>Use the energy balance equation to find the final equilibrium temperature $T_f$:</li>
+            <p>
+                $\Delta U_{water} + \Delta U_{metal} = 0$
+            </p>
+            <li>Expand using specific heat values and masses:</li>
+            <p>
+                $m_w c_w (T_f - T_{wi}) + m_m c_m (T_f - T_{mi}) = 0$
+            </p>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <ul>
+            Solving for the final equilibrium temperature $T_f$:
+            <li>
+                $T_f = \frac{m_w c_w T_{wi} + m_m c_m T_{mi} }{m_w c_w + m_m c_m}$
+            </li>
+            <p>Substitute the known values:</p>
+            <li>
+                $T_f = \frac{({{params.mass_water}})({{params.cw}})({{params.initial_temp_water}}) + ({{params.mass}})({{params.cm}})({{params.initial_temp_bar}})}{({{params.mass_water}})({{params.cw}}) + ({{params.mass}})({{params.cm}})}$
+            </li>
+            <p>Simplify to find:</p>
+            <li>
+                $T_f = {{correct_answers.final_temperature}}~K$
+            </li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+            Next, calculate the entropy produced in the process using the entropy balance equation:
+            <p>
+                $\sigma = \Delta S_{water} + \Delta S_{metal}$
+            </p>
+            <li>
+                For incompressible substances: $\Delta S = m c \ln\left(\frac{T_f}{T_i}\right)$
+            </li>
+            <li>Substitute for water and metal:</li>
+            <p>
+                $\sigma = ({{params.mass_water}})({{params.cw}})\cdot \ln (\frac{ {{correct_answers.final_temperature}} }{ {{params.initial_temp_water}} } ) + ({{params.mass}}) ({{params.cm}}) \cdot \ln (\frac{ {{correct_answers.final_temperature}} } { {{params.initial_temp_bar}} })$
+            </p>
+            <p>Insert values and calculate:</p>
+            <li>
+                $\sigma = {{correct_answers.entropy_production}}~kJ/K$
+            </li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        <ul>
+            Final Results:
+            <li>Final equilibrium temperature: $T_f = {{correct_answers.final_temperature}}~K$</li>
+            <li>Entropy produced: $\sigma = {{correct_answers.entropy_production}}~kJ/K$</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

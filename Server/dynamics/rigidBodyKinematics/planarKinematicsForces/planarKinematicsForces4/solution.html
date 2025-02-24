@@ -1,0 +1,65 @@
+
+
+<pl-solution-panel>
+    <pl-figure file-name="planarKinematicsForces4.png"></pl-figure>
+    <pl-hint level="1" data-type="text">The first step is to write out the acceleration of A</pl-hint>
+    <pl-hint level="2" data-type="text">
+        <P>Writing out the acceleration of A:</P>
+        <li>$\vec{a_A} = \vec{a_G} + \alpha~\times~ [0\hat{i} + (\frac{L}{2})\hat{j}]$, Computing the cross product we get:</li>
+        <li>$\vec{a_A} = \vec{a_G} - \alpha(\frac{L}{2})~\hat{i}$ </li>
+        <p>Breaking up the equation into the i and j components:</p>
+
+
+        <li>$a_A ~\hat{i} = a_G ~\hat{i} - (\frac{L}{2}) \alpha~ \hat{i}$</li>
+        <li>$a_A ~\hat{j} = 0$, The system can't move up or down with the given forces.</li>
+
+
+        <p>Looking at the $\hat{i}$ equations we need to find the acceleration of $a_G$ and angular acceleration $\alpha$.</p>
+
+
+
+
+
+
+
+
+       
+    </pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul>
+ 
+                    <p>Solving for $a_G$ and $\alpha$.</p>
+                    <li>$\Sigma{F_x} = m~a_G ~\implies~ F-(\mu w) = m~a_G $</li>
+                    <li>$a_G = \frac{F-\mu w}{m}$</li>
+                <p>$~$</p>
+                <li>$\Sigma{M_G} = I_G \alpha ~\implies~ (\frac{L}{2})(\mu w - F) = I_G \alpha$</li>
+                <li>$\alpha = \frac{(\frac{L}{2})(\mu w - F)}{I}$. Here for this rod $I = \frac{m}{12}L^2$. Plugging in we get:</li>
+                <li>$\alpha = \frac{6(\mu w -F)}{mL}$</li>
+
+
+                <p>Now that we have $a_G$ and $\alpha$, we can plut them into our $a_A \hat{i}$ equation .</p>
+ 
+                </ul>
+            </pl-hint>
+
+
+            <pl-hint level="4" data-type="text">
+                <ul>
+ 
+                    <p>Solving for $a_A$</p>
+                    <li>We have, $a_A \hat{i} = a_G \hat{i} - (\frac{L}{2}) \alpha \hat{i}$. Plugging in $a_G$ and $\alpha$ we get:</li>
+                    <p>$~$</p>
+                    <li>$a_A ~\hat{i} = (\frac{F-\mu w}{m})~ \hat{i} - (\frac{L}{2})~ \frac{6(\mu w - F)}{mL}~ \hat{i}$ = {{correct_answers.a}} $m/s^2$</li>
+                   
+
+
+                </ul>
+            </pl-hint>
+
+
+
+
+
+

@@ -1,0 +1,53 @@
+<pl-question-panel>
+    <pl-figure file-name="regenertiveCycle.png"></pl-figure>
+
+    <p>Consider a regenerative vapor power cycle with one open feedwater heater. Steam enters the turbine at a pressure of $\mathbf{P_1} = {{params.P1}}$ MPa and a temperature of $\mathbf{T_1} = {{params.T1}}^oC$, and expands to $\mathbf{P_2} = {{params.P2}}$ MPa, where some of the steam is extracted and diverted to the open feedwater heater operating at  $\mathbf{P_2} = {{params.P2}}$ MPa. The remaining steam expands through the second-stage turbine to the condenser pressure of  $\mathbf{P_3} = {{params.P3}}$ MPa. Saturated liquid exits the open feedwater heater at  $\mathbf{P_2} = {{params.P2}}$ MPa. The isentropic efficiency of each turbine stage is {{params.eta_turbine}}% and each pump operates isentropically. The net power output of the cycle is $\mathbf{\dot{W} } =  {{params.W_net}}$ MW.</p>
+
+    <p>State variables based on the schematic:</p>
+    <ul>
+        <li>State 1: Pressure = {{params.P1}} MPa</li>
+        <li>State 2: Pressure = {{params.P2}} MPa</li>
+        <li>State 3: Pressure = {{params.P3}} MPa</li>
+        <li>STate 4: Pressure = {{params.P3}} MPa</li>
+        <li>State 5: Pressure = {{params.P2}} MPa</li>
+        <li>State 6: Pressure = {{params.P2}} MPa</li>
+        <li>State 7: Pressure = {{params.P1}} MPa</li>
+    </ul>
+
+    
+</pl-question-panel>
+<p>$\mathbf{State ~1}$:</p>
+<pl-number-input answers-name="s1" comparison="sigfig" digits="3" label="Entropy at state 1 (kJ/kg*K)="></pl-number-input>
+<pl-number-input answers-name="h1" comparison="sigfig" digits="3" label="Entholpy at state 1 (kJ/kg)="></pl-number-input>
+
+<p>$\mathbf{State ~2}$:</p>
+<pl-number-input answers-name="s2" comparison="sigfig" digits="3" label="Entropy at state 1 (kJ/kg*K)="></pl-number-input>
+<pl-number-input answers-name="h2s" comparison="sigfig" digits="3" label="Isothermal Entholpy at state 2 (kJ/kg)="></pl-number-input>
+<pl-number-input answers-name="h2" comparison="sigfig" digits="3" label="Entholpy at state 2 ="></pl-number-input>
+
+<p>$\mathbf{State ~3}$:</p>
+<pl-number-input answers-name="h3s" comparison="sigfig" digits="3" label="Isothermal Entholpy at state 3 (kJ/kg)="></pl-number-input>
+<pl-number-input answers-name="h3" comparison="sigfig" digits="3" label="Entholpy at state 3 (kJ/kg)="></pl-number-input>
+
+<p>$\mathbf{State ~4}$:</p>
+<pl-number-input answers-name="h4" comparison="sigfig" digits="3" label="Entholpy at state 4 (kJ/kg)="></pl-number-input>
+<pl-number-input answers-name="v4" comparison="sigfig" digits="3" label="Specific Volume at state 4 ($m^3/kg$)="></pl-number-input>
+
+<p>$\mathbf{State ~5}$:</p>
+<pl-number-input answers-name="h5" comparison="sigfig" digits="3" label="Entholpy at state 5 (kJ/kg)="></pl-number-input>
+
+<p>$\mathbf{State ~6}$:</p>
+<pl-number-input answers-name="h6" comparison="sigfig" digits="3" label="Entholpy at state 6 (kJ/kg)="></pl-number-input>
+<pl-number-input answers-name="v6" comparison="sigfig" digits="3" label="Specific Volume at state 6 ($m^3/kg$)="></pl-number-input>
+
+<p>$\mathbf{State ~7}$:</p>
+<pl-number-input answers-name="h7" comparison="sigfig" digits="3" label="Entholpy at state 7 (kJ/kg)="></pl-number-input>
+
+<p>Determine:</p>
+    <ol>
+        <li>(a) The thermal efficiency of the cycle.</li>
+        <li>(b) The mass flow rate of steam entering the first turbine stage, in kg/h.</li>
+    </ol>
+
+<pl-number-input answers-name="thermal_efficiency" comparison="sigfig" digits="3" label="Thermal efficiency (%) ="></pl-number-input>
+<pl-number-input answers-name="mass_flow_rate" comparison="sigfig" digits="3" label="Mass flow rate of steam (kg/h) ="></pl-number-input>

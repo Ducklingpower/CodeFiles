@@ -1,0 +1,12 @@
+<pl-solution-panel></pl-solution-panel>
+    <pl-hint level="1" data-type="text"> Identify the relationship between heat energy, mass, specific heat, and temperature change. </pl-hint>
+    <pl-hint level="2" data-type="text"> The heat energy required to change the temperature of a substance can be represented by the equation: $Q = m * c * \Delta T$. </pl-hint>
+    <pl-hint level="3" data-type="text"> 
+        <ul>
+            <li> \( \Delta T = T_m - T_i \) represents the change in temperature where \( T_i \) is the initial temperature and \( T_m \) is the melting point. </li>
+            <li> Rearrange the equation for the mass \( m \): \( m = \frac{Q}{c * \Delta T} \). </li>
+            <li> Substitute the known values: \( m = \frac{{{params.Q}}}{{{params.Cp}} * ({{params.Tm}} - {{params.Ti}})} \).</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text"> Calculate the result using the values provided: \( m = {{correct_answers.mass}} \) {{params.unitsMass}}. </pl-hint>
+</pl-solution-panel>

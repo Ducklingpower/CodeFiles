@@ -1,0 +1,16 @@
+<pl-question-panel>
+    <pl-figure file-name="rankine_cycle.png"></pl-figure>
+    
+    <p>Steam is the working fluid in an ideal Rankine cycle with superheat and reheat. Steam enters the first-stage turbine at $\mathbf{P_1} = {{params.p1}}~MPa$, $\mathbf{T_1} = {{params.t1}}~^\circ C$, and expands to $\mathbf{P_2} = {{params.p2}}~MPa$. It is then reheated to $\mathbf{T_r} = {{params.tr}}~^\circ C$ before entering the second-stage turbine, where it expands to the condenser pressure of $\mathbf{P_3} = {{params.p3}}~MPa$. The net power output is $\mathbf{\dot{W}_{net} } = {{params.w_net}}~MW$.</p>
+    <p>Determine:</p>
+    <ul>
+        <li>(a) The thermal efficiency of the cycle</li>
+        <li>(b) The mass flow rate of steam, in $\mathbf{kg/h}$</li>
+        <li>(c) The rate of heat transfer $\mathbf{\dot{Q}_{out} }$ from the condensing steam as it passes through the condenser, in $\mathbf{MW}$</li>
+    </ul>
+    <p>Discuss the effects of reheat on the vapor power cycle.</p>
+</pl-question-panel>
+    
+<pl-number-input answers-name="thermal_efficiency" comparison="sigfig" digits="3" label="Thermal efficiency of the cycle (%) ="></pl-number-input>
+<pl-number-input answers-name="mass_flow_rate" comparison="sigfig" digits="3" label="Mass flow rate of steam (kg/h) ="></pl-number-input>
+<pl-number-input answers-name="heat_transfer_rate" comparison="sigfig" digits="3" label="Heat transfer rate $\mathbf{\dot{Q}_{out}}$ (MW) ="></pl-number-input>

@@ -1,0 +1,13 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">To determine the extension of the wire, we need to use the relationship between strain and extension. Strain is the ratio of extension to the original length of the wire.</pl-hint>
+    <pl-hint level="2" data-type="text">The formula for strain is given by:</pl-hint>
+    <pl-hint level="3" data-type="text">$$ \text{Strain} = \frac{\Delta L}{L} $$</pl-hint>
+    <pl-hint level="2" data-type="text">Since the percentage strain is given, we can express the strain as a decimal by dividing by 100:</pl-hint>
+    <pl-hint level="3" data-type="text">$$ \text{Strain} = \frac{ {{params.percentage_strain}} }{100} $$</pl-hint>
+    <pl-hint level="2" data-type="text">Substituting the strain expression into the strain formula, we can solve for the extension $\Delta L$:</pl-hint>
+    <pl-hint level="3" data-type="text">$$ \Delta L = \text{Strain} \times L $$</pl-hint>
+    <pl-hint level="2" data-type="text">Now, substitute in the given values to find the extension:</pl-hint>
+    <pl-hint level="3" data-type="text">$$ \Delta L = \left(\frac{ {{params.percentage_strain}} }{100}\right) \times {{params.length}} $$</pl-hint>
+    <pl-hint level="2" data-type="text">Calculate the value using the above formula:</pl-hint>
+    <pl-hint level="3" data-type="text">$$ \Delta L = {{correct_answers.extension}} \text{ m} $$</pl-hint>
+</pl-solution-panel>

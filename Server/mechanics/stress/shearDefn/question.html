@@ -1,0 +1,11 @@
+<pl-question-panel>
+<p>
+  A cuboidal block with surface dimensions {{params.a}} {{params.unitsDiameter}} x {{params.b}} {{params.unitsDiameter}} is subject is to shear force {{params.Fd}} {{params.unitsForce}}. 
+</p>
+<p> The block is made of material with yield strength {{params.sult}} {{params.unitsStress}}, shear strength {{params.tult}} {{params.unitsStress}}, modulus of elasticity {{params.E}} {{params.unitsModulusElasticity}} and Poisson's ratio {{params.nud}}</p>
+</pl-question-panel>
+
+What is the shear stress (in {{params.unitsStress}}) in the block?
+<pl-number-input answers-name="tau" comparison="sigfig" digits="3" label="$\tau $ (in {{params.unitsStress}})"></pl-number-input>
+What is the shear strain in the block?
+<pl-number-input answers-name="gamma" comparison="sigfig" digits="3" label="$ \gamma $"></pl-number-input>

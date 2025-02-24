@@ -1,0 +1,44 @@
+<pl-solution-panel>
+    <pl-figure file-name="Compressor.png"></pl-figure>
+
+    <pl-hint level="1" data-type="text">Start by applying the energy balance equation for the control volume at steady state.</pl-hint>
+
+    <pl-hint level="2" data-type="text">The energy balance equation for steady state is:
+        <p>$0 = \dot{Q} - \dot{W} + \dot{m} (h_1 + \frac{v_1^2}{2} + gz_1 - h_2 - \frac{v_2^2}{2} - gz_2)$</p>
+        <p>Assume changes in potential energy ($gz$) are negligible.</p>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <ul>
+            Steps to calculate:
+            <li>Calculate the mass flow rate ($\dot{m}$) using the ideal gas law: $\dot{m} = \frac{p_1 A_1 v_1}{(R/M) T_1}$.</li>
+            <li>Use specific enthalpy values $h_1$ and $h_2$ from the given temperatures and ideal gas properties.</li>
+            <li>Substitute known values into the energy balance equation to solve for $\dot{W}$.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+            Mass flow rate calculation:
+            <li>$\dot{m} = \frac{p_1 A_1 v_1}{(R/M) T_1}$</li>
+            <li>Substitute $p_1 = 1~bar$, $A_1 = {{params.A1}}~m^2$, $v_1 = {{params.v1}}~m/s$, $T_1 = 290~K$, $R = 8314~J/(mol\cdot K)$, $M = 28.97~g/mol$.</li>
+            <li>$\dot{m} = {{correct_answers.m_dot}}~kg/s$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+            Substitute into the energy balance equation:
+            <li>Heat transfer rate: $\dot{Q} = {{params.Q_dot}}~kJ/min = \frac{ {{params.Q_dot}} }{60}~kW$.</li>
+            <li>Specific enthalpies: $h_1 = c_p T_1$, $h_2 = c_p T_2$, where $c_p = 1.005~kJ/(kg\cdot K)$.</li>
+            <li>Kinetic energy terms: $\frac{v_1^2}{2} - \frac{v_2^2}{2}$</li>
+            <li>Substitute $h_1$, $h_2$, and $\dot{m}$ into $\dot{W} = \dot{Q} + \dot{m}((h_1 - h_2) + \frac{v_1^2 - v_2^2}{2})$.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        <p>Final calculation:</p>
+        <p>$\dot{W} = \frac{ {{params.Q_dot}} }{60} + {{correct_answers.m_dot}} (({{correct_answers.h1}} - {{correct_answers.h2}}) + \frac{({{params.v1}}^2 - {{params.v2}}^2)}{2 \cdot 1000})$</p>
+        <p>$\dot{W} = {{correct_answers.Power}}~kW$</p>
+    </pl-hint>
+</pl-solution-panel>

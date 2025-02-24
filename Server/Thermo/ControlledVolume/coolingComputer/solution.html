@@ -1,0 +1,40 @@
+<pl-solution-panel>
+    <pl-figure file-name="fanCooling.png"></pl-figure>
+
+    <pl-hint level="1" data-type="text">The mass flow rate $\dot{m}$ represents the amount of air flowing through the system per unit time. At steady state, it can be related to the energy balance of the system. Using the energy balance equation:
+        <p>$\dot{Q}_{cv} - \dot{W}_{cv} + \dot{m}(h_1 - h_2) = 0$</p>
+        Since there is no heat loss to the surroundings ($\dot{Q}_{cv} = 0$) and negligible changes in kinetic and potential energy, the equation simplifies to:
+        <p>$0 = -\dot{W}_e + \dot{m}c_p(T_2 - T_1)$</p>
+        Solving for $\dot{m}$:
+        <p>$\dot{m} = \frac{-\dot{W}_e}{c_p ({{params.T_out}} - {{params.T_in}})}$</p>
+        Here, $\dot{W}_e = ({{params.P_comp}} + {{params.P_fan}})$ is the total electrical power supplied to the electronics and the fan.</pl-hint>
+
+    <pl-hint level="2" data-type="text">Next, to relate the mass flow rate to the inlet area, we need the specific volume $v_1$ of the air at the inlet. Using the ideal gas law:
+        <p>$v_1 = \frac{R~ T_{in} }{P_1~ M}$</p>
+        where:
+        <ul>
+            <li>$R$ is the universal gas constant (8.314 J/mol·K)</li>
+            <li>$T_{in}$ is ${{params.T_in}} + 273$, the inlet temperature in Kelvin</li>
+            <li>$P_1$ is ${{params.P_in}} \times  101325$, is the inlet pressure in Pascals</li>
+            <li>$M$ is the molar mass of air (28.97 g/mol)</li>
+        </ul>
+        This gives us the specific volume, which is essential to relate the mass flow rate to the volumetric flow rate.</pl-hint>
+
+    <pl-hint level="3" data-type="text">The volumetric flow rate ($\dot{V}$) can be found using:
+        <p>$\dot{V} = \dot{m} v_1$</p>
+        The fan inlet area $A_1$ can then be determined using the relation:
+        <p>$A_1 = \frac{\dot{V} }{V_{max} } = \frac{\dot{m} v_1}{ {{params.V_max}} }$</p>
+        where ${{params.V_max}}$ is the maximum allowable inlet velocity, ensuring noise constraints are met.</pl-hint>
+
+    <pl-hint level="4" data-type="text">Combining the equations, we get:
+        <p>$A_1 = \frac{(-\dot{W}_e) v_1}{c_p ({{params.T_out}} - {{params.T_in}}) {{params.V_max}}}$</p>
+        Substituting $v_1$ from the ideal gas law:
+        <p>$A_1 = \frac{(-\dot{W}_e) \left(\frac{R ({{params.T_in}} + 273) }{ ({{params.P_in}} \times 101325) M}\right)}{c_p ({{params.T_out}} - {{params.T_in}}) {{params.V_max}}}$</p>
+        This equation now relates all known variables to solve for $A_1$.</pl-hint>
+
+    <pl-hint level="5" data-type="text">Finally, convert the area to $cm^2$ for the answer:
+        <p>$A_1 (cm^2) = A_1 (m^2) \times 10^4$</p>
+        After performing the calculations using the provided data, we find that the smallest fan inlet area that meets the specified conditions is:
+        <p>$A_{fan} = {{correct_answers.A_fan}}~cm^2$</p>
+    </pl-hint>
+</pl-solution-panel>

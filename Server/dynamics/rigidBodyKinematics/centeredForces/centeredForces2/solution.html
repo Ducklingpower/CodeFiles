@@ -1,0 +1,55 @@
+
+
+
+
+<pl-solution-panel>
+    <pl-figure file-name="centeredForces2.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> The first step is to draw a free-body diagram. there should be four forces in your FBD.</pl-hint>
+
+
+
+
+    <pl-hint level="2" data-type="text">
+ 
+<p>Free body diagram of the system:</p>
+<li>weight force pulling down from G</li>
+<li>normal force at A pushing up 2x</li>
+<li>normal force at B pushing up 2x</li>
+<li>Force pushing left</li>
+
+
+<p>Now that we have the free body diagram we can compute the equations of motion and solve for the unknowns.
+
+
+
+
+
+
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+           
+            <p>$\Sigma{F_x} = ma ~\implies~ F = ma ~\implies~ a = \frac{F}{m}$</p>
+            <p>$\Sigma{F_y} = 0 ~\implies~ 0 = 2N_a + 2N_B - w ~\implies~ N_a = \frac{w}{2} - N_b$</p>
+            <p>$\Sigma{M_G} = 0 ~\implies ~ 0 = 2N_BL_2 + F(L_4 + L_3) - 2N_A L_1$ </p>
+            <p>We have 2 equations and 2 unknowns, we can solve for $N_A$ and $N_B$ now.</p>
+
+
+       
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+
+
+Solving for $N_B$:
+<p>Plugging in $N_a = (\frac{w}{2} - N_b)$ into $2n_BL_2 + F(L_4 + L_3) - 2(N_A) L_1$ and solving for N_B we get:</p>
+
+
+           <li>$ N_b = \frac{(FL_3) - (FL_4) + (wL_1)}{2L_2 + 2L_1}$ = {{correct_answers.nb}} $N$</li>
+           <p>Solving for $N_a$</p>
+           <li>$N_a = \frac{w}{2} - N_b ~\implies~ N_a = \frac{w}{2} - {{correct_answers.nb}}  = {{correct_answers.na}} ~N$</li>
+
+
+        </ul>
+    </pl-hint>

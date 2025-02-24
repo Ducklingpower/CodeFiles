@@ -1,0 +1,50 @@
+
+
+<pl-solution-panel>
+    <pl-figure file-name="centeredForces1.png"></pl-figure>
+    <pl-hint level="1" data-type="text">First draw a free body diagram. There should be four forces acting on the ring.</pl-hint>
+
+
+
+
+
+
+    <pl-hint level="2" data-type="text">
+   <p>Drawing the free body diagram you will have weight, normal, friction, and tension.</p>
+   <li>Weight pulling down from the center</li>
+   <li>Normal pushing from the ground up</li>
+   <li>Tension force pulling the ring on the rope</li>
+   <li>Friction force pulling left from the contact area of the ring and the ground</li>
+
+
+   <p>Now that you have the free body diagram, you can write equations of motion to solve for unknowns.</p>
+   
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+           
+            <p>Equations of Motion:</p>
+            <p>$\Sigma{F_x} = ma ~\implies~ ma = Tcos(\theta) - \mu_kN$</p>
+            <p>$\Sigma{F_y} = 0 ~\implies~ 0 = Tsin(\theta) -w+N ~\implies~ N = w - Tsin(\theta)$ </p>
+            <p>plugging in $N = w - Tsin(\theta)$ into our $F_x$ equation we get:</p>
+            <li> $ma = Tcos(\theta) - \mu_k(w - Tsin(\theta)) ~\implies ~ ma = Tcos(\theta) - \mu_kw + \mu_kTsin(\theta)$</li>
+
+
+            <p>Here we have 1 equation and 2 unknowns, (a and T). We need one more equation.</p>
+
+
+       
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+           
+            <p>Moment equation:</p>
+        <p>$\Sigma {M_{cg} } = 0 ~\implies~  0 =  rTsin(\theta-\phi) - \mu_k N ~\implies~ 0 = rTsin(\theta-\phi) - \mu_kwr+ \mu_krTsin(\theta) $</p>
+        <p>Solving for tension we get:</p>
+        <li>$T = \frac{\mu_k r w}{rsin(\theta-\phi)+\mu_k r sin(\theta)}$</li>
+       
+     <p>Plugging in tension into $ma = Tcos(\theta) - \mu_kw + \mu_kTsin(\theta)$ and solving for a we get:</p>
+     <li>$a = \frac{\mu_kr w cos(\theta)}{m(rsin(\theta-\phi) + \mu r sin(\theta))} - \frac{\mu_k w }{m} + \frac{\mu_k r w sin(\theta) \mu_k}{m(r sin(\theta-\phi) + \mu_k r sin(\theta))}$ = {{correct_answers.a}} $m/s^2$</li>
+        </ul>
+    </pl-hint>

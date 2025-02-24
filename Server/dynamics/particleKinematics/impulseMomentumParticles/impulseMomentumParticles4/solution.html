@@ -1,0 +1,51 @@
+<pl-solution-panel>
+  <pl-figure file-name="impulseMomentumParticles4"></pl-figure>
+  <pl-hint level="1" data-type="text">To find the final velocity of the block and bullet, use the conservation of moment equation.</pl-hint>
+
+
+
+
+
+
+  <pl-hint level="2" data-type="text">
+<p>Conservation of momentum:</p>
+<li>$v_B m_B + v m = (m_B + m ) v_f ~\implies ~ \frac{v_B m_b + 0 }{m_b + m} = v_f ={{correct_answers.v}}~m/s$</li>
+<p>Where $v_f$ is the velocity of the block and the bullet after the collision.</p>
+
+
+<p>To find the time, compute the impulse-momentum principle.</p>
+
+
+  </pl-hint>
+  <pl-hint level="3" data-type="text">
+      <ul>
+<p>Impulse momentum principle, $m v_1 + \Sigma \int F dt = m v_2$</p>
+<p>Applying in the Y direction:</p>
+<li>$ 0 + (N (t) + mg (t)) =0 ~\implies~ N = mg$</li>
+
+
+<p>Applying in the X direction:</p>
+<li>$m v_f - (\mu N t) = 0 ~implies~ t = \frac{m v_f}{\mu N}$</li>
+
+
+<p>Plugging in N we can solve for t:</p>
+<li>$t = \frac{m v_f}{\mu (mg)} ~\implies~ \frac{v_f}{\mu g} = {{correct_answers.t}} ~s$</li>
+
+
+<p>Now we can find the total distance traveled.</p>
+
+
+    </ul>
+  </pl-hint>
+    <pl-hint level="4" data-type="text">
+      <ul>
+
+
+<p>Using the kinematic equation : $v_f^2 = v_i ^2 -2 a \Delta x$. we can aptian the distance traveled.</p>
+<li>$0 = v_i ^2 -2 a \Delta x ~\implies~ \Delta x = \frac{v_i ^2}{2a}$</li>
+<p> Here the deceleration is $a = \frac{v_f}{t}$, the speed of the block divided by the time it takes the block to come to a rest. We can now plug that into our equation. Also here the initial velocity is equal to $v_f$. So $v_f = v_i$</p>
+<li>$\Delta x = \frac{v_i ^2}{2(\frac{v_f}{t})} ~\implies ~ \Delta x = \frac{v_f t}{2} = {{correct_answers.s}}~m$</li>
+
+
+    </ul>
+  </pl-hint>

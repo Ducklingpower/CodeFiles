@@ -1,0 +1,35 @@
+```html
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">To determine the total heat required \( Q \), we need to consider both the heat required to raise the temperature of the water and the copper container. The heat \( Q \) can be expressed as:
+    \[ Q = Q_{\text{water} } + Q_{\text{copper} } \]
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        The heat required to raise the temperature of the water \( Q_{\text{water} } \) is calculated using the formula:
+        \[ Q_{\text{water} } = m_{\text{water} } \cdot c_{\text{water} } \cdot \Delta T \]
+        where:
+        <ul>
+            <li> \( m_{\text{water} }  \) is the mass of the water: \( m_{\text{water} } = {\text{density of water} } \times {\text{{params.volumeWater}} } = {{params.massWater}} {{params.unitsMass}} \)</li>
+            <li> \( c_{\text{water} } \) is the specific heat capacity of water: {{params.specificHeatWater}} {{params.unitsSpecificHeatWater}} </li>
+            <li> \( \Delta T \) is the temperature change \( = { {{params.boilingTemperature}} - { {{params.initialTemperature}} } } \)</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        The heat required for the copper container \( Q_{\text{copper} } \) is given by:
+        \[ Q_{\text{copper} } = m_{\text{copper} } \cdot c_{\text{copper} } \cdot \Delta T \]
+        where:
+        <ul>
+            <li> \( m_{\text{copper} } \) is the mass of the copper container: {{params.massCopper}} {{params.unitsMass}} </li>
+            <li> \( c_{\text{copper} } \) is the specific heat capacity of copper: {{params.specificHeatCopper}} {{params.unitsSpecificHeatCopper}} </li>
+            <li> \( \Delta T \) is the same as for water</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        Substitute the values into the equations to find the total heat:
+        \[ Q = ({{params.massWater}} \times {{params.specificHeatWater}} \times ({{params.boilingTemperature}} - {{params.initialTemperature}})) + ({{params.massCopper}} \times {{params.specificHeatCopper}} \times ({{params.boilingTemperature}} - {{params.initialTemperature}})) \]
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        Calculate \( Q \) to find the total heat required:
+         Q = {{correct_answers.Q}} {{params.unitsHeat}}
+    </pl-hint>
+</pl-solution-panel>
+```

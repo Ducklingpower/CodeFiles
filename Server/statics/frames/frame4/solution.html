@@ -1,0 +1,47 @@
+<pl-solution-panel>
+    <pl-figure file-name="frame4.png"></pl-figure>
+    <pl-hint level="1" data-type="text">The first step is to solve for the reaction forces on the pins that support the whole frame. In this case, try and solve for the reaction forces on pins A and B.</pl-hint>
+    <pl-hint level="2" data-type="text">To solve the reaction forces on pins A and B, write out the posible reaction forces and there directions. So for Pin A it would be Ax pointing Right and Ay pointing up. For pin B it will be Bx pointing right.</pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul>
+                    Solving reaction forces on pins A and B:
+
+                    <li>$\Sigma{F}_x = 0 \implies A_x+ B_x - F_R =0 $</li>
+                    <li>$\Sigma{F}_y = 0 \implies Ay - F_G=0 \implies Ay = F_G  $</li>
+                    <li>$\Sigma{M}_A = 0 \implies B_x(L_2) - F_R(L_2+ \frac{L_2}{2})-F_G(2L_1)=0 \implies B_x = \frac{F_G(2L_1)+F_R(L_2+\frac{L_2}{2})}{L_2}$</li>
+                    <li>Using the $(A_x+ B_x - F_R =0)$ equation we get $A_x = F_R - B_x$</li> 
+                    <p>Since Pin B is connected to a roller we can say the reaction force $B_y = 0$</p>
+                </ul>
+            </pl-hint>
+        
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+            To solve the for the reaction forces on pin C we first have to isolate member CDF and solve for pin D,
+           <p>Solving for pin D:</p>
+           <p> When isolating a member you have to draw the reaction forces on each joint connection.</p>
+           <p>So for joint C we can draw the forces in the Cx and Cy direction as up and right. We can do the same for joint D. Do not forget any external forces, so we still have to write the force $F_R$ on point F. </p>
+           <li>$\Sigma{M}_C = 0 \implies F_R(L_2)-D_x(\frac{L_2}{2})= 0 \implies Dx = 2F_R$</li>
+           We can also solve for Dy, but we dont need to.
+
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+        <p> Solving for forces at Pin E now.</p>
+        <p> Using member BDE we can draw there reaction forces on D as down and left for Dy and Dx. We can do the same for pin E.</p>
+        <p> We also need to draw the force $F_G$ acting on pin E, and the reaction force Bx going right on pin B. Now we can solve. </p>
+        <li>$\Sigma{F}_x = 0 \implies B_x-D_x-E_x = 0 \implies E_x = B_x-D_x$</li>
+        <li>$\Sigma{M}_D = 0 \implies -Ey(L_1)-F_G(L_1) = 0 \implies E_y = -F_G $</li>
+        <p>Note: Because we got a negitive solution we know the $E_y$ force is not pointing down, but it is pointing up.</p>
+        <p>Lastly we can find the net force on pin E using Ex and Ey.</p>
+        <li>Net force pin E = $\sqrt{Ex^2+Ey^2} \implies E = {{correct_answers.pinE}} {{params.unitsForce}}$</li>
+
+
+        </ul>
+    </pl-hint>
+

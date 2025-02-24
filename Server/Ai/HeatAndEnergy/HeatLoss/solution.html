@@ -1,0 +1,21 @@
+<pl-solution-panel></pl-solution-panel>
+    <pl-hint level="1" data-type="text"> The energy lost by the material can be calculated using the formula for heat transfer: $Q_{\text{lost} } = m \cdot C_p \cdot (T_i - T_f)$. </pl-hint>
+    <pl-hint level="2" data-type="text"> Identify the known variables:</pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+            <li> Mass ($m$) of the material: {{params.m}} {{params.unitsMass}}</li>
+            <li> Initial temperature ($T_i$): {{params.Ti}} {{params.unitsTemperature}}</li>
+            <li> Final temperature ($T_f$): {{params.Tf}} {{params.unitsTemperature}}</li>
+            <li> Specific heat capacity ($C_p$) of the material: {{params.Cp}} {{params.unitsCp}}</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text"> 
+        Substitute the known values into the equation:
+        \(
+        \begin{align*}
+        Q_{\text{lost} } &= {{params.m}} \cdot {{params.Cp}} \cdot ({{params.Ti}} - {{params.Tf}}) \\
+        &= {{correct_answers.Q_lost}} \ {{params.unitsHeat}}.
+        \end{align*}
+        \)
+    </pl-hint>
+</pl-solution-panel>

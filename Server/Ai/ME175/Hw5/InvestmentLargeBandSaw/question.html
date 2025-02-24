@@ -1,0 +1,12 @@
+<pl-question-panel>
+    <p> Washington Mill Works is considering the purchase of a large resawing band saw for {{params.cost}} USD . The saw is expected to have a useful life of {{params.lifespan}} {{params.unitsYears}}, after which it will have an estimated salvage value of ${{params.salvageValue}} {{params.unitsCost}}. Each year, the annual income is estimated to be {{params.annualIncome}} {{params.unitsIncome}}, while the annual operating expenses are {{params.annualExpenses}} {{params.unitsExpenses}}. Assuming a minimum attractive rate of return (MARR) of {{params.MARR}}%:</p>
+    <p> calculate the equivalent present worth of the cash flows over the seven-year period.</p>
+    <p> calculate the equivalent annual worth of the cash flows over the seven-year period.</p>
+    <p> calculate the equivalent future worth of the cash flows over the seven-year period.</p>
+    <p> calculate the internal rate of return (IRR)</p>
+</pl-question-panel>
+
+<pl-number-input answers-name="presentWorth" comparison="sigfig" digits="3" label="Equivalent Present Worth = "></pl-number-input>
+<pl-number-input answers-name="aw" comparison="sigfig" digits="3" label="Equivalent annual Worth = "></pl-number-input>
+<pl-number-input answers-name="fw" comparison="sigfig" digits="3" label="Equivalent future Worth = "></pl-number-input>
+<pl-number-input answers-name="irr" comparison="sigfig" digits="3" label="internal rate of return (IRR %) = "></pl-number-input>

@@ -1,0 +1,13 @@
+<pl-question-panel>
+  <pl-figure file-name="singleshear.png"></pl-figure>
+<p>
+  Two plates are held together by a rivet of diameter {{params.diam}} {{params.unitsDiameter}}. The plates are loaded by a force F = {{params.Fd}} {{params.unitsForce}}.
+</p>
+<p> The rivet is made of {{params.materialName}} with yield strength {{params.sult}} {{params.unitsStress}}, shear yield strength of {{params.tult}} {{params.unitsStress}}, modulus of elasticity {{params.E}} {{params.unitsModulusElasticity}} and Poisson's ratio {{params.nud}}</p>
+</pl-question-panel>
+
+What is the magnitude of the shear stress (in {{params.unitsStress}}) in the rivet?
+<pl-number-input answers-name="tau" comparison="sigfig" digits="3" label="$\tau $ (in {{params.unitsStress}})"></pl-number-input>
+What is the factor of safety in the rivet?
+<pl-number-input answers-name="fs" comparison="sigfig" digits="3" label="Factor of safety"></pl-number-input>
+

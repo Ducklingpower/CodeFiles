@@ -1,0 +1,27 @@
+{
+    "title": "MachinePurchaseFinancialAnalysis",
+    "stem": "Financial analysis of a machine purchase for vehicle manufacturing",
+    "topic": "Finance",
+    "tags": [
+        "machine purchase",
+        "financial analysis",
+        "tax liability",
+        "net income",
+        "depreciation",
+        "MACRS",
+        "loan repayment"
+    ],
+    "prereqs": [
+        "basic understanding of finance",
+        "knowledge of tax calculations",
+        "familiarity with depreciation methods"
+    ],
+    "isAdaptive": true,
+    "createdBy": "epere194@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

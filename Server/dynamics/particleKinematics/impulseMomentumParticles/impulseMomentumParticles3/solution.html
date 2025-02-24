@@ -1,0 +1,32 @@
+
+
+<pl-solution-panel>
+    <pl-figure file-name="impulseMomentumParticles3"></pl-figure>
+    <pl-hint level="1" data-type="text">The first step is to define the datum so that you can write the position equation for the rope.</pl-hint>
+
+
+
+    <pl-hint level="2" data-type="text">
+ <p>If we define the datum at the top of the pulley system we can come up with the equation for the length of the rope as: $s_A + 4 s_B = L$</p>
+ <p>Taking the time derivative we get: $v_A + 4 v_B = 0$, lets hold on to this equation.</p>
+ <li> $v_A + 4 v_B = 0$</li>
+ <p>We can write the impulse-momentum equation for each block we get:</p>
+ <li>$0 + (m_A g (t) - T(t)) = m_A v_A$</li>
+ <li>$0 + (m_B g (t) - 4T(t)) = m_B v_B$</li>
+ 
+<p>Now we have 3 equations and 3 unknowns.</p>
+
+
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+          <p> Solving for $v_B$ we get:</p>
+            <li>$v_B = -gt^2\frac{4 m_A - m_B}{16 m_A t + m_B t} = {{correct_answers.vb}} ~m/s$</li>
+            <p>$~$</p>
+            <li>$v_A = -4 v_B = {{correct_answers.va}}~m/s$</li>
+            <p>$~$</p>
+            <li>$T = \frac{m_B g t - m_B v_B }{4 t} = {{correct_answers.T}}~N$</li>
+            <p>Note: When evaluating $v_b$, it will come out negative. And that negative value for $v_B$ was used to compute $v_A $ and $T$. The negative sign indicates the direction of motion. Since the question asks for the speed of the blocks. we can take the absolute value of the velocities for the solution.</p>
+
+
+      </ul>

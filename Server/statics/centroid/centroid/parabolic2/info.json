@@ -1,0 +1,15 @@
+{
+    "uuid": "8b4891d6-64d1-4e89-b72d-ad2133f25b2f",
+    "title":"Centroid: Parabolic 2",
+    "stem":"",
+    "topic": "Statics",
+    "tags": ["weight", "centroid","moment", "force"],
+    "prereqs":"",
+    "isAdaptive": "false",
+    "createdBy": "sundar@google.com",
+    "qType":"num",
+    "nSteps": 1,
+    "updatedBy":"", 
+    "difficulty": 1,
+	"codelang": "python"
+}

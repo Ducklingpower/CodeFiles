@@ -1,0 +1,27 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text"> Write the definition for specific heat capacity. </pl-hint>
+    <pl-hint level="2" data-type="text"> The specific heat capacity \( c_p \) is defined as the amount of heat \( Q \) required to change the temperature of a mass \( m \) by a temperature difference \( \Delta T \). It can be expressed as: 
+        \[ c_p = \frac{Q}{m \times \Delta T} \]
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+            <li>The known variables for this problem are:</li>
+            <li>Heat energy \( Q = {{params.Q}} \; {{params.unitsHeat}} \)</li>
+            <li>Mass \( m = {{params.masslabel}} \)</li>
+            <li>Initial temperature \( T_i = {{params.Ti}} \; {{params.unitsTemperature}} \)</li>
+            <li>Final temperature \( T_f = {{params.Tf}} \; {{params.unitsTemperature}} \)</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+            <li>Calculate the temperature change $ ( \Delta T = T_f - T_i)$</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="5" data-type="text"> 
+        Using the values, plug them into the equation: 
+        \[ c_p = \frac{Q} {{params.masslabel}} \times (  \Delta T ) \; \text{ {{params.unitsCp}} } \]
+    </pl-hint>
+    <pl-hint level="6" data-type="text"> Plug all values into the specific heat capacity equation to find \( c_p \): 
+        \[ c_p = {{correct_answers.Cp}} \; {{params.unitsCp}} \]
+    </pl-hint>
+</pl-solution-panel>

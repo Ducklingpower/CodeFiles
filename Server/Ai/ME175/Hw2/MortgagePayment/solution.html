@@ -1,0 +1,50 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To calculate the monthly payment and total interest paid on a mortgage, we can use the formula for the monthly payment on an amortizing loan.
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        The formula for the monthly payment (M) is given by:
+        
+        \[
+        M = P \frac{r(1 + r)^n}{(1 + r)^n - 1}
+        \]
+        
+        where:
+        <ul>
+            <li>P = principal amount (initial loan amount)</li>
+            <li>r = monthly interest rate (annual interest rate divided by 12)</li>
+            <li>n = number of payments (loan term in months)</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        In this case, we have:
+        <ul>
+            <li>P = {{params.principal}}</li>
+            <li>r = $\frac{ {{params.interestRate}} }{100 \cdot 12}$</li>
+            <li>n = ${{params.years}} \cdot 12$</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        Substituting these values into the formula gives:
+        
+        \[
+        M = {{params.principal}} \frac{\frac{{params.interestRate}}{100 \cdot 12} (1 + \frac{{params.interestRate}}{100 \cdot 12} )^{({{params.years}} \times 12)} }{(1 + \frac{{params.interestRate}}{100 \cdot 12} )^{({{params.years}} \times 12)} - 1}
+        \]
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        The total amount paid over the life of the mortgage is given by:
+        
+        \[
+        \text{Total Payments} = M \times n
+        \]
+        
+        Therefore, the total interest paid can be calculated as:
+        
+        \[
+        \text{Total Interest} = \text{Total Payments} - P
+        \]
+    </pl-hint>
+    <pl-hint level="6" data-type="text">
+        Using the values calculated, we can find the monthly payment and total interest paid over the life of the mortgage.
+    </pl-hint>
+</pl-solution-panel>

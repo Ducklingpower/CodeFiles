@@ -1,0 +1,26 @@
+{
+    "uuid": "unique-identifier-example",
+    "title": "TensionInRopes",
+    "stem": "Analysis of forces in equilibrium involving angles and tensions in ropes",
+    "topic": "Physics",
+    "tags": [
+        "Equilibrium",
+        "Ropes",
+        "Tension",
+        "Physics",
+        "GraphicalAnalysis"
+    ],
+    "prereqs": [
+        "Basic understanding of forces",
+        "Trigonometry",
+        "Equilibrium concepts"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

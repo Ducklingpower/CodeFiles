@@ -1,0 +1,23 @@
+{
+    "uuid": "b3d1b528-b6b9-4f2c-8b85-ff4bcb9cd4e7",
+    "title": "CalculateStrainAndPercentageStrain",
+    "stem": "Understanding axial deformation in materials under load",
+    "topic": "Material Science",
+    "tags": [
+        "Material Deformation",
+        "Strain Calculation",
+        "Structural Engineering"
+    ],
+    "prereqs": [
+        "Basic knowledge of mechanics",
+        "Understanding of stress and strain concepts"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

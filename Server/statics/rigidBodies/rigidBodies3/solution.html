@@ -1,0 +1,47 @@
+<pl-solution-panel>
+    <pl-figure file-name="3dRigidBodies3.png"></pl-figure>
+    <pl-hint level="1" data-type="text">First, draw all of the reaction forces acting on all of the bearings. </pl-hint>
+    <pl-hint level="2" data-type="text">
+        <p>The reaction force on bearing A should be $A_x$ and $A_z$</p>
+        <p>The reaction forces on bearing B should be $B_x$ and $B_z$</p>
+        <p>The reaction forces on bearing C should be $C_y$ and $C_z$</p>
+        Now write out the equations that discribe the force in all directions and moments in all directions.
+
+        </pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul>
+                   Equations that discribe all of the forces:
+                   <li>$\Sigma{F}_x = 0 \implies A_x + B_x -F_R = 0$</li>
+                   <li>$\Sigma{F}_y = 0 \implies C_y - F_G =0$</li>
+                   <li>$\Sigma{F}_z = 0 \implies A_z + B_z + C_z - F_B -F_P =0$</li>
+                    Moment equations (about point A):
+                   <li>$\Sigma{M}_x = 0 \implies (B_z)(L_1+L_1)+(C_z)(L_1+L_1+L_1)+(F_G)(L_2)-(F_P)(L_1+L_1+L_1)-(F_B)(L_1)=0$</li>
+                   <li>$\Sigma{M}_y = 0 \implies (C_z)(L_1+L_1)-(F_P)(L_1)+(F_B)(L_2) =0$</li>
+                   <li>$\Sigma{M}_z = 0 \implies (F_R)(L_1)-(B_x)(L_1+L_1)+(F_G)(L_1)-(C_y)(L_1+L_1)=0$</li>
+
+                   Now you have 6 equations and 6 unknowns. Now we can solve for everthing.
+                </ul>
+            </pl-hint>
+        
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+          First we can use $\Sigma{M}_y$ equation to solve for $C_z$
+          <li>$C_z = {{correct_answers.Cz}}$</li>
+          Now we can use $\Sigma{M}_x$ and $\Sigma{M}_z$ equations to solve for $B_z$ and $B_x$.
+          <li>$B_z = {{correct_answers.Bz}}$</li> 
+          <li>$B_x = {{correct_answers.Bx}}$</li> 
+          Using $C_z,B_x,$ and $B_z$ we can solve for A_x and A_z using $\Sigma{F}_x$ and $\Sigma{F}_z$ equations.
+          <li>$A_x = {{correct_answers.Ax}}$</li>
+          <li>$A_z = {{correct_answers.Az}}$</li>
+            Lastly we can use the $\Sigma{F}_y$ equation to find $C_z$
+          <li>$C_y = {{correct_answers.Cy}}$</li>
+          Any other force equals zero.
+
+
+
+          
+        </ul>
+    </pl-hint>

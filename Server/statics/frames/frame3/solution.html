@@ -1,0 +1,66 @@
+<pl-solution-panel>
+    <pl-figure file-name="distributedForces1.png"></pl-figure>
+    <pl-hint level="1" data-type="text">First compute the reaction forces at points A and D by $ \Sigma F_x = 0 $, $ \Sigma F_y = 0 $ and $ \Sigma M_A = 0 $ of the whole system.</pl-hint>
+    <pl-hint level="2" data-type="text"> Break up the system into 4 seprate parts. Beam AD,BF,CE, and pully F, and right the X and Y reaction forces acting at each point on all 4 parts.  </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+        Solving reaction forces:
+        <li>$ \Sigma F_x = 0, \implies A_x + D_x = 0, \implies A_x = -D_x$</li>
+        <li>$ \Sigma F_y = 0, \implies A_y - W = 0, \implies A_y = W, \implies A_y = {{params.W}} {{params.unitsForce}}$</li>
+        <li>$ \Sigma M_A = 0, \implies (D_x)(L_1+L_2+L_3+L_4) - (W)(L_1+L_2+r) = 0.$ Solving for $D_x = (W)(L_1+L_2+r) / (L_1+L_2+L_3+L_4) = {{correct_answers.DX}}$ ${{params.unitsForce}}$</li>
+        </ul>
+    </pl-hint>
+
+
+
+    <pl-hint level="3" data-type="text"> 
+        <ul>
+        Reminder: If 2 parts share 1 point then the reactions on each parts must be equal oppisite to each other.
+            <li> Example: when writing the reaction forces on beam AD. </li>
+            <li> Point A $\implies$ 2 reaction forces pointing right and up, (positve x direction) and (positive y direction).</li>
+            <li> Point B $\implies$ 2 reaction forces pointing right and up, (positve x direction) and (positive y direction).</li>
+            <li> Point C $\implies$ 2 reaction forces pointing right and up, (positve x direction) and (positive y direction).</li>
+            <li> Point D $\implies$ 1 reaction forces pointing right and up, (positve x direction).</li>
+            <li> There will also be a tension force pointing to the  right, (positive x direction)</li>
+         -
+            <li> Example: when writing the reaction forces on beam CE. </li>
+            <li> Point C $\implies$ 2 reaction forces pointing left and down, (negative x direction) and (negative y direction).</li>
+            <li> Point E $\implies$ 2 reaction forces pointing right and up, (positive x direction) and (positive y direction).</li>
+        -
+            <li> Example: when writing the reaction forces on beam BF. </li>
+            <li> Point B $\implies$ 2 reaction forces pointing left and down, (negative x direction) and (negative y direction).</li>
+            <li> Point E $\implies$ 2 reaction forces pointing left and down, (negative x direction) and (negative y direction).</li>
+            <li> Point F $\implies$ 2 reaction forces pointing left and down, (negative x direction) and (negative y direction).</li>
+        -
+            <li> Example: when writing the reaction forces on pully F. </li>
+            <li> Point F $\implies$ 2 reaction forces pointing right and up, (positive x direction) and (positive y direction).</li>
+            <li> There will also be a 2 tension forces pointing left and down.</li>
+        -
+            <li> Now that everything is set up you can now start solving each part by doing $ \Sigma F_x = 0 $, $ \Sigma F_y = 0 $ and $ \Sigma M_A = 0. $</li>
+
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+        Solving reaction forces:
+        <li> Beam BF: $ \Sigma M_B = 0 \implies -(E_y)(L_2) - (W)(L_2+L_3+r)=0 \implies |E_y| = (W)(L_2+L_3+r)/-l_2 = {{correct_answers.DX}}$ ${{params.unitsForce}}$</li>
+        -
+        <li> Beam CE: tan($\theta$) = (opp/adj) $\implies$ tan($\theta$) =$ (L_1/L_2) \implies \theta = $atan$(L_1/L_2)$
+        <li> Now we can solve for $E_x$: tan($\theta$) = $ E_y/E_x \implies |E_x| = E_y /$ tan($\theta$) = ${{correct_answers.EY}}$ ${{params.unitsForce}}$ </li>
+        <li> By $ \Sigma F_x = 0 $, $ \Sigma F_y = 0 $ we can come to the conclusion that $C_x = E_x$ and $C_y = E_y$</li>
+        -
+        <li> Pully F: $ \Sigma F_x = 0 $, $ \Sigma F_y = 0 $ we can come to the conclusion that $F_y = W $ and $ F_x = W $</li>
+        -
+        <li>Beam BF: Now that we have $F_x,F_y,E_x,E_y$ we can solve for the reactions at point B.</li>
+        <li>$ \Sigma F_x = 0 $, $ \Sigma F_y = 0 \implies B_x = E_x - F_x,$ and $ B_y = E_y - F_y$</li>
+        <li>$B_x = {{correct_answers.BX}}$ {{params.unitsForce}}</li>
+        <li>$B_y = {{correct_answers.BY}}$ {{params.unitsForce}}</li>
+
+        -
+        <li>Note: The solutions want the magnitude of the forces which is why they all come out positve.</li>
+        <li>When you get negative solutions for reaction forces, that indactes that you have to switch the force direction.</li>
+        <li>For example: This is why when solving for $B_x$ it NOT $B_x = E_x + F_x$ even though that is technically correct with the way we initially drew the forces.</li>
+        <li>It is beacuse the true direction of $E_x$ on beam BF is to the right (positive x direction) regardless of the direction of our initial guess. </li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

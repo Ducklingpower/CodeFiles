@@ -1,0 +1,35 @@
+<pl-solution-panel>
+    <pl-figure file-name="Moment3d2.png"></pl-figure>
+    <pl-hint level="1" data-type="text">First, you must identify the force vector. The red vector in the picture is just there to show the location and direction of the force, but it is not the actual force vector. In order to obtain the force vector you must multiply the force $\mathbf{F} = {{params.force}} $ to the unit vector of the red vector. </pl-hint>
+    <pl-hint level="2" data-type="text">To obtain the unit vector of the red vector, you must identify two locations along the line of action of the red vector. In our case, the first point can be the tail of the red vector, which is equal to $ L_1 \hat{i} + L_1 \hat{j} + 0 \hat{k}$, lets call this $\vec{T}$ and for our second point we can use a point along the line of action which is equal to $ (L_1+L_2) \hat{i} + 0 \hat{j} - L_3 \hat{k}$, lets call this $\vec{R}$. Now we can find the direction of the red vector by moving from the tail to our second point. 
+            Moving from the tail $\vec{T}$ to our second point $\vec{R}$  $ \implies \vec{R}-\vec{T} = ((L_2 + L_1)-L_1 ) \hat{i} + (0-L_1) \hat{j} + (-L_3-0 )\hat{k} = L_2 \hat{i} - L_1 \hat{j} - L_3\hat{k} $. Now that we have the direction we can divide the length of the vector by itself to obtain the unit vector. $ \frac {L_2 \hat{i} - L_1 \hat{j} - L_3\hat{k} }{\sqrt{(L_2)^2 + (L_1)^2 + (L_3)^2} } $</pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul> 
+                    Now all we have to do is multiply the force by the unit vector.
+                    <li>$\mathbf{\vec{F} } =   \mathbf(F) \frac {L_2 \hat{i} - L_1 \hat{j} - L_3\hat{k} }{\sqrt{(L_2)^2 + (L_1)^2 + (L_3)^2} } $ </li>
+                    Now that we have the true force vector we can now take the moment about point O using the cross product $M_o = \vec{R} X \vec{F} $</li>
+                    <p>This gives us:</p>
+                    <li>${{correct_answers.momenti}} \hat{i}$</li>
+                    <li>${{correct_answers.momentj}} \hat{j}$</li>
+                    <li>${{correct_answers.momentk}} \hat{k}$</li>
+
+
+                    <li>Note: This statement is also true $M_o = \vec{T} X \vec{F} $</li>
+                </ul>
+            </pl-hint>
+        
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+           <li>It is important to note that when computing the moment about o we chose a vector that starts at o and ends somewhere along the line of action 
+           of the force vector ($\vec{F}$). Take a look at the picture and notice the black dotted line, that line represents the line of action of the force vector.
+           Any vector that starts at o and ends at the line will for computing the moment about point o. 
+           That is why both of these statements are true $ \implies M_o = \vec{T} X \vec{F} =  \vec{R} X \vec{F} 
+          
+           </li>
+        </ul>
+    </pl-hint>
+
+

@@ -1,0 +1,9 @@
+<pl-question-panel>
+    <p> The national debt is {{params.debt}} trillion dollars. The total tax revenue collected by the US government from individual income tax returns was {{params.taxrev}} trillion dollars. Assume that the interest on the debt is {{params.ii}}% and that the annual revenue from individual income tax returns remains constant.</p>
+    <p>Determine n, the number of years it would take to pay off the current national debt if all of the tax revenue from personal income tax returns were applied to the debt each year.</p>
+ 
+    <P>Assuming that all revenue from personal income tax returns were applied to the debt, what is the smallest interest rate for which the debt will never be paid off? </P>
+</pl-question-panel>
+ 
+ <pl-number-input answers-name="years" comparison="sigfig" digits="3" label="Years to pay off debt =" ></pl-number-input>
+ <pl-number-input answers-name="intrest" comparison="sigfig" digits="3" label="Smallest interest (%) =" ></pl-number-input>

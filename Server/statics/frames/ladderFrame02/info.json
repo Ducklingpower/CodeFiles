@@ -1,0 +1,15 @@
+{
+    "uuid": "7c4ccac6-843d-4392-a673-feb64c2a8bbf",
+    "title": "Frames: Ladder 2",
+	"stem": "frame beam",
+    "topic": "statics",
+    "tags": ["force", "fbd", "moment"],
+    "prereqs":"",
+	"isAdaptive": "false",
+	"createdBy": "sundar@google.com",
+	"qType":"mc",
+	"nSteps": 1,
+	"updatedBy":"", 
+    "difficulty": 1,
+	"codelang": "none"
+}

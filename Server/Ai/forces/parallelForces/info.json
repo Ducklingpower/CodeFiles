@@ -1,0 +1,24 @@
+{
+    "uuid": "a1b2c3d4-e5f6-7g8h-9i10-j11k12l13m14",
+    "title": "ResultantForceCalculation",
+    "stem": "Understanding how to calculate the resultant force from two individual forces in different configurations.",
+    "topic": "Physics",
+    "tags": [
+        "Force",
+        "Resultant Force",
+        "Vector Addition",
+        "Physics Basics"
+    ],
+    "prereqs": [
+        "Basic understanding of forces",
+        "Knowledge of vector addition"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

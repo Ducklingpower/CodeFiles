@@ -1,0 +1,24 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To calculate the monthly withdrawal amount during retirement, we need to first determine the future value of the deposits made into the account and then calculate the annuity from this amount for the withdrawal phase.
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        The future value of the deposits after {{params.yearsDeposit}} years can be calculated using the formula for the future value of an annuity:  
+        \[ FV = P \times \frac{(1 + r)^n - 1}{r} \]  
+        where \( P \) is the monthly deposit, \( r \) is the monthly interest rate, and \( n \) is the total number of deposits.
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        The monthly interest rate \( r \) is given by \( r = \frac{\frac{ {{params.interestRate1}} }{100} }{12} \) and the total number of deposits \( n \) is \( n = {{params.yearsDeposit}} \times 12 \).
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        After calculating the future value \( FV \), we then determine the monthly withdrawals using the formula for an annuity:  
+        \[ W = FV \times \frac{r}{(1 - (1 + r)^{-n})} \]  
+        where \( W \) is the monthly withdrawal, \( r \) is the new monthly interest rate after the last deposit, and \( n \) is the total number of withdrawals, given by \( n = {{params.yearsWithdraw}} \times 12 \).
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        The new monthly interest rate after the last deposit is calculated as \( r = \frac{\frac{ {{params.interestRate2}} } {100} }{12} \).
+    </pl-hint>
+    <pl-hint level="6" data-type="text">
+        Substituting \( P = {{params.deposit}} {{params.unitsCurrency}} \), \( n = {{params.yearsDeposit}} \times 12 \), and the calculated rates into the formulas will yield the monthly withdrawal amount as \( {{correct_answers.withdrawal}} {{params.unitsCurrency}} \).
+    </pl-hint>
+</pl-solution-panel>

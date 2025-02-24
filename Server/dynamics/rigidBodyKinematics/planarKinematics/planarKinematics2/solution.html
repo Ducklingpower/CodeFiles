@@ -1,0 +1,47 @@
+
+<pl-solution-panel>
+    <pl-figure file-name="planarKinematics2.png.png"></pl-figure>
+    <pl-hint level="1" data-type="text">  The first step in solving these types of problems is to write out the equation of velocity and Identify what you have and don't have.</pl-hint>
+
+
+
+    <pl-hint level="2" data-type="text">
+        Equation of velocity at point C:
+        <li>$\vec{v_c} = \vec{v_B} + \omega_{CB} $ x $ \vec{L_2} $</li>
+        <p>Here he can see that we don't know what the velocity of $\vec{v_B}$ is, but we can easily find it.</p>
+
+
+
+
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+            Solving for $\vec{v_B}$:
+
+
+           <li>$\vec{v_B} = \omega_{A} $ x $ \vec{L_1}  $ </li>
+     
+           <p>Now we can plug in $\vec{v_B}$ into $\vec{v_c} = \vec{v_B} + \omega_{CB} $ x $ \vec{L_2} $. Plugging in we get and taking the cross product we get:</p>
+           <li>$\vec{v_c} = -L_1sin(\theta)\omega_{A}~\hat{i}+L_1cos(\theta)\omega_A ~\hat{j} - L_2cos(\phi)\omega_{CB} ~\hat{j}- L_2sin(\phi)\omega_{CB}~\hat{i} $</li>
+
+
+           <p>Now we can solve for the velocity by breaking up $\vec{v_c}$ into its $\hat{i},\hat{j}$ components</p>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+            <p>Breaking up the $\vec{v_c}$ into its components:</p>
+            <li>$v_c\hat{i} = -L_1sin(\theta)\omega_{A}~\hat{i}- L_2sin(\phi)\omega_{CB}~\hat{i}$</li>
+            <li>$0{j} = L_1cos(\theta)\omega_A ~\hat{j} - L_2cos(\phi)\omega_{CB} ~\hat{j}$</li>
+            Now we have 2 equations and 2 unknowns.
+
+
+            <p>Solution: $v_c\hat{i} = -L_1sin(\theta)\omega_{A}- L_2sin(\phi)[\frac{L_1\omega_Acos(\theta)}{L_2cos(\phi)}]$ = {{correct_answers.vx}} m/s</p>
+
+
+
+
+       </ul>
+    </pl-hint>
+
+

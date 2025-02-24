@@ -1,0 +1,13 @@
+<pl-question-panel>
+  <pl-figure file-name="doubleshear.png"></pl-figure>
+<p>
+  The figure shows a bolted joint loaded by a force P = {{params.Fd}} {{params.unitsForce}}. The bolt diameter is {{params.diam}} {{params.unitsDiameter}}.
+</p>
+<p> The bolt is made of {{params.materialName}} with yield strength {{params.sult}} {{params.unitsStress}}, shear yield strength of {{params.tult}} {{params.unitsStress}}, modulus of elasticity {{params.E}} {{params.unitsModulusElasticity}} and Poisson's ratio {{params.nud}}</p>
+</pl-question-panel>
+
+What is the magnitude of the shear stress (in {{params.unitsStress}}) in the bolt?
+<pl-number-input answers-name="tau" comparison="sigfig" digits="3" label="$\tau $ (in {{params.unitsStress}})"></pl-number-input>
+What is the factor of safety in the bolt?
+<pl-number-input answers-name="fs" comparison="sigfig" digits="3" label="Factor of safety"></pl-number-input>
+

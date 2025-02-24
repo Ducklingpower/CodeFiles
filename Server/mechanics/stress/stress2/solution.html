@@ -1,0 +1,79 @@
+<pl-solution-panel>
+    <pl-figure file-name="stress2.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> The first step is to convert the distributed force into a concentrated force as well as the location of the force.  </pl-hint>
+    <pl-hint level="2" data-type="text"> We can convert the distributed force into a concentrated force by computing the area under the curve. So we can compute the area under the curve as F = $\frac{F_d(L_1)}{2}$.
+        We can also find the location under the curve as xx = $\frac{L_1}{3}$.
+        <p>Now draw a free-body diagram of the beam to compute the tension force holding up the beam.</p>
+
+
+
+
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+      FBD of beam:
+      <p>There is an $A_x$ and $A_y$ reaction force both pointing in the positive direction at pin A. You can draw the concentrated force (F), xx distance away from point A.
+        Lastly, there is a tension force pointing into the beam at an angle $\theta$ off the beam on point B.
+
+
+
+
+      </p>
+       
+      Using the free body diagram, try to compute the tension in the rod holding up the beam.
+
+
+
+
+
+
+
+
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+       Computing tension:
+       <p>Using the free body diagram we can compute the moment about A.</p>
+       <li>$\Sigma{M}_A = 0 ~\implies F(\frac{L_1}{3})-Tsin(\theta)(L_1+L_2+L_2) = 0$</li>
+       <li>Solving for T we get $T = \frac{F(L_1)}{3sin(\theta)(L_1+L_2+L_2)}$</li>
+
+
+
+
+       Now that we have the tension we can draw a free body of the beam from point B to C to solve for the internal forces.
+       
+        </ul>
+    </pl-hint>
+
+
+
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+       Drawing the free body diagram from point B to C we can draw the normal force pointing right starting from point C.
+       There is a shear force pointing down and a moment at point C. Lastly we can't forget the tension force acting on point B at an angle $\theta$.
+           
+       <p>Using the free body diagram we can compute internal force acting on point C using static equations.</p>
+       <li>$\Sigma{M}_C = 0 ~\implies M_C -Tsin(\theta)L_2=0$</li>
+       <li>$M_C = Tsin(\theta)L_2 = {{correct_answers.m}}~ {{params.unitsForce}}{{params.unitsDist}}$</li>
+       <p></p>
+       <li>$\Sigma{F}_x = 0 ~\implies N - Tcos(\theta)=0$</li>
+       <li>$N = Tcos(\theta) = {{correct_answers.n}} ~{{params.unitsForce}}$</li>
+       <p></p>
+       <li>$\Sigma{F}_y = 0 ~\implies V-Tsin(\theta)=0$</li>
+       <li>$V = Tsin(\theta) = {{correct_answers.v}}~{{params.unitsForce}}$</li>
+
+
+
+
+
+
+
+
+
+
+
+
+        </ul>
+    </pl-hint>

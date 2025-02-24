@@ -1,0 +1,57 @@
+<pl-solution-panel>
+    <pl-figure file-name="powerCycle.png"></pl-figure>
+
+    <pl-hint level="1" data-type="text">To evaluate the claim, first calculate the thermal efficiency of the cycle.</pl-hint>
+
+    <pl-hint level="2" data-type="text">
+        <ul>
+            <li>Thermal efficiency is given by the formula: 
+                \[
+                \eta = \frac{W_{out} }{Q_{in} }
+                \]
+            </li>
+            <li>Substituting the given values:
+                \[
+                \eta = \frac{ {{params.work_output}} }{Q_{in} } = \frac{ {{params.work_output}}~kJ}{ {{params.heat_input}}~kJ}
+                \]
+                \[
+                \eta = {{correct_answers.ThermalEfficiency}}~\text{(decimal form)}
+                \]
+            </li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">Now calculate the maximum possible thermal efficiency for the given temperatures.</pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+            <li>The maximum possible thermal efficiency is given by the Carnot efficiency:
+                \[
+                \eta_{\text{max} } = 1 - \frac{T_{\text{cold} } }{T_{\text{hot} } }
+                \]
+            </li>
+            <li>Substituting the given temperatures:
+                \[
+                \eta_{\text{max} } = 1 - \frac{ {{params.temperature_cold}}~K} { {{params.temperature_hot}}~K}
+                \]
+                \[
+                \eta_{\text{max} } = {{correct_answers.max_efficiency}}~\text{(decimal form)}
+                \]
+            </li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">Compare the calculated thermal efficiency with the maximum possible thermal efficiency.</pl-hint>
+
+    <pl-hint level="6" data-type="text">
+        <ul>
+            <li>Since \(\eta = {{correct_answers.ThermalEfficiency}}\) and \(\eta_{\text{max} } = {{correct_answers.max_efficiency}}\),</li>
+            <li>Check if \(\eta \leq \eta_{\text{max} }\):</li>
+            <li>
+                If true, the claim is possible (\(1\)). Otherwise, it is not possible (\(0\)).
+            </li>
+            <li>In this case, the claim is: {{correct_answers.claim}}
+            </li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

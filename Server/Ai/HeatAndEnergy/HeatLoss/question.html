@@ -1,0 +1,20 @@
+<pl-question-panel>
+    <p>
+      A block of {{params.materialName}} having a mass of {{params.m}} {{params.unitsMass}} cools from a temperature of {{params.Ti}} {{params.unitsTemperature}} to {{params.Tf}} {{params.unitsTemperature}}.
+      Assume the specific heat capacity of {{params.materialName}} is {{params.Cp}} {{params.unitsCp}}.
+    </p>
+  </pl-question-panel>
+  
+  <p> How much energy is lost by the {{params.materialName}}? </p>
+  <pl-number-input answers-name="Q_lost" comparison="sigfig" digits="3" label="Q_lost (in {{params.unitsHeat}})"></pl-number-input>
+  
+  <!-- Parameters used in the code -->
+  <!-- params.m = 10 -->
+  <!-- params.unitsMass = "kg" -->
+  <!-- params.Ti = 150 -->
+  <!-- params.unitsTemperature = "°C" -->
+  <!-- params.Tf = 50 -->
+  <!-- params.Cp = 500 -->
+  <!-- params.unitsCp = "J/(kg °C)" -->
+  <!-- params.unitsHeat = "J" -->
+  <!-- params.materialName = "cast iron" -->

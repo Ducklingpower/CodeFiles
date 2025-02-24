@@ -1,0 +1,25 @@
+{
+    "uuid": "e0e52189-6222-43b4-91eb-a1a42e803d04",
+    "title": "StressInBarCalculation",
+    "stem": "Calculating the stress in a tensile-loaded material",
+    "topic": "Material Science",
+    "tags": [
+        "Stress",
+        "Tensile Force",
+        "Material Strength",
+        "Engineering Mechanics"
+    ],
+    "prereqs": [
+        "Understanding of stress and strain",
+        "Basic knowledge of material properties",
+        "Familiarity with units of measurement"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

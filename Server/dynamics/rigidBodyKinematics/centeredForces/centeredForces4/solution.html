@@ -1,0 +1,60 @@
+
+
+<pl-solution-panel>
+    <pl-figure file-name="centeredForces4.png"></pl-figure>
+    <pl-hint level="1" data-type="text">The first step is to draw the free-body diagram for the wheel. There should be 5 forces acting on the wheel.</pl-hint>
+
+
+
+
+    <pl-hint level="2" data-type="text">
+ 
+    <p>Free body diagram of the wheel:</p>
+    <li>Weight force pulling down from the center</li>
+    <li>Tension force pulling up along the rod</li>
+    <li> Normal force pushing right at the contact area of the wall and the wheel.</li>
+    <li>friction force pulling down at the contact area of the wall and the wheel.</li>
+    <li>force pulling down</li>
+
+
+    <p>Now we can write out equations of motion to solve for the angular acceleration.</p>
+
+
+
+
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+       
+            <p>$\Sigma{F_x} = 0 ~\implies~ N-Tcos(\theta) = 0 ~\implies~ N = Tcos(\theta)$</p>
+            <p>$\Sigma{F_y} = 0 ~\implies~ Tsin(\theta) - w - \mu_k N - F = 0$</p>
+            <p>$\Sigma{M_G} = I\alpha ~\implies ~ I \alpha = r \mu N - F r$</p>
+
+
+            Now we have 3 equations and 3 unknowns. ($\alpha T N$)
+
+
+            <p>Note: $I = k^2 m $ and $\theta = tan^{-1}(\frac{L}{r})$></p>
+
+
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="3" data-type="text">
+        <ul>
+       
+            <p>Solving for alpha:</p>
+            <p>Plug in, $N = Tcos(\theta)$ , into , $Tsin(\theta) - w - \mu_k N - F = 0$ , and solve for T </p>
+            <li> $T = \frac{F + w }{sin(\theta) - \mu_kcos(\theta)}$</li>
+<p>$~$</p>
+            <p>Now we can plug in T into  $N = Tcos(\theta)$</p>
+            <li> $N = \frac{Fcos(\theta) + wcos(\theta) }{sin(\theta) - \mu_kcos(\theta)}$</li>
+
+
+            <p>$~$</p>
+<p>Lastly we can plug in N and $I = K^2m$ into $I \alpha = r \mu N - F r$ and solve for $\alpha$</p>
+<li>$\alpha = \frac{r \mu_k Fcos(\theta) + r \mu_k m g cos(\theta)}{k^2 m sin(\theta) - k^2 m \mu_k cos(\theta)} - \frac{Fr}{k^2 m} =  {{correct_answers.a}} \frac{rad}{s^2}$</li>
+<p>Note: The answer will be negative if you do it in your calculator. This is correct since we take clockwise as a negative motion. Since the question asks for magnitude, the direction does not matter.</p>
+        </ul>
+    </pl-hint>

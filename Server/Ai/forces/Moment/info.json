@@ -1,0 +1,25 @@
+{
+    "uuid": "1c60e2a3-c497-4b6b-b129-f824d268c3ed",
+    "title": "CalculateMomentOfForce",
+    "stem": "Calculating moments and forces in physics and engineering contexts.",
+    "topic": "Physics",
+    "tags": [
+        "force",
+        "moment",
+        "torque",
+        "mechanics",
+        "engineering"
+    ],
+    "prereqs": [
+        "Understanding of basic physics concepts",
+        "Knowledge of moment and torque calculation"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

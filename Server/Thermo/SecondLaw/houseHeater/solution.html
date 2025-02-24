@@ -1,0 +1,46 @@
+<pl-solution-panel>
+    <pl-figure file-name="houseHeater.png"></pl-figure>
+    <pl-hint level="1" data-type="text">Understand the problem and identify known values:</pl-hint>
+    <pl-hint level="2" data-type="text">
+        <p>We know the following:</p>
+        <ul>
+            <li>Heat required to maintain the dwelling temperature: $Q_H = {{params.qh}}~kJ/day$</li>
+            <li>Indoor temperature: $T_{in} = {{params.t_in}}~^\circ C$ (or $T_H = {{params.t_in}} + 273.15~K$)</li>
+            <li>Outdoor temperature: $T_{out} = {{params.t_out}}~^\circ C$ (or $T_C = {{params.t_out}} + 273.15~K$)</li>
+        </ul>
+        <p>We aim to calculate the minimum theoretical work required by the heat pump.</p>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        Use the coefficient of performance ($\gamma_{max}$) for a reversible heat pump:
+        <p>
+            $\gamma_{max} = \frac{T_H} {T_H - T_C}$
+        </p>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        Relating the work done to the coefficient of performance:
+        <p>
+            $W_{cycle} = \frac{Q_H}{\gamma_{max} }$
+        </p>
+        Substitute $\gamma_{max}$ into the equation:
+        <p>
+            $W_{cycle} = Q_H \cdot \left(1 - \frac{T_C} {T_H}\right)$
+        </p>
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        Perform the calculations:
+        <p>Substitute the given values:</p>
+        <p>
+            $T_H = {{params.t_in}} + 273.15~K$, $T_C = {{params.t_out}} + 273.15~K$, and $Q_H = {{params.qh}}~kJ/day$
+        </p>
+        <p>
+            $W_{cycle} = {{params.qh}} \cdot \left(1 - \frac{ {{params.t_out}} + 273.15}{ {{params.t_in}} + 273.15}\right)$
+        </p>
+    </pl-hint>
+    <pl-hint level="6" data-type="text">
+        Final result:
+        <p>
+            The minimum theoretical work required is:
+            $W_{cycle} = {{correct_answers.Work}}~kJ/day$
+        </p>
+    </pl-hint>
+</pl-solution-panel>

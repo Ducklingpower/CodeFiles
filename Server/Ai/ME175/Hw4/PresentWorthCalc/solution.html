@@ -1,0 +1,28 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To calculate the equivalent present worth (PW) of the cash flows, we can use the formula: 
+        \[ PW = \sum_{t=0}^{n} \frac{R_t}{(1 + i)^t} \]
+        where \( R_t \) is the net cash flow in year \( t \), \( i \) is the MARR, and \( n \) is the useful life of the asset.
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        First, we need to determine the net cash flow for each year: 
+        \[ R_t = \text{Annual Income} - \text{Annual Expenses} \] 
+        Substitute the known variables: 
+        \[ R_t = {{params.annualIncome}} - {{params.annualExpenses}} \]
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        Next, we will calculate the present worth for the income generated for each year over the lifespan of the band saw, excluding the salvage value, using the MARR: 
+        \[ PW_{income} = \sum_{t=1}^{n} \frac{R_t}{(1 + \frac{ {{params.MARR}} }{100})^t}  = ({{params.annualIncome}} - {{params.annualExpenses}}) \frac{(1 + \frac{ {{params.MARR}} }{100})^n -1}{ \frac{ {{params.MARR}} }{100}(1 + \frac{ {{params.MARR}} }{100})^n  } \] 
+        and for the salvage value at the end of the lifespan: 
+        \[ PW_{salvage} = \frac{ {{params.salvageValue}} }{ {(1 + \frac{ {{params.MARR}} }{100})^{n} } } \] 
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        Finally, the total equivalent present worth is given by: 
+        \[ PW = -Cost PW_{income} + PW_{salvage} \] 
+        Substitute the values to calculate the final present worth: 
+        \[ PW =- {{params.cost}} + ({{params.annualIncome}} - {{params.annualExpenses}}) \frac{(1 + \frac{ {{params.MARR}} }{100})^n -1}{ \frac{ {{params.MARR}} }{100}(1 + \frac{ {{params.MARR}} }{100})^n  } + \frac{ {{params.salvageValue}} }{ {(1 + \frac{ {{params.MARR}} }{100})^{n} } } \]
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        Therefore, the equivalent present worth of the cash flows is \( PW = {{correct_answers.presentWorth}} ~{{params.unitsCost}} \).
+    </pl-hint>
+</pl-solution-panel>

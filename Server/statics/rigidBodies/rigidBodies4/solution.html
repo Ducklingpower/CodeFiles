@@ -1,0 +1,60 @@
+<pl-solution-panel>
+    <pl-figure file-name="3dRigidBodies4.png"></pl-figure>
+    <pl-hint level="1" data-type="text">First draw the reaction forces at point A.</pl-hint>
+    <pl-hint level="2" data-type="text">
+        <p>The reaction forces at point A should be $A_x, A_y,A_z,M_y,M_z$.</p>
+        <p>Next we have to describe the tension in the cable as a vector. </p>
+        <p> We can do this by multiplying the the magnitude of the tension with the unit vector that matches the path of the cable.</p>
+
+        </pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul> 
+                    Finding the tesnion vector $\vec{T}$.  
+                    First we must identify the unit vector that matches the path of the cable.
+                    <li>$\vec{U} = \frac{(L_2+L_2-L_1)\hat{i}-L_3\hat{j}+L_2\hat{k}}{\sqrt{(L_2+L_2-L_1)^2+(L_3)^2+(L_2)^2}}$</li>
+                    <li>So the vector expression for the tesnion is simply $\vec{T} = (T)(\vec{U}) = (T)(\frac{(L_2+L_2-L_1)\hat{i}-L_3\hat{j}+L_2\hat{k}}{\sqrt{(L_2+L_2-L_1)^2+(L_3)^2+(L_2)^2}})$</li>
+                    Since we do not know what tesnion is yet we can just leave T in  $\vec{T}$ for now.
+                    set up the equations that discribe all of the forces in the system. We will also need to take the moment about point A for an additional equation.
+                </ul>
+            </pl-hint>
+        
+
+    <pl-hint level="4" data-type="text"> 
+        <ul> 
+
+            <li>$\Sigma{F}_x = 0 \implies A_x + \vec{T}\hat{i} = 0$</li>
+            <li>$\Sigma{F}_y = 0 \implies A_y + \vec{T}\hat{j} = 0$</li>
+            <li>$\Sigma{F}_z = 0 \implies A_z + \vec{T}\hat{k} - W = 0$</li>
+             Moment equations (about point A):
+             <p>But before we set up our three moment equations we first have to compute $\vec{d} X \vec{T}$.</p>
+             <p>Where $\vec{d} = -2L_2\hat{i}+L_3\hat{j}+0\hat{k}$ goes from point A to the end of the cable.</p>
+             <li>$\vec{d} X \vec{T} = (L_3)(\vec{T}\hat{k})\hat{i}-(-2L_2)(\vec{T}\hat{k})\hat{j}+(-2L_2)(\vec{T}\hat{j})-(L_3)(\vec{T}\hat{i})\hat{k}$</li>
+             setting up moment equations(about point A):
+             <li>$\Sigma{M}_x = 0 \implies (L_3)(\vec{T}\hat{k})-(W)(L_3) = 0$</li>;
+             <li>$\Sigma{M}_y = 0 \implies  -(-2L_2)(\vec{T}\hat{k})-(W)(L_2)+M_y= 0$</li>;
+             <li>$\Sigma{M}_z = 0 \implies  M_z + (-2L_2)(\vec{T}\hat{j})-(L_3)(\vec{T}\hat{i})= 0$</li>;
+             <P>Note: $\Sigma{M}_x$ does not have a moment reaction force since the structure can freely rotate about the x-axis.</P>
+             <li>So, $M_x = 0$</li>
+             Now you have 6 unknowns and 6 equation. Now you can solve.
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text"> 
+        <ul> 
+
+        <P>Solving the $\Sigma{M}_x$ we are able to solve for tension.</P>
+        <li>T = ${{correct.answers.T}} {{params.unitForce}} $</li>
+        <p>Now that we have tension, we can solve for $M_y$ and $M_z$ using the $\Sigma{M}_y$ and $\Sigma{M}_z$ equations. </p>
+        <li>$M_y ={{correct.answers.My}} {{params.unitForce}} {{params.unitsDist}}$</li>
+        <li>$M_z ={{correct.answers.Mz}} {{params.unitForce}} {{params.unitsDist}}$</li>
+        <P>Lastly we are easily able to solve for $A_x,A_y,$ and $A_z$ using the force equations.</P>
+        <li>$Ax ={{correct.answers.Ax}} {{params.unitForce}} $</li>
+        <li>$Ay ={{correct.answers.Ay}} {{params.unitForce}} $</li>
+        <li>$Az ={{correct.answers.Az}} {{params.unitForce}} $</li>
+
+
+        </ul>
+    </pl-hint>
+

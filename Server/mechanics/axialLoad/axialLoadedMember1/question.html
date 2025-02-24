@@ -1,0 +1,16 @@
+<pl-question-panel>    
+    <pl-figure file-name="axialLoadedMember1IMG.png"></pl-figure>
+
+    <p> Two rigid beam frames have been assembled together, as illustrated in the diagram.  </p>
+    <p> The top frame includes a sliding support at one end, while at the opposite end, a load (deonted as P) is applied. </p>
+    <p> The second frame is equipped with a pin support. These two frames are attached through a pin support connection. </p>
+    <p> The cross-sectional area of the beams is $ \mathbf{A} $ = $ {{params.area}} {{params.unitsDist}} ^2$ and the height $ \mathbf{L} $ = $ {{params.length}} {{params.unitsDist}} $. Assume the beams are made of steel </p>
+    <p> and have a Modulus of Elasticity of $ \mathbf{E}$ = $ {{params.modulusElasticitySteel}}$x$10^{ {{params.n}} }$ ${{params.unitsModulus}}$. The vertical displacement is limited to $ \mathbf{\delta} $ = $ {{params.delta}} {{params.unitsDist}} $. </p>
+    
+       
+    </pl-question-panel>
+        
+    <p> Find the allowable value of load P  $ ({{params.unitsForce}}) $ </p>
+   
+    <pl-number-input answers-name="forceP" comparison="sigfig" digits="3" label="P="></pl-number-input>
+   

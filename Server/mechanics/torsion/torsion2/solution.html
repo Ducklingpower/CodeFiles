@@ -1,0 +1,54 @@
+
+
+<pl-solution-panel>
+    <pl-figure file-name="torsion2.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> Compute the torque acting in each section of the beam.</pl-hint>
+    <pl-hint level="2" data-type="text">In section AB torque = $\tau_A$ , section BC torque = $\tau_A-\tau_B$, and section CD torque = $\tau_A-\tau_B + \tau_C$
+
+
+
+
+        <p> Now use these torques to calculate the twist in each section.</p>
+        The equation of twist = $ \frac{\tau ~ L}{J G}   $
+        <p>
+        G = $75*10^9$</p>
+        J = $\frac{\pi}{2}(R^4)$
+    </pl-hint>  
+    <pl-hint level="3" data-type="text">
+        <ul>
+            Solving twist:
+            <li>Twist in section AB = $\frac{\tau_A ~ L_1}{G ~ J}$</li>
+            <li>Twist in section BC = $\frac{(\tau_A - \tau_B) ~ L_2}{G ~ J}$</li>
+            <li>Twist in section CD = $\frac{(\tau_A - \tau_B + \tau_C) ~ L_3}{G ~ J}$</li>
+
+
+
+
+            Now you easily solve both of the questions by adding up the twist in each section.
+
+
+
+
+       
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+            Solution:
+            <p>A relative to D</p>
+           <li> Twist AB + Twist BC + Twist CD = ${{correct_answers.twist1}}$</li>
+           <p>A relative to C</p>
+           <li> Twist AB + Twist BC = ${{correct_answers.twist2}}$</li>
+
+
+
+
+       
+
+
+
+
+        </ul>
+    </pl-hint>

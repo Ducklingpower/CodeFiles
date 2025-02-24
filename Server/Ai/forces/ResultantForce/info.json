@@ -1,0 +1,26 @@
+{
+    "uuid": "123e4567-e89b-12d3-a456-426614174000",
+    "title": "ResultantForceMagnitudeAndDirection",
+    "stem": "This problem involves the application of vector addition and the triangle of forces method.",
+    "topic": "Physics - Mechanics",
+    "tags": [
+        "forces",
+        "resultant",
+        "vector addition",
+        "mechanics",
+        "physics"
+    ],
+    "prereqs": [
+        "Understanding of basic vector addition",
+        "Knowledge of trigonometric functions",
+        "Familiarity with physics concepts related to forces"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

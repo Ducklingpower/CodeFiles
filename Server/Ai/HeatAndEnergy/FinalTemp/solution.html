@@ -1,0 +1,23 @@
+```html
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text"> The heat energy supplied is given by the formula: 
+        $Q = m \cdot c \cdot \Delta T$,
+        where $\Delta T = T_f - T_i$ is the change in temperature. 
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        Rearranging the formula to find the final temperature, $T_f$, we have:
+        $T_f = T_i + \frac{Q}{m \cdot c}$.
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        Substitute the known values to calculate the final temperature:
+        <ul>
+            <li>Initial Temperature, $T_i$: {{params.Ti}} {{params.unitsTemperature}}</li>
+            <li>Heat Energy supplied, $Q$: {{params.Q}} {{params.unitsEnergy}}</li>
+            <li>Mass, $m$: {{params.m}} {{params.unitsMass}}</li>
+            <li>Specific Heat Capacity of aluminium, $c$: {{params.Cp}} {{params.unitsCp}}</li>
+        </ul>
+        Therefore, 
+        $T_f = {{params.Ti}} + \frac{ {{params.Q}} } { {{params.m}} \cdot {{params.Cp}} } = {{correct_answers.Tf}} {{params.unitsTemperature}}$.
+    </pl-hint>
+</pl-solution-panel>
+```
