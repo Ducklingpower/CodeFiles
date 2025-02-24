@@ -1,0 +1,79 @@
+<pl-solution-panel>
+    <pl-figure file-name="Performance.png"></pl-figure>
+    
+    <pl-hint level="1" data-type="text">
+        Start by identifying the assumptions made for this device:
+        <ul>
+            <li>The control volume is at steady state.</li>
+            <li>There is no energy transfer by work or heat (\( \dot{W} = 0, \dot{Q} = 0 \)).</li>
+            <li>Changes in kinetic and potential energies are negligible.</li>
+            <li>The air behaves as an ideal gas with \( c_p = 1.0 \, \text{kJ/(kg·K)} \).</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="2" data-type="text">
+        Next, apply the conservation of mass and energy:
+        <ul>
+            <li>Mass conservation: \( \dot{m}_1 = \dot{m}_2 + \dot{m}_3 \)</li>
+            <li>Energy conservation: \( 0 = \dot{m}_2 h_2 + \dot{m}_3 h_3 - \dot{m}_1 h_1 \)</li>
+            <li>Given \( \dot{m}_2 = 0.6 \dot{m}_1 \) and \( \dot{m}_3 = 0.4 ~\dot{m}_1 \), energy conservation simplifies to:
+                \[
+                0 = 0.6 ~\dot{m}_1~ c_p (T_2 - T_1) + 0.4~ \dot{m}_1 ~c_p~ (T_3 - T_1)
+                \]
+            </li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        Now, analyze the entropy balance to evaluate the claim:
+        <ul>
+            <li>Entropy balance equation:
+                \[
+                \dot{S}_{gen} = \dot{m}_2 (s_2 - s_1) + \dot{m}_3 (s_3 - s_1)
+                \]
+            </li>
+            <li>Specific entropy changes:
+                \[
+                s_2 - s_1 = c_p \ln{\frac{T_2}{T_1} } - R \ln{\frac{P_{out} }{P_{in} } } 
+                \]
+                \[
+                s_3 - s_1 = c_p \ln{\frac{T_3}{T_1} } - R \ln{\frac{P_{out} }{P_{in} } }
+                \]
+            </li>
+            <li>Total entropy generation rate:
+                \[
+                \frac{\dot{S}_{gen} } {\dot{m}_1} = 0.6 \left( c_p \ln{\frac{T_2}{T_1} } - R~ \ln{\frac{P_{out} }{P_{in} } } \right)
+                + 0.4 \left( c_p \ln{\frac{T_3}{T_1} } - R~ \ln{\frac{P_{out} } {P_{in} } }  \right)
+                \]
+            </li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        Substituting the given values into the entropy equation:
+        <ul>   
+            <li>Inlet temperature: \( T_1 = {{params.T_in}} + 273.15 \, \text{K} \)</li>
+            <li>Hot outlet temperature: \( T_2 = {{params.T_hot}} + 273.15 \, \text{K} \)</li>
+            <li>Cold outlet temperature: \( T_3 = {{params.T_cold}} + 273.15 \, \text{K} \)</li>
+            <li>Pressure ratio: \( P_{out}/P_{in} = {{params.P_out}}/{{params.P_in}} \)</li>
+            <li>Entropy generation per unit mass:
+                \[
+                \frac{\dot{S}_{gen} } {\dot{m}_1} = 0.6 \left( 1.0\cdot \ln{\frac{ {{params.T_hot}} + 273.15 }{ {{params.T_in}} + 273.15 } } - \frac{8.314}{28.97}~ \cdot \ln{ \frac{ {{params.P_out}} }{ {{params.P_in}} } } \right)
+                + 0.4 \left( 1.0\cdot \ln{\frac{ {{params.T_cold}} + 273.15 }{ {{params.T_in}} + 273.15} } - \frac{8.314}{28.97} ~\cdot \ln{\frac{ {{params.P_out}} }{ {{params.P_in}} } } \right)
+                \]
+            </li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        Final step: Solve for the entropy generation value:
+        <ul>
+            <li>Substitute all the numerical values into the equation to compute \( \frac{\dot{S}_{gen} } {\dot{m}_1} \). The result should be:
+                \[
+                \frac{\dot{S}_{gen} }{\dot{m}_1} = {{correct_answers.entropy_generation}}  \, \text{kJ/(kg·K)}
+                \]
+            </li>
+            <li>If \( \frac{\dot{S}_{gen} }{\dot{m}_1} > 0 \), the process is feasible and does not violate the second law of thermodynamics. Otherwise, the inventor's claim is invalid.</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

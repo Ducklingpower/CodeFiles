@@ -1,0 +1,31 @@
+<pl-solution-panel>
+    <pl-figure file-name="throttle.png"></pl-figure>
+
+    <pl-hint level="1" data-type="text">
+        The entropy change during a throttling process for an ideal gas can be expressed as:
+        <p>$\dot{m}(s_2 - s_1) = -\dot{m} R \ln\left(\frac{P_2}{P_1}\right)$</p>
+    </pl-hint>
+
+    <pl-hint level="2" data-type="text">
+        Rearrange the equation to solve for the pressure ratio, $\frac{P_2}{P_1}$:
+        <p>$\ln\left(\frac{P_2}{P_1}\right) = -\frac{\Delta S}{\dot{m} R}$</p>
+        <p>$\frac{P_2}{P_1} = e^{-\frac{\Delta S}{\dot{m} R} }$</p>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        Substitute the given values:
+        <ul>
+            <li>Mass flow rate, $\dot{m} = {{params.mass}}~kg/s$</li>
+            <li>Entropy change, $\Delta S = {{params.entropy_change}}~kW/K$</li>
+            <li>Specific gas constant, $R = 0.287~kJ/(kg \cdot K)$</li>
+        </ul>
+        <p>$\ln \frac{P_2}{P_1} = -\frac{ {{params.entropy_change}} }{({{params.mass}} \cdot 0.287)}$</p>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        Calculate the pressure ratio:
+        <p>$\frac{P_2}{P_1} = e^{-\frac{ {{params.entropy_change}} }{ ({{params.mass}} \cdot 0.287)} }$</p>
+        <p>Substituting the given values, we find:</p>
+        <p>$\frac{P_2}{P_1} = {{correct_answers.pressure_ratio}}$</p>
+    </pl-hint>
+</pl-solution-panel>

@@ -1,0 +1,54 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p> First draw the reaction force at Points B and A. </p><h2> Level 1 </h2><p> The reactions at point B should be \( B_x,B_y \) and,\( B_z \). And the reactions at point A should be \( A_z \) and \( A_y \)</p><h2> Level 2 </h2><p>
+                <ul> 
+                    Now that we identified the reaction forces we can now start to solve the problem.
+                    <p>First, we want to represent the tension in the beam as a vector.</p>
+                    <p>We can do this by simply multiplying the tension force by the unit vector that follows the same path as the beam.</p>
+                    <p>So, let the unit vector goes from point D to C be \( \vec{U} = \frac{L_3\hat{i}+L_2\hat{j}+L_1\hat{k}}{\sqrt{(L_3)^2+(L_2)^2+(L_1)^2}} \)</p>
+                    <p>Now that we have the unit vector we can say the tension vector is:</p>
+                    <li>\( \vec{T} = (T)\vec{U} = (T)\frac{L_3\hat{i}+L_2\hat{j}+L_1\hat{k}}{\sqrt{L_3^2+L_2^2+L_1^2}} \).</li>
+                    <p>Now that we have the tension vector the next step is to write out our equations that will help us solve for the reactions and tesnion force.</p>
+                    <p>Write out the equations of force and moments in all directions. </p>
+                </ul>
+            </p><h2> Level 3 </h2><p> 
+        <ul> 
+            <p> Equations of force:</p>
+            <li>\( \Sigma{F}_x = 0 \implies A_x +B_x + \vec{T}\hat{i} =0 \)</li>
+            <li>\( \Sigma{F}_y = 0 \implies A_y +B_y + \vec{T}\hat{j} - W =0 \)</li>
+            <li>\( \Sigma{F}_z = 0 \implies B_z + \vec{T}\hat{k} =0 \)</li>
+            Moment equations (about point B):
+             <p>But before we set up our three moment equations we first have to compute \( \vec{d} X \vec{T} \).</p>
+             <p>Where \( \vec{d} = 0\hat{i}-L_2\hat{j}+L_1\hat{k} \) goes from point B to point D.</p>
+             <li>\( \vec{d} X \vec{T} = (-L_2)(\vec{T}\hat{k})-(L_1)(\vec{T}\hat{j})hat{i}-(L_1)(\vec{T}\hat{i})\hat{j}+(L_2)(\vec{T}\hat{i})\hat{k} \)</li>
+             <p> Now we can set up our moment equations about each axis:</p>
+             <li>\( \Sigma{M}_x = 0 \implies (-2L_1)(A_y)+(W)(L_1)+(-L_2)(\vec{T}\hat{k})-(L_1)(\vec{T}\hat{j}) = 0 \)</li>
+             <li>\( \Sigma{M}_y = 0 \implies (2L_1)(A_x)+(L_1)(\vec{T}\hat{i})= 0 \)</li>
+             <li>\( \Sigma{M}_z = 0 \implies (L_2)(\vec{T}\hat{i})-(W)(\frac{L_3}{2})= 0 \)</li>
+             Now you have 6 unknowns and 6 equation. Now you can solve.
+
+        </ul>
+    </p><h2> Level 4 </h2><p> 
+        <ul> 
+            Solving equations:
+            <p>Using the \( \Sigma{M}_z \) equation, we are able to solve for tension.</p>
+            <li>\( T =  \)</li>
+            <p>Now that we have tension we can use equations \( \Sigma{M}_x \) and \( \Sigma{M}_y \) to solve for \( A_x \) and \( A_y \).</p>
+            <li>\( A_x =  \)</li>
+            <li>\( A_y =  \)</li>
+            <p>Now using the information we have now we can use the force equations to solve for \( B_x,B_y \) and \( B_z \).</p>
+            <li>\( B_x =  \)</li>
+            <li>\( B_y =  \)</li>
+            <li>\( B_z =  \)</li>
+
+
+
+
+
+        </ul>
+    </p></html>

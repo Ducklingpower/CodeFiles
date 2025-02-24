@@ -1,0 +1,39 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>To find the final velocty of the block and bullet, use the conservation of moment equation.</p><h2> Level 1 </h2><p>
+<p>Conservation of moment:</p>
+<li>\( v_B m_B + v m = (m_B + m ) v_f ~\implies ~ \frac{v_B m_b + 0 }{m_b + m} = v_f =6.693069306930693~m/s \)</li>
+<p>Where \( v_f \) is the velocity of the block and the bullet after collision.</p>
+
+<p>To find the time, compute the impule moemnt principle.</p>
+
+    </p><h2> Level 2 </h2><p>
+        <ul>
+<p>Impule moment principle, \( m v_1 + \Sigma \int F dt = m v_2 \)</p>
+<p>Applying in the Y directiuon:</p>
+<li>\(  0 + (N (t) + mg (t)) =0 ~\implies~ N = mg \)</li>
+
+<p>Applying in the X directiuon:</p>
+<li>\( m v_f - (\mu N t) = 0 ~implies~ t = \frac{m v_f}{\mu N} \)</li>
+
+<p>Plugging in N we can solve for t:</p>
+<li>\( t = \frac{m v_f}{\mu (mg)} ~\implies~ \frac{v_f}{\mu g} = 2.624115622571431 ~s \)</li>
+
+<p>Now we can find the total distance traveled.</p>
+
+      </ul>
+    </p><h2> Level 3 </h2><p>
+        <ul>
+
+<p>Using the kinematic equation : \( v_f^2 = v_i ^2 -2 a \Delta x \). we can aptian the distance traveled.</p>
+<li>\( 0 = v_i ^2 -2 a \Delta x ~\implies~ \Delta x = \frac{v_i ^2}{2a} \)</li>
+<p> Here the deceloration is \( a = \frac{v_f}{t} \), the speed of the block divied by the tiemm it takes the block to come to a rest. We can now plug that inot our equation. Also here the initail velocity is equal to \( v_f \). So \( v_f = v_i \)</p>
+<li>\( \Delta x = \frac{v_i ^2}{2(\frac{v_f}{t})} ~\implies ~ \Delta x = \frac{v_f t}{2} = 8.781693865635086~m \)</li>
+
+      </ul>
+    </p></html>

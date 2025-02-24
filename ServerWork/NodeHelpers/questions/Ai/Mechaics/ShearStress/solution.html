@@ -1,0 +1,47 @@
+```html
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text"> First, identify all known variables involved in the problem. </pl-hint>
+    <pl-hint level="2" data-type="text">
+        <ul>
+            <li>The length of the block $L = {{params.length}}$ mm.</li>
+            <li>The width of the block $W = {{params.width}}$ mm.</li>
+            <li>The height of the block $H = {{params.height}}$ mm.</li>
+            <li>The force applied to the upper face $F = {{params.force}}$ N.</li>
+            <li>The displacement of the upper face $
+\delta = {{params.displacement}}$ mm.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text"> Set up the equation for shear stress on the upper face. </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+            The shear stress $\tau$ is given by:
+            <li>$\tau = \frac{F}{A}$</li>
+            where $A$ is the area of the face where the force is applied.
+            
+            Solving for $A$ using the width and length of the block:
+            <li>$A = W \times L = {{params.width}} \text{ mm} \times {{params.length}} \text{ mm}$</li>
+            Convert to appropriate units if necessary.
+
+            Calculate the shear stress:
+            <li>$\tau = \frac{{{{params.force}}}}{A}$
+            <li>$\tau = {{correct_answers.shearStress}}$ {{params.unitsStress}}</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text"> Determine the shear strain on the upper face. </pl-hint>
+    <pl-hint level="6" data-type="text">
+        <ul>
+            Shear strain $\gamma$ is given by:
+            <li>$\gamma = \frac{\delta}{H}$</li>
+            where $\delta$ is the displacement and $H$ is the height of the block.
+
+            Calculate the shear strain:
+            <li>$\gamma = \frac{{{{params.displacement}}}}{H}$</li>
+            <li>$\gamma = \frac{{{{params.displacement}}}}{ {{params.height}} \text{ mm}}$</li>
+            <li>$\gamma = {{correct_answers.shearStrain}}</li>
+        </ul>
+    </pl-hint>
+
+</pl-solution-panel>
+```

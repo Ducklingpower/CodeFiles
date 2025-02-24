@@ -1,0 +1,93 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>
+       
+        <p>First solve for the monthly payment using the equation:</p>
+        <li>A = loan amount \( \frac{i(1+i)^n}{(i+1)^n -1 } \)</li>
+        <p>Plugging in we can solve the monthly payment to be:</p>
+        <li>A = \( 31920 \frac{ 0.12(1+0.12)^5}{ (1+0.12)^5 -1  } = 8854.92 \)</li>
+        </p><h2> Level 1 </h2><p>
+       
+        <p>BTLCF (Before-Tax-and-Loan Cash Flow):</p>
+            <li>This is the given revenue minus cost, which is constant at 24916 each year.</li>
+
+        </p><h2> Level 2 </h2><p>
+       
+            <p>MACRS Deduction:</p>
+            <p>Multiply the machine's purchase price 53200 by the MACRS percentage for the respective year:</p>
+            <li>Year 1: 33.33%</li>
+                <li> Year 2: 44.45%</li>
+                    <li>Year 3: 14.81%</li>
+                        <li>Year 4: 7.41%</li>
+                            <li>Year 5: 0% (fully depreciated).</li>
+       
+            <p>MACRS Deduction = (Machine Cost) \( \times \) (MACRS Percentage)</p>
+    
+        </p><h2> Level 3 </h2><p>
+       
+                <p>Book Value:</p>
+
+                <li>Subtract the cumulative MACRS deductions from the machine's purchase price 53200. This tracks the remaining depreciation value of the machine:</li>
+                <li>Book Value at t= (Book value at t-1) - (depreciation at t)</li>
+            </p><h2> Level 4 </h2><p>
+                <p>Loan Interest Payment:</p>
+                <li>Multiply the remaining loan principal at the start of the year by the annual interest rate 12%.</li>
+                <p>Loan Interest Payment = Remaining Principal \( \times \) 12%</p>
+            </p><h2> Level 5 </h2><p>
+                <p>Loan Principal Payment:</p>
+                <li>Subtract the loan interest payment from the total fixed annual loan payment 8854.92.</li>
+                <li>The principal payment increases each year as the interest decreases.</li>
+                <p>Principal Payment = Total Payment - Loan Interest Payment</p>
+            </p><h2> Level 6 </h2><p>
+                <p>Remaining Principal:</p>
+                <li>Subtract the principal payment from the loan balance at the start of the year. This tracks the outstanding loan balance.</li>
+                <p>Remaining Principal = Previous Principal - Principal Payment</p>
+            </p><h2> Level 7 </h2><p>
+                <p>Taxable Income:</p>
+                <li>Calculate this by subtracting the MACRS deduction and loan interest payment from the BTLCF.</li>
+                <p>Taxable Income = BTLCF - MACRS Deduction - Loan Interest Payment</p>
+            </p><h2> Level 8 </h2><p>
+                <p>Tax:</p>
+                <li>Multiply the taxable income by the tax rate 20%.</li>
+                <li>If the taxable income is negative, treat it as a negitive value.</li>
+                <p>Tax = Taxable Income \( \times \) 20%</p>
+            </p><h2> Level 9 </h2><p>
+                <p>ATCF (After-Tax Cash Flow):</p>
+                <li>Subtract the total loan payment and tax from the BTLCF. This represents the cash available after all expenses and taxes.</li>
+                <p>ATCF = BTLCF - Total Loan Payment - Tax</p>
+            </p><h2> Level 10 </h2><p>
+        
+
+<p>\[
+    \small % Reduce font size for the table
+    \begin{array}{|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+    \textbf{EOY} &amp; 
+    \textbf{BTLCF} &amp; 
+    \textbf{MACRS Deduction} &amp; 
+    \textbf{Book Value} &amp; 
+    \textbf{Loan Principal Payment} &amp; 
+    \textbf{Loan Interest Payment} &amp; 
+    \textbf{Remaining Principal} &amp; 
+    \textbf{Taxable Income} &amp; 
+    \textbf{Tax} &amp; 
+    \textbf{ATCF} \\ 
+    \hline
+    0 &amp;-53200 &amp; 0             &amp;53200                        &amp;0              &amp;0              &amp;31920   &amp;0              &amp;0               &amp; -21280 \\ \hline
+    1 &amp;24916 &amp;17731.56 &amp;35468.44 &amp;5024.52 &amp;3830.4 &amp;26895.48 &amp;3354.04 &amp;670.81 &amp;15390.27 \\ \hline
+    2 &amp;24916 &amp;23647.4 &amp;11821.04 &amp;5627.46 &amp;3227.46 &amp;21268.02 &amp;-1958.86 &amp;-391.77 &amp;16452.85 \\ \hline
+    3 &amp;24916 &amp;7878.92 &amp;3942.12 &amp;6302.76 &amp;2552.16 &amp;14965.26 &amp;14484.92 &amp;2896.98 &amp;13164.1\\ \hline
+    4 &amp;24916 &amp;3942.12 &amp;0 &amp;7059.09 &amp;1795.83 &amp;7906.18 &amp;19178.05 &amp;3835.61 &amp;12225.47\\ \hline
+    5 &amp;24916 &amp; 0             &amp;0                                      &amp;7906.18 &amp;948.74 &amp;0 &amp;23967.26 &amp;4793.45 &amp;11267.63\\ \hline
+    \end{array}
+    \]</p>
+
+
+    <p>ATCF5 = 11267.63</p>
+
+    </p></html>

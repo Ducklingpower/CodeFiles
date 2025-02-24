@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>body {margin:0}</style>
+</head>
+<body>
+    <script  type = "module">
+
+import * as THREE from '../node_modules/three/build/three.module.js';
+import {OrbitControls} from '../node_modules/three/examples/jsm/controls/OrbitControls.js'
+
+const renderer = new THREE.WebGLRenderer({antialias: true });
+renderer.setSize(510,357);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0xFFFFFF,0.02)
+const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);
+renderer.render(scene,camera);
+const Orbit =  new OrbitControls(camera,renderer.domElement);
+Orbit.update();
+
+
+
+
+
+const geometry = new THREE.BoxGeometry(.1,.1,.1)
+const material = new THREE.MeshBasicMaterial({color: 0x00ff00});
+const cube = new THREE.Mesh(geometry,material);
+scene.add(cube);
+
+
+
+const headL = 0.3
+const headW = 0.15
+const orgin = new THREE.Vector3(0,0,0);
+
+
+const startV1 = new THREE.Vector3(0,2,2);
+const V1 = new THREE.Vector3(2,0,0);
+length1 = Math.sqrt(2**2)
+V1.normalize();
+const arrowHelper1 = new THREE.ArrowHelper(V1,startV1,3,0x00A30E,headL,headW);
+scene.add(arrowHelper1);
+
+const startV2 = new THREE.Vector3(0,3,3);
+const V2 = new THREE.Vector3(3,-3,0);
+length2 = Math.sqrt(3**2+3**2)
+V2.normalize();
+const arrowHelper2 = new THREE.ArrowHelper(V2,startV2,length2,0xE86A00,headL,headW);
+scene.add(arrowHelper2);
+
+const V3 = new THREE.Vector3(2,1,0);
+V3.normalize();
+length3= Math.sqrt(2**2+1**2);
+const arrowHelper3 = new THREE.ArrowHelper(V3,orgin,length3,0x000000,headL,headW);
+scene.add(arrowHelper3);
+
+
+length =(Math.ceil(Math.max(length1,length2,length3)))*2;
+console.log(length);
+
+
+
+
+camera.position.z=9.8;
+camera.position.y= 6;
+camera.position.x=4.49;
+camera.lookAt(0,0,0)
+
+
+const gridHelperx = new THREE.GridHelper(length,length,0x000000,0x8E8E8E);
+scene.add(gridHelperx)
+
+const gridHelperY = new THREE.GridHelper(length,length,0x000000,0xc7c7c7);
+gridHelperY.rotation.x=0.5*Math.PI
+scene.add(gridHelperY);
+
+const gridHelperZ = new THREE.GridHelper(length,length,0x000000,0xc7c7c7);
+gridHelperZ.rotation.z=0.5*Math.PI
+scene.add(gridHelperZ);
+
+renderer.setClearColor(0xFFFFFF)//background
+
+
+
+const planeG = new THREE.PlaneGeometry(length,length);
+const planeM = new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide,opacity:0.7,transparent: true});
+const planex = new THREE.Mesh(planeG,planeM);
+const planey = new THREE.Mesh(planeG,planeM);
+const planez = new THREE.Mesh(planeG,planeM);
+
+planex.rotation.x=0.5*Math.PI
+planey.rotation.x=0
+planez.rotation.y=0.5*Math.PI
+
+scene.add(planex);
+scene.add(planey);
+scene.add(planez);
+
+
+
+
+
+
+function animate(){
+
+    requestAnimationFrame(animate);
+    renderer.render(scene,camera);
+}
+animate();
+
+
+
+    </script>
+    
+
+</body>
+</html>

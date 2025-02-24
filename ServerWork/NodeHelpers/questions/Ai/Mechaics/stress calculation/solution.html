@@ -1,0 +1,32 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">The problem requires determining the stress $\sigma$ in the bar given its cross-sectional area and the tensile force applied to it.</pl-hint>
+    
+    <pl-hint level="1" data-type="text">The known variables are:</pl-hint>
+    <pl-hint level="2" data-type="text">
+        <ul>
+            <li>Cross-sectional area, $A = {{params.area}} {{params.unitsArea}}$</li>
+            <li>Tensile force, $F = {{params.forceF}} {{params.unitsForce}}$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="1" data-type="text">To find the stress $\sigma$, use the formula:</pl-hint>
+    <pl-hint level="2" data-type="text">
+        \[
+        \sigma = \frac{F}{A}
+        \]
+    </pl-hint>
+
+    <pl-hint level="1" data-type="text">Substitute the known values into the formula:</pl-hint>
+    <pl-hint level="2" data-type="text">
+        \[
+        \sigma = \frac{{{{params.forceF}}}}{{{{params.area}}}}
+        \]
+    </pl-hint>
+
+    <pl-hint level="1" data-type="text">Therefore, the stress in the bar is calculated as:</pl-hint>
+    <pl-hint level="2" data-type="text">
+        \[
+        \sigma = {{correct_answers.stress}} {{params.unitsForce}}/{{params.unitsArea}}
+        \]
+    </pl-hint>
+</pl-solution-panel>

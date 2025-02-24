@@ -1,0 +1,43 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>The first step is to break the question down into the x and y components. We can write the equations of motion for the x direction and y direction. Then we can combine them to describe our situation. </p><h2> Level 1 </h2><p>
+   X component equation of motion:
+<p>\( v = \frac{x}{t} \)</p>
+Y component equation of motion:
+<p>\( y = v_ot+\frac{1}{2}at^2 \) \( \implies \) \(  y = -\frac{1}{2}gt^2 \)</p>
+
+
+Since the ball is changing direction we know that there will be centripetal acceleration (\( \frac{v^2}{r} \)), this tells us that we will need to find the radius at time t = 1.6 seconds.
+
+
+<p>Try to combine the two equations of motion so that we can use |r| = \( \frac{(1+(\frac{dy}{dx})^2)^{3/2} }{\frac{d^2y}{dx^2} } \) to find the radius.</p>
+    </p><h2> Level 2 </h2><p>
+        <ul>
+           Combining x and y components:
+           <p>\( v = \frac{x}{t} \) \( \implies \) \( t = \frac{x}{v} \)</p>
+           <p> \(  y = -\frac{1}{2}gt^2 \) plugging in t we get  \(  y = -\frac{g}{2v^2}x^2 \)</p>
+            Now we can use |r| = \( \frac{(1+(\frac{dy}{dx})^2)^{3/2} }{\frac{d^2y}{dx^2} } \), since our equation is a function of x and y.
+            <p>Plugging in we get |r| = \( \frac{(1+( -2\frac{g}{2v^2}x)^2)^{3/2} }{-2\frac{g}{2v^2} } \)</p>
+            <p>Before we can solve we need to find what x is at t = 1.6 seconds. </p>
+        </ul>
+    </p><h2> Level 3 </h2><p>
+        <ul>
+      To find what x is at t = 1.6 seconds all you have to do is use the x component equation from the beginning.
+      <p>x = (v)(t) = (25)(1.6) = 40 meters</p>
+      <p>Now we can solve for r, |r| = \( \frac{(1+( -2\frac{9.81}{(2)25^2} (40))^2)^{3/2} }{-2\frac{9.81}{(2)25^2} } = 104.87952575653104 \) meters</p>
+      <p>Now we can find tangental acceltation to be \( A_t = \frac{ 25 ^2}{ 104.87952575653104 }  = 8.308241381857494 \) \( \frac{m}{s^2} \)</p>
+      Now that we have centripetal acceleration you can now compute tangential acceleration.
+        </ul>
+    </p><h2> Level 4 </h2><p>
+        <ul>
+     Since the net acceleration is 9.81 m/s^2, rearrange A = \( \sqrt{A_t^2+A_c^2} \) to solve for tangential acceleration.
+
+
+     <p>A = \( \sqrt{A_t^2+A_c^2} \) \( \implies \) \( A_t = \sqrt{A^2-A_c^2} \) \( \implies \) \( \sqrt{(9.81)^2-(8.308241381857494)^2} \) = 5.216246269185408 \( \frac{m}{s^2} \)</p>
+        </ul>
+    </p></html>

@@ -1,0 +1,38 @@
+```html
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">To determine the axial contraction of the brass tube, we need to use the formula for axial deformation in rods and tubes subjected to axial load:</pl-hint>
+    
+    <pl-hint level="2" data-type="text">The axial deformation formula is given by:
+    <p>$$ \Delta L = \frac{F \cdot L}{A \cdot E} $$</p>
+    where:
+    <ul>
+        <li>\( \Delta L \) is the axial contraction</li>
+        <li>\( F \) is the applied load</li>
+        <li>\( L \) is the original length of the tube</li>
+        <li>\( A \) is the cross-sectional area</li>
+        <li>\( E \) is the modulus of elasticity</li>
+    </ul>
+    </pl-hint>
+
+    <pl-hint level="2" data-type="text">To find the cross-sectional area \( A \), use:
+    <p>$$ A = \frac{\pi}{4} (D_o^2 - D_i^2) $$</p>
+    where:
+    <ul>
+        <li>\( D_o \) is the outside diameter</li>
+        <li>\( D_i \) is the internal diameter</li>
+    </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        Now, substitute the known values and solve for \( \Delta L \):
+        <ul>
+            <li>Calculate the cross-sectional area \( A \):<br>
+                $$ A = \frac{\pi}{4} \left( ({{params.externalDiameter}})^2 - ({{params.internalDiameter}})^2 \right) \ {{params.unitsArea}} $$</li>
+            <li>Substitute into the axial deformation formula:<br>
+                $$ \Delta L = \frac{{{params.load}} \cdot {{params.length}}}{A \cdot {{params.modulusElasticity}}} \ {{params.unitsLength}} $$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">Therefore, the axial contraction of the tube when loaded is \( \Delta L = {{params.contraction}} \ {{params.unitsLength}} \).</pl-hint>
+</pl-solution-panel>
+```

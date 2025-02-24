@@ -1,0 +1,30 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>The turbine operates at steady state with known inlet and exit conditions.</p><h2> Level 1 </h2><p>Apply the energy balance for a control volume at steady state:
+    <p>\( 0 = \dot{Q} - \dot{W} + \dot{m} \left( h_1 + \frac{V_1^2}{2} \right) - \dot{m} \left( h_2 + \frac{V_2^2}{2} \right) \)</p>
+</p><h2> Level 2 </h2><p>Rearrange to solve for the heat transfer rate \( \dot{Q} \):
+    <p>\( \dot{Q} = \dot{W} - \dot{m} \left[ h_2 - h_1 + \frac{1}{2} \left( V_2^2 - V_1^2 \right) \right] \)</p>
+</p><h2> Level 3 </h2><p>Substitute the given parameters and solve step-by-step:
+    <ul>
+        <li>Mass flow rate: \( \dot{m} = 5078~\mathrm{kg/h} \)</li>
+        <li>Convert to \( \mathrm{kg/s} \): \( \dot{m} = \frac{ 5078 }{3600} \)</li>
+        <li>Specific enthalpy at the inlet: \( h_1 = 3177.2~\mathrm{kJ/kg} \) (From Table A-4)</li>
+        <li>Specific enthalpy at the exit: \( h_2 = h_{2f} + x \cdot h_{2fg} = (191.83) + 0.51 \cdot (2392.8) \) (Refer to Table A-3)</li>
+        <li>Velocity at the inlet: \( V_1 = 15~\mathrm{m/s} \)</li>
+        <li>Velocity at the exit: \( V_2 = 45~\mathrm{m/s} \)</li>
+    </ul>
+</p><h2> Level 4 </h2><p>Calculate the changes in enthalpy and kinetic energy:
+    <ul>
+        <li>\( \Delta h = h_2 - h_1 \)</li>
+        <li>\( \Delta KE = \frac{1}{2} \left( V_2^2 - V_1^2 \right) \cdot \frac{1}{1000} \) (convert to \( \mathrm{kJ/kg} \))</li>
+    </ul>
+</p><h2> Level 5 </h2><p>Substitute all values into the energy balance equation:
+    <p>\( \dot{Q} = 973 + \dot{m} \left( \Delta h + \Delta KE \right) \)</p>
+</p><h2> Level 6 </h2><p>Final calculation:
+    <p>Heat transfer rate: \( \dot{Q} = -1515.42~\mathrm{kW} \)</p>
+</p></html>

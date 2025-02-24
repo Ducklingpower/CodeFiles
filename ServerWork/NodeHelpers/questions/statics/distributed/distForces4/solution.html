@@ -1,0 +1,20 @@
+<pl-solution-panel>
+    <pl-figure file-name="distributedForces1.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> Break down the distributed force to one single concentrated force.</pl-hint>
+    <pl-hint level="2" data-type="text"> Place The concentrated force at the centroid of the function.</pl-hint>
+    <pl-hint level="3" data-type="text"> 
+        <ul>
+            <li> To compute the concentrated force you must take the integral of the function modeling the distributed force. </li>
+            <li> when computing the integral from 0 to ${{params.length1}}$ of w(x) you should get F= $({{params.constant}})({{params.length1}})^4/4$</li>
+            <li> To compute the centroid of the function it is simply the integral of (x)(w(x)) divided by the force or the integral of w(x).</li>
+            <li> when computing the integral from 0 to ${{params.length1}}$ of (x)(w(x)) you should get $({{params.constant}})({{params.length1}})^5/5$. Dividing this by the force you should get $ 4/5({{params.length1}})$.  </li>
+            
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+            <li> To calculate the moment about point A we must multiply the force acting on the beam by the distance it is from point A.</li>
+            <li> When computing the moment about A you should get, $M_A= (F)(Distance) = ((({{params.constant}})({{params.length1}})^4)/4)( 4/5({{params.length1}})) = {{correct_answers.momentA}}\ {{params.unitsForce}}{{params.unitsDist}}$</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

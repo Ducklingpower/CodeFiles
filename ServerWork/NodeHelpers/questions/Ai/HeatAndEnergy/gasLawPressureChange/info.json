@@ -1,0 +1,25 @@
+{
+    "title": "GasLawPressureChange",
+    "stem": "Understanding the behavior of gases under constant volume conditions.",
+    "topic": "Gas Laws",
+    "tags": [
+        "Gas Laws",
+        "Pressure",
+        "Temperature",
+        "Thermodynamics",
+        "Ideal Gas Law"
+    ],
+    "prereqs": [
+        "Basic understanding of gas laws",
+        "Knowledge of temperature and pressure units",
+        "Familiarity with the ideal gas law"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

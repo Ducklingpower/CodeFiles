@@ -1,0 +1,44 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text"> To determine the temperature at which the rail will buckle, we need to calculate the stress caused by thermal expansion and set it equal to the buckling stress. </pl-hint>
+    
+    <pl-hint level="2" data-type="text"> 
+        <p>The stress due to thermal expansion is given by:</p>
+        <ul>
+            <li>$\sigma_{thermal} = E \cdot \alpha \cdot \Delta T$</li>
+        </ul>
+        
+        <p>Where:</p>
+        <ul>
+            <li>$E$ is the modulus of elasticity, given as ${{params.modulusElasticity}} \times 10^{11} {{params.unitsModulus}}$</li>
+            <li>$\alpha$ is the coefficient of thermal expansion, given as ${{params.thermalExpansionCoeff}} \times 10^{-6} {{params.unitsAlpha}}$</li>
+            <li>$\Delta T$ is the change in temperature from the stress-free temperature $T$. </li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text"> 
+        <p>Equate the thermal stress and the buckling stress $\sigma$ to solve for the change in temperature $\Delta T$:</p>
+        <ul>
+            <li>$E \cdot \alpha \cdot \Delta T = {{params.stress}} {{params.unitsStress}}$</li>
+            <li>Solve for $\Delta T$:</li>
+            <li>$\Delta T = \frac{ { {{params.stress}} } } { {E \cdot \alpha} }$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text"> 
+        <p>Since we need to find the buckling temperature $T_{buckling}$, add this change in temperature to the stress-free temperature:</p>
+        <ul>
+            <li>$T_{buckling} = T + \Delta T$</li>
+            <li>Where $T = {{params.tempFree}} {{params.unitsTemp}}$ is the initial stress-free temperature.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        <p>Now substitute the known values into the equations to find the numerical solution:</p>
+        <ul>
+            <li>Calculate $\Delta T$ using:</li>
+            <li>$\Delta T = \frac{ { { {params.stress} } } } { { {{params.modulusElasticity}} \times 10^{11} \times {{params.thermalExpansionCoeff}} \times 10^{-6}  } }$</li>
+            <li>Finally determine $T_{buckling}$:</li>
+            <li>$T_{buckling} = {{params.tempFree}} + \Delta T$</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

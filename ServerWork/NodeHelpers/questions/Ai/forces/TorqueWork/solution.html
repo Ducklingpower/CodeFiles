@@ -1,0 +1,28 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">The problem involves calculating work done by a tangential force acting on a wheel over several revolutions.</pl-hint>
+    <pl-hint level="2" data-type="text">Known Variables:
+        <ul>
+            <li>The force $\mathbf{F} = {{params.force}}$ N</li>
+            <li>The diameter $\mathbf{D} = {{params.diameter}}$ mm</li>
+            <li>The number of revolutions $\mathbf{x} = {{params.revolutions}}$</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">Convert the diameter to radius in meters and find the circumference of the wheel:
+        <ul>
+            <li>Radius $r = \frac{\mathbf{D}}{2} = \frac{{{params.diameter}}}{2}$ mm $= \frac{{{params.diameter}}}{2000}$ m</li>
+            <li>Circumference $C = 2 \pi r = \pi \times \frac{{{params.diameter}}}{1000}$ m</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">Equation Setup:
+        <ul>
+            <li>Total distance traveled by the force (arc length) $ = C \times \mathbf{x} = \pi \times \frac{{{params.diameter}}}{1000} \times {{params.revolutions}}$ m</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        <ul>
+            Work is calculated as $W = F \times d$, where $d$ is the distance traveled by the force.
+            <li>Therefore, $W = {{params.force}} \times \left( \pi \times \frac{{{params.diameter}}}{1000} \times {{params.revolutions}} \right)$</li>
+            <li>Work done $W = {{correct_answers.workDone}}$ J</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

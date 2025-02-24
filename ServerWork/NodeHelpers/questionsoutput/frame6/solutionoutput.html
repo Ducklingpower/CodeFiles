@@ -1,0 +1,56 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p> The first step is to break up the system into parts. Break off member CB and AB and draw free body diagrams for each member.</p><h2> Level 1 </h2><p> Secondly we must solve for the force of the spring. Spring force is equal to \( F_s = k(\Delta{x}) \). In this case \( \Delta{x} \) can by comparing the length of the spring we have now, and the unstretched length of the spring . </p><h2> Level 2 </h2><p>
+                <ul>
+
+                  <p>Free body diagram for member CB:</p>
+                    <li>At pin C we can write Cx and Cy reaction forces as up and left, and at point B we can do the same for Bx and By.</li>
+                    <li>We also have to draw the spring force pointing down from point C and we need to draw the weight force point down starting at the middle of the member.</li>
+                  <p>Free body diagram for member AB:</p>
+                    <li>At pin A we can write the reaction force Ax pointing left. There is no need for Ay since this is a rollar joint.</li>
+                    <li>At pin B we have to write the reaction forces opposit to what we did last time so Bx and By are pointing down and right on member AB.</li>
+                    <li>We also have to draw the spring force pointing up from pin A and we need to draw the weight force point down starting at the middle of the member.</li>
+                    <p>Solving for spring force:</p>
+                    <li>Using the equation \( F_s = k(\Delta {x}) \) we can simply just solve for \( \Delta{x} \) since we are given k = 140.25</li>
+                    <li>Using trig we can find that the length of the spring is \( 2Lsin(\theta) \) and we are given the unstretched length of the spring so, \( F_s = k(2Lsin(\theta)-0.24) \). </li>
+
+                    Now you can use the free body diagrams to create three equations to solve for your three unknowns. (\( \theta \) , \( B_x \), \( B_y \))
+                </ul>
+            </p><h2> Level 3 </h2><p> 
+        <ul>
+          <p>Creating three equations with out free body diagrams:</p>
+          <li>Using member CB we can write a moment equation about point C.</li>
+
+          <li>\( \Sigma{M}_C = 0 \) \( \implies \) \( -Wcos(\theta)\frac{L}{2}-Lsin(\theta)B_x+Lcos(\theta)B_y=0 \)</li>
+             <p></p>
+          <li>Using member AB we can write a moment equation about point A.</li>
+          <li>\( \Sigma{M}_A = 0 \) \( \implies \) \( -Wcos(\theta)\frac{L}{2}-Lsin(\theta)B_x-Lcos(\theta)B_y=0 \)</li>
+         <p></p>
+        <li>Using member AB to write a force equation in the y direction:</li>
+          <li>\( \Sigma{F}_y = 0 \) \( \implies \) \( F_s-W-B_y=0 \)</li>
+        <p>Now you have three equations and three unkowns. You can solve for each varible.</p>
+
+
+
+
+        </ul>
+    </p><h2> Level 4 </h2><p> 
+        <ul>
+            If you are having trouble solving here is a hint: (\( B_y \) = 0)
+        
+        
+        </ul>
+    </p><h2> Level 5 </h2><p> 
+        <ul>
+           Solutions:
+           <li>\( B_y \) = 0</li>
+           <li>\( B_x \) = \( 165.59645378762858 lb \)</li>
+           <li>\( \theta \) = \( 29.450185720873442 \) deg</li>
+        
+        </ul>
+    </p></html>

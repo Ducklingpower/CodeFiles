@@ -1,0 +1,33 @@
+<pl-solution-panel>
+    <pl-figure file-name="distributedForces1.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> Break down the 4 distributed forces to 4 single concentrated forces.</pl-hint>
+    <pl-hint level="2" data-type="text"> Place the 4 concentrated forces at there centroids.</pl-hint>
+    <pl-hint level="3" data-type="text"> 
+        <ul>
+            <li> To convert the distributed force in green into a concentrated force you must take the intagrel of the function w(x).</li>
+            <li> To convert the other 3 distributed forces to 3 concentrated forces you must compute the areas of the shapes by using the given lengths and the (distributed force per unit length) as the heights. </li>
+            <li> To compute the centroid of the distributed force in green we must simply take the integral of (x)(w(x)) divided by the force or the integral of w(x).</li>
+            <li> To compute the centroids of the other 3 shapes we must know the following information: centroid of a quarter circle = (4)(r)/(3$\pi$), Triangle = 1/3(Base) , Square= (Base)/2 </li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+        <li> Green distributed load into a concentrated force: $F_G$ = integral from 0 to ${{params.length1}}$ of w(x) = $(({{params.constant}})({{params.length2}})^3)/3.$ </li>
+        <li> Red distributed load into concentrated force: $F_R$ = $\pi(w({{params.length1}})^2)/4$. </li>
+        <li> Purple distributed load into a concentrated force: $F_P$ = $ ({{params.forceD}})({{params.length1}})/2$ </li>
+        <li> Orange distributed load into a concentrated force: $F_O$ = $({{params.forceD}})({{params.length1}})$</li>
+
+        <li> Green centroid position: $G_x$ = integral from 0 to ${{params.length1}}$ of w(x)(x) devided by the $F_G$ = $(({{params.constant}})({{params.length2}})^4/4) / (({{params.constant}})({{params.length2}})^3/3) = (3/4)({{params.length1}})$</li>
+        <li> Red centroid position: $R_x = (4)(2)({{params.length3}})/3\pi$</li>
+        <li> Purple centroid position: $P_x = (1/3)({{params.length1}})$</li>
+        <li> Orange centroid position: $O_x = {{params.length3}}/2$</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+    <ul>
+    <pl> Now that we have all 4 of the concentrated forces and there centroid positions, we can now take the moment about point A to solve for reaction force at point B ($B_y$).</pl>
+    <pl>$ \Sigma M_A = 0 \implies B_y(L_1+L_2) + F_G(L_3+L_2-G_x) + F_R(L_3-R_x) - F_P(L_3+L_1-P_x) - F_O(L_1+L_3+L_3-O_x) = 0 .$</pl>
+    <pl> Now you can solve for $B_y$ to obtain a solution of $B_y = {{correct_answers.reactionB}}\ {{params.unitsForce}}$<pl>
+    </ul>
+    </pl-hint>
+</pl-solution-panel>

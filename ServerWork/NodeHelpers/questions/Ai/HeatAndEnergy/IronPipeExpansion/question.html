@@ -1,0 +1,11 @@
+<pl-question-panel>
+    <p>
+      The length of an iron steam pipe is {{params.L0}} {{params.unitsLength}} at a temperature of {{params.T0}} {{params.unitsTemperature}}. 
+      </p>
+    <p> Determine the length of the pipe under working conditions when the temperature is {{params.Tf}} {{params.unitsTemperature}}. 
+    </p>
+    <p> Assume the coefficient of linear expansion of iron is {{params.alpha}} {{params.unitsAlpha}}. </p>
+    </pl-question-panel>
+    
+    <p> What is the length of the pipe under working conditions (in {{params.unitsLength}})? </p>
+    <pl-number-input answers-name="L" comparison="sigfig" digits="3" label="L (in {{params.unitsLength}})"></pl-number-input>

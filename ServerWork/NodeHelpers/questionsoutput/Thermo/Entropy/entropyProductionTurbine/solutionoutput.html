@@ -1,0 +1,53 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>Start by identifying the given values and the assumptions provided in the problem statement.</p><h2> Level 1 </h2><p>List the given data:
+        <ul>
+            <li>Inlet Pressure: \( P_{\text{in} } = 30~\text{bar} \)</li>
+            <li>Inlet Temperature: \( T_{\text{in} } = 400~^\circ C \)</li>
+            <li>Inlet Velocity: \( v_{\text{in} } = 244~\text{m/s} \)</li>
+            <li>Outlet Temperature: \( T_{\text{out} } = 100~^\circ C \)</li>
+            <li>Outlet Velocity: \( v_{\text{out} } = 116~\text{m/s} \)</li>
+            <li>Work Done by Turbine: \( W_{\text{turbine} } = 507~\text{kJ/kg} \)</li>
+            <li>Surface Temperature: \( T_{\text{surf} } = 371~\text{K} \)</li>
+        </ul>
+    </p><h2> Level 2 </h2><p>Next, recall the entropy rate balance equation for a steady-state system:
+        \[
+        0 = \frac{\dot{Q} } {T_{\text{surf} }  } + \dot{m}(s_1 - s_2) + \sigma_{\text{cv} }
+        \]
+        Solving for the rate of entropy production per unit mass:
+        \[
+        \frac{\sigma_{\text{cv} } }{\dot{m} } = \frac{\dot{Q}/\dot{m} } {T_{\text{surf} } }  + (s_2 - s_1)
+        \]
+    </p><h2> Level 3 </h2><p>To calculate \( \dot{Q}/\dot{m} \) (heat transfer rate per unit mass), use the energy balance equation:
+        \[
+        \frac{\dot{Q} } {\dot{m} } = W_{\text{turbine} }   + (h_2 - h_1) + \frac{v_2^2 - v_1^2}{2 \cdot 1000}
+        \]
+        Substitute the given values:
+        <ul>
+            <li>Enthalpy at inlet: \( h_1 = 3230.9~\text{kJ/kg} \)</li>
+            <li>Enthalpy at outlet: \( h_2 = 2676.1~\text{kJ/kg} \)</li>
+            <li>Specific entropy at inlet: \( s_1 = 6.9212~\text{kJ/(kg·K)} \)</li>
+            <li>Specific entropy at outlet: \( s_2 = 7.3549~\text{kJ/(kg·K)} \)</li>
+        </ul>
+        Calculate:
+        \[
+        \frac{\dot{Q} } {\dot{m} } = 507 + (2676.1 - 3230.9) + \frac{ 116^2 - 244 ^2}{2 \cdot 1000}
+        \]
+    </p><h2> Level 4 </h2><p>Now calculate the rate of entropy production per unit mass:
+        \[
+        \frac{\sigma_{\text{cv} } }{\dot{m} } = \frac{\frac{\dot{Q } } {\dot{m} } }{T_{\text{surf} } } + (s_2 - s_1)
+        \]
+        Substitute:
+        \[
+        \frac{\sigma_{\text{cv} } }{\dot{m } } = \frac{\left( 507 + (2676.1 - 3230.9) + \frac{ 116^2 - 244^2}{2 \cdot 1000} \right)}{ 371 }  + (7.3549 - 6.9212)
+        \]
+        Final result:
+        \[
+        \frac{\sigma_{\text{cv} } }{\dot{m} } = 0.6246~\text{kJ/(kg·K)}
+        \]
+    </p></html>

@@ -1,0 +1,6 @@
+<pl-question-panel>
+    <p>An injection molding press is purchased for {{params.cost}} USD. It is agreed that the press will be paid for over a {{params.years}} {{params.unitsTime}} period with annual payments using a {{params.interestRate}}% annual compound interest rate. Each payment is to be ${{params.paymentDecrease}} less than the previous payment.</p>
+    <p>What is the size of the first payment?</p>
+</pl-question-panel>
+
+<pl-number-input answers-name="firstPayment" comparison="sigfig" digits="3" label="First payment (in {{params.unitsCurrency}})"></pl-number-input>

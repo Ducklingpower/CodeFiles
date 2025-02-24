@@ -1,0 +1,18 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text"> To find the final pressure of the gas, we can use the ideal gas law for isothermal processes, which states that the product of pressure and volume remains constant: $P_1 V_1 = P_2 V_2$.  </pl-hint>
+    <pl-hint level="2" data-type="text"> Given: 
+        <ul>
+            <li> Initial Volume: $V_1 = {{params.VolumeInitial}} {{params.unitsVolume}}$</li>
+            <li> Final Volume: $V_2 = {{params.VolumeFinal}} {{params.unitsVolume}}$</li>
+            <li> Initial Pressure: $P_1 = {{params.PressureInitial}} {{params.unitsPressure}}$</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="3" data-type="text"> To find the final pressure $P_2$, rearrange the equation:  
+        $P_2 = \frac{P_1 V_1}{V_2}$
+    </pl-hint>
+    <pl-hint level="4" data-type="text"> Substitute in the known values:  
+        $P_2 = \frac{ {{params.PressureInitial}} \cdot {{params.VolumeInitial}} }{ {{params.VolumeFinal}} }$
+    </pl-hint>
+    <pl-hint level="5" data-type="text"> Calculate the final pressure to find: $P_2 = {{correct_answers.PressureFinal}} {{params.unitsPressure}}$.  
+    </pl-hint>
+</pl-solution-panel>

@@ -1,0 +1,29 @@
+<pl-question-panel>
+    <pl-figure file-name="bending3.png"></pl-figure>
+     
+    <p>The beam shown in the figure has a T-shaped cross-sectional area. The beam is constructed by welding two pieces of metal together to form this T-shape.</p>
+    <p>Determine the maximum shear stress necessary in the welding in order to keep the two pieces of metal together. The welding has a thickness of $\mathbf{t} = {{params.t}} ~mm$ </p>
+    <p>The distributed force has a magnitude of $\mathbf{F}= {{params.f}} kN/m$ and the lengths on the beam are $\mathbf{L}_1 = {{params.l1}} {{params.unitsDist}}$, $\mathbf{L}_2 = {{params.l2}} {{params.unitsDistt}}$, $\mathbf{L}_3 = {{params.l3}} {{params.unitsDistt}}$,and  $\mathbf{L}_4 = {{params.l4}} {{params.unitsDistt}}$</p>
+
+
+    </pl-question-panel>
+
+
+
+
+    <p>Compute the reaction forces at A and B in (kN)</p>
+    <pl-number-input answers-name="reactionA" comparison="sigfig" digits="3" label="Reaction $A_y$="></pl-number-input>
+    <pl-number-input answers-name="reactionB" comparison="sigfig" digits="3" label="Reaction $B_y$="></pl-number-input>
+    <p>Compute the central axis of the cross-sectional area. (Magnitude in $mm$)</p>
+    <pl-number-input answers-name="ybar" comparison="sigfig" digits="3" label="Central axis="></pl-number-input>
+    <p>Compute the moment of inertia about the central axis. (Magnitude in $\mu m^4$) </p>
+    <pl-number-input answers-name="I" comparison="sigfig" digits="3" label="Inertia of cross section="></pl-number-input>
+    <p>Compute Q = $\bar{y}' ~A'$ (Magnitude in $mm^3$)</p>
+    <pl-number-input answers-name="Q" comparison="sigfig" digits="3" label="Q ="></pl-number-input>
+   
+    <p>Compute the maximum shear stress necessary in the welding in order to keep the two pieces of metal together (magnitude in MPa) </p>
+
+
+
+
+    <pl-number-input answers-name="shear" comparison="sigfig" digits="3" label="shear max ="></pl-number-input>

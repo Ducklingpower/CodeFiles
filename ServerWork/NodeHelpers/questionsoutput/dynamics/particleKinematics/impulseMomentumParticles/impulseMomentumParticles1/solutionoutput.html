@@ -1,0 +1,36 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>The first step is to draw a free body diagram. And write ou the impulese moment equation.</p><h2> Level 1 </h2><p>
+    
+        <p>Using the impulse momentum equation in the horizontal direction:</p>
+        <li>\( mv_i + \Sigma \int F_x dt = m v_f \)</li>
+        <li>\( 0 + (Fcos(\theta) t - \mu_k N t ) = m v_f \)</li>
+        <p>The block starts at rest so \( v_i \) is 0. We can solve for F. </p>
+
+
+
+    </p><h2> Level 2 </h2><p>
+        <ul>
+           <p>Solving for F:</p>
+           <li>\( (Fcos(\theta) t - \mu_k N t ) = m v_f ~\implies~ F = \frac{mv_f +\mu N t}{cos(\theta) t}  \)</li>
+           <p>The only unknown is the normal forcee, but we can solve that by doing \( \Sigma{F_y} =0 \).</p>
+
+           <li>\( \Sigma{F_y} =0 ~\implies~ N - mg +Fsin(\theta) ~\implies~ N = mg-Fsin(\theta) \)</li>
+           <p>Plugging in normal force into F equation we get:</p>
+           <li>\(  F = \frac{mv_f +\mu (mg-Fsin(\theta)) t}{cos(\theta) t} \)</li>
+           <p>Now we can solve for F.</p>
+
+      </ul>
+    </p><h2> Level 3 </h2><p>
+        <ul>
+      
+       <p>Solving for F we get:</p>
+       <li>F = \( \frac{m v_f}{cos(\theta)} + \frac{\frac{-sin(\theta)}{cos(\theta)^2} \frac{m v_f \mu}{t} + \frac{\mu mg }{cos(\theta)} }{1 + tan(\theta) \mu} \)</li>
+           <li> F = 124.95599144380958 N</li>
+        </ul>
+    </p></html>

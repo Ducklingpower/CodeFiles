@@ -1,0 +1,46 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To determine the month in which the interest portion of the mortgage payment is less than one third of the total monthly payment, we need to first calculate the monthly payment using the mortgage formula.
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        The formula for the monthly mortgage payment is given by:
+        
+        \[
+        A = P \frac{i(1 + i)^n}{(1 + i)^n - 1}
+        \]
+        
+        where:
+        <li> \( A \) is the total monthly payment</li>
+        <li> \( P \) is the principal (loan amount)</li>
+            <li> \( i \) is the monthly interest rate</li>
+                <li> \( n \) is the number of payments (loan term in months)</li>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        The monthly interest rate can be calculated as:
+        
+        \[
+        i_m = \frac{\frac{\text{ (interestRate) } }{100} }{12}
+        \]
+        
+        and the total number of payments for a 30-year mortgage is:
+        
+        \[
+        n = 30 \times 12 = 360
+        \]
+    </pl-hint>
+   
+    <pl-hint level="3" data-type="text">
+     Now we can set up our equation for amount of interest Payed after a payment t:
+    
+
+
+     <p>\[ \text{Interest Payed} = A \cdot \frac{(i_m+1)^{n-t-1} - 1}{i_m(i+1)^{n-t-1} } \cdot i_m \] </p>
+     <li>intrest payed is : $\frac{A}{3}$</li>
+
+     <p>plugging in out numbers we get :</p>
+     <p>\[ \frac{ {{params.A}} } {3} = {{params.A}} \cdot \frac{({{params.im}}+1)^{360-t-1} - 1}{ {{params.im}}(i+1)^{360-t-1} } \cdot {{params.im}} \] </p>
+     
+     <p>Using interpolation:  $t$ = {{correct_answers.month}}</p>
+    </pl-hint>
+
+</pl-solution-panel>

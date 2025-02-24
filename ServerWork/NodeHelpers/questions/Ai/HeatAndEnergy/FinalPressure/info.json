@@ -1,0 +1,23 @@
+{
+    "title": "IsothermalProcessFinalPressureCalculation",
+    "stem": "Understanding gas behavior under isothermal conditions",
+    "topic": "Thermodynamics",
+    "tags": [
+        "isothermal process",
+        "gas laws",
+        "pressure calculation",
+        "thermodynamics"
+    ],
+    "prereqs": [
+        "Understanding of the ideal gas law",
+        "Basic knowledge of pressure and volume relationships in gases"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

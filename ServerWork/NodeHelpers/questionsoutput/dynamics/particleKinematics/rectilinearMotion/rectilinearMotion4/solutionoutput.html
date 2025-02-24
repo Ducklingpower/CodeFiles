@@ -1,0 +1,26 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>   First seperate the problem into two compenets. Up and down and left and right. In the Horizontal direction, the velocity will be constant, and in the verticle direction, the acceleration will be constant pointing downwards.</p><h2> Level 1 </h2><p>
+        <ul>
+          Writing equations of motion for the horizontal and verticle componets.
+      
+         <p>Horizontal: \(  v = \frac{D}{t}  \)  \( \implies \) \(  vcos(\theta + \phi) = \frac{Dcos(\theta)}{t}  \) \( \implies \) \( D = \frac{vcos(\theta+\phi)t}{cos(\theta)} \)</p>
+         <p>Verticle: \( D = vt+\frac{1}{2}at^2 \) \( \implies \) \( Dsin(\theta) = vsin(\theta+\phi)t-\frac{1}{2}gt^2 \)</p>
+        </ul>
+    </p><h2> Level 2 </h2><p>
+        <ul>
+           You now have two equations and two unknows. You can plug in \( D = \frac{vcos(\theta+\phi)t}{cos(\theta)} \) into \( Dsin(\theta) = vsin(\theta+\phi)t-\frac{1}{2}gt^2 \)
+           <p>After plugging in D you should get \( 0 = [-\frac{vcos(\theta+\phi)}{cos(\theta)}sin(\theta) +vsin(\theta+\phi)]t-\frac{1}{2}gt^2 \)</p>
+           <p>Solving for t using the quadratic formula we get t = 2.975716047162593 seconds</p>
+        </ul>
+    </p><h2> Level 3 </h2><p>
+        <ul>
+In order to solve for the total distance travled, all you have to do is plug in t into your origonal distyance equation.
+<p>Solution: \( D = \frac{vcos(\theta+\phi)t}{cos(\theta)} \) \( \implies \)  \( D = \frac{ 29cos(23^o+27.6^o) 2.975716047162593 }{cos(23^o)} \) = 59.504906718954494 m</p>
+        </ul>
+    </p></html>

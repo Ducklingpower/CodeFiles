@@ -1,0 +1,26 @@
+{
+    "title": "InvestmentCashFlowAnalysis",
+    "stem": "Analysis of cash flows from investment with present worth calculations.",
+    "topic": "Finance",
+    "tags": [
+        "Investment",
+        "Present Worth",
+        "Cash Flow Analysis",
+        "Finance",
+        "MARR",
+        "Financial Calculations"
+    ],
+    "prereqs": [
+        "Understanding of present worth and cash flow concepts",
+        "Basic knowledge of financial mathematics",
+        "Familiarity with MARR (Minimum Attractive Rate of Return)"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

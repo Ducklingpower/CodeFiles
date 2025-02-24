@@ -1,0 +1,25 @@
+{
+    "title": "AutoclaveTaxLiabilityCalculation",
+    "stem": "Calculating tax liabilities on salvage value after depreciation",
+    "topic": "Taxation and Depreciation",
+    "tags": [
+        "autoclave",
+        "tax liability",
+        "depreciation",
+        "MACRS",
+        "salvage value"
+    ],
+    "prereqs": [
+        "Understanding of MACRS depreciation",
+        "Basic tax liability concepts",
+        "Knowledge of capital assets and their sale"
+    ],
+    "isAdaptive": true,
+    "createdBy": "epere194@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

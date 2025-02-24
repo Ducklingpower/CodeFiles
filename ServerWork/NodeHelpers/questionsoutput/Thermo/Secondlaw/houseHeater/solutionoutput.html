@@ -1,0 +1,45 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>Understand the problem and identify known values:</p><h2> Level 1 </h2><p>
+        <p>We know the following:</p>
+        <ul>
+            <li>Heat required to maintain the dwelling temperature: \( Q_H = 896~kJ/day \)</li>
+            <li>Indoor temperature: \( T_{in} = 20~^\circ C \) (or \( T_H = 20 + 273.15~K \))</li>
+            <li>Outdoor temperature: \( T_{out} = 7~^\circ C \) (or \( T_C = 7 + 273.15~K \))</li>
+        </ul>
+        <p>We aim to calculate the minimum theoretical work required by the heat pump.</p>
+    </p><h2> Level 2 </h2><p>
+        Use the coefficient of performance (\( \gamma_{max} \)) for a reversible heat pump:
+        <p>
+            \( \gamma_{max} = \frac{T_H} {T_H - T_C} \)
+        </p>
+    </p><h2> Level 3 </h2><p>
+        Relating the work done to the coefficient of performance:
+        <p>
+            \( W_{cycle} = \frac{Q_H}{\gamma_{max} } \)
+        </p>
+        Substitute \( \gamma_{max} \) into the equation:
+        <p>
+            \( W_{cycle} = Q_H \cdot \left(1 - \frac{T_C} {T_H}\right) \)
+        </p>
+    </p><h2> Level 4 </h2><p>
+        Perform the calculations:
+        <p>Substitute the given values:</p>
+        <p>
+            \( T_H = 20 + 273.15~K \), \( T_C = 7 + 273.15~K \), and \( Q_H = 896~kJ/day \)
+        </p>
+        <p>
+            \( W_{cycle} = 896 \cdot \left(1 - \frac{ 7 + 273.15}{ 20 + 273.15}\right) \)
+        </p>
+    </p><h2> Level 5 </h2><p>
+        Final result:
+        <p>
+            The minimum theoretical work required is:
+            \( W_{cycle} = 39733.92~kJ/day \)
+        </p>
+    </p></html>

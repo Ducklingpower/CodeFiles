@@ -1,0 +1,111 @@
+<pl-solution-panel>
+    <pl-figure file-name="rankine_cycle.png"></pl-figure>
+
+    <!-- Step 1: System Analysis -->
+    <pl-hint level="1" data-type="text">
+        Analyze the Rankine cycle with superheat and reheat by identifying key thermodynamic states and processes. Use the provided schematic to label the states (1 to 6) and note the given parameters:
+        <ul>
+            <li>Pressure at turbine inlet: $P_1 = {{params.p1}}$ MPa</li>
+            <li>Temperature at turbine inlet: $T_1 = {{params.t1}}~^\circ C$</li>
+            <li>Reheat temperature: $T_r = {{params.tr}}~^\circ C$</li>
+            <li>Condenser pressure: $P_3 = {{params.p3}}$ MPa</li>
+            <li>Net power output: $\dot{W}_{net} = {{params.w_net}}$ MW</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="2" data-type="text">
+        Calculate the thermodynamic properties at each key state using steam tables or thermodynamic software:
+        <ul>
+            <li><b>State 1:</b> Superheated steam at $P_1 = {{params.p1}}$ MPa and $T_1 = {{params.t1}}~^\circ C$. 
+                <ul>
+                    <li>From the steam tables, locate the pressure $P_1$ and temperature $T_1$ in the superheated steam section.</li>
+                    <li>Find the corresponding values for specific enthalpy $h_1$ and specific entropy $s_1$.</li>
+                </ul>
+            </li>
+            <li><b>State 2:</b> At $P_2 = {{params.p2}}$ MPa and $s_2 = s_1$. 
+                <ul>
+                    <li>Use the pressure $P_2$ and the known entropy $s_2 = s_1$ to determine the state (this is an isentropic expansion).</li>
+                    <li>If $s_2$ falls between the saturated liquid ($s_f$) and saturated vapor ($s_g$) values, calculate the quality $x_2$:</li>
+                    <p>$x_2 = \frac{s_2 - s_f}{s_g - s_f}$</p>
+                    <li>Then determine $h_2$ using:</li>
+                    <p>$h_2 = h_f + x_2(h_g - h_f)$</p>
+                </ul>
+            </li>
+            <li><b>State 3:</b> Superheated steam at $P_2 = {{params.p2}}$ MPa and $T_r = {{params.tr}}~^\circ C$.
+                <ul>
+                    <li>From the superheated steam tables, locate $P_2$ and $T_r$.</li>
+                    <li>Determine the specific enthalpy $h_3$ and specific entropy $s_3$.</li>
+                </ul>
+            </li>
+            <li><b>State 4:</b> At $P_3 = {{params.p3}}$ MPa and $s_4 = s_3$. 
+                <ul>
+                    <li>Similar to State 2, use the pressure $P_3$ and the known entropy $s_4 = s_3$ to determine the state.</li>
+                    <li>If $s_4$ falls between $s_f$ and $s_g$, calculate the quality $x_4$:</li>
+                    <p>$x_4 = \frac{s_4 - s_f}{s_g - s_f}$</p>
+                    <li>Determine $h_4$ using:</li>
+                    <p>$h_4 = h_f + x_4(h_g - h_f)$</p>
+                </ul>
+            </li>
+            <li><b>State 5:</b> Saturated liquid at $P_3 = {{params.p3}}$ MPa.
+                <ul>
+                    <li>From the saturated liquid tables, locate $P_3$ and find $h_5$ (enthalpy of saturated liquid) and $v_f$ (specific volume).</li>
+                </ul>
+            </li>
+            <li><b>State 6:</b> Compressed liquid at $P_1 = {{params.p1}}$ MPa.
+                <ul>
+                    <li>Use the specific volume $v_f$ from State 5 and calculate $h_6$:</li>
+                    <p>$h_6 = h_5 + v_f(P_1 - P_3)$</p>
+                </ul>
+            </li>
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="3" data-type="text">
+        Apply the energy balance equations for the system:
+        <ul>
+            <li><b>Heat added ($\dot{Q}_{in}$):</b> $\dot{Q}_{in} = (h_1 - h_6) + (h_3 - h_2)$</li>
+            <li><b>Net work ($\dot{W}_{net}$):</b> $\dot{W}_{net} = {{params.w_net}} \times 1000$ kW</li>
+            <li><b>Thermal efficiency ($\eta$):</b> The thermal efficiency is a measure of how effectively the Rankine cycle converts the input heat into useful work. It is calculated as:</li>
+            <p>
+                $\eta = \frac{\dot{W}_{net} }{\dot{Q}_{in  } } \times 100$
+            </p>
+            <li>Substitute the expressions for $\dot{W}_{net}$ and $\dot{Q}_{in}$:</li>
+            <p>
+                $\eta = \frac{(h_1 - h_2) + (h_3 - h_4) - (h_6 - h_5)}{(h_1 - h_6) + (h_3 - h_2)} \times 100$
+            </p>
+            <li>The numerator represents the total useful work done by the system, which is the work output of the turbines minus the work input to the pump.</li>
+            <li>The denominator represents the total heat added to the system in the boiler and reheater.</li>
+            <li>For this specific case, the calculated thermal efficiency is:</li>
+            <p>
+                $\eta = {{correct_answers.thermal_efficiency}}$%
+            </p>
+            <li>The reheat process improves thermal efficiency by increasing the average temperature at which heat is added, thereby reducing irreversibilities.</li>
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="4" data-type="text">
+        Calculate the mass flow rate of steam:
+        <p>
+            $\dot{m} = \frac{\dot{W}_{net} }{(h_1 - h_2) + (h_3 - h_4) - (h_6 - h_5)}$
+        </p>
+        Convert $\dot{m}$ to $\mathrm{kg/h}$:
+        <p>
+            $\dot{m}_h = {{correct_answers.mass_flow_rate}}~\mathrm{kg/h}$
+        </p>
+    </pl-hint>
+
+    <!-- Step 5: Heat Transfer Rate -->
+    <pl-hint level="5" data-type="text">
+        Calculate the heat transfer rate from the condenser:
+        <p>
+            $\dot{Q}_{out} = \dot{m} \times (h_4 - h_5) = {{correct_answers.heat_transfer_rate}}~\mathrm{MW}$
+        </p>
+    </pl-hint>
+
+    <!-- Step 6: Discussion on Reheat -->
+    <pl-hint level="6" data-type="text">
+        <b>Effect of Reheat:</b> Reheating the steam increases the average temperature during heat addition, improving the thermal efficiency of the cycle. It also reduces the moisture content at the turbine exit, protecting the turbine blades and enhancing durability.
+    </pl-hint>
+</pl-solution-panel>

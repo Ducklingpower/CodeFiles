@@ -1,0 +1,45 @@
+
+<pl-solution-panel>
+    <pl-figure file-name="curvilinearMotion8.png"></pl-figure>
+    <pl-hint level="1" data-type="text">This is a curvilinear problem, we can take the derivatives of the theta and r equation to obtain the acceleration and velocity in the theta and r direction.</pl-hint>
+                       
+  
+ 
+    <pl-hint level="2" data-type="text">
+        <p>Talking derivatives of r:</p>
+        <li>$r = k \theta$</li>
+        <li>$\dot{r} = k \dot{\theta}$</li>
+        <li>$\dot{\dot{r} } = 0$</li>
+      
+      
+        <p>Taking derivatives of $\theta$</p>
+
+        <li>$\dot{\theta}  = c_1$</li>
+        <li>$\dot{\dot{\theta} } = 0$</li>
+       
+      <p>Now we can solve for velocity and acceleration.</p>
+  </pl-hint>
+ 
+ 
+ 
+ 
+    <pl-hint level="3" data-type="text">
+        <ul>
+ 
+            <p>Solving for Velocity:</p>
+            <li>$v = \sqrt{ (\dot{r})^2 + (r \dot{\theta})^2   }$</li>
+            <li>$v = \sqrt{ (k c_1)^2 + (k\theta c_1)^2 }$ = {{correct_answers.v}} m/s</li>
+            
+            
+            <p>Solving for acceleration:</p>
+            <li> a =$ \sqrt{(\dot{\dot{r} } - r\dot{\theta}^2)^2 + (r \dot{\dot{\theta} } + 2 \dot{r} \dot{\theta})^2}$</li>
+            <li>a =$ \sqrt{(0-k\theta c_1^2)^2   +   (0 + 2kc_1 c_1)^2}$ = {{correct_answers.a}} $m/s^2$</li>
+
+            <p>Note: when plugging in $\theta$ convert to radians: radians = ${{params.theta}}^o \frac{\pi}{180^o}$</p>
+            
+            
+
+
+ 
+     </ul>
+    </pl-hint>

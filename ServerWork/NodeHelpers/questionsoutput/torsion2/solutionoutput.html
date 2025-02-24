@@ -1,0 +1,41 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>compute the torque acting in each section of the beam.</p><h2> Level 1 </h2><p>In section AB torque = \( \tau_A \) , section BC torque = \( \tau_A-\tau_B \), and section CD torque = \( \tau_A-\tau_B + \tau_C \)
+
+        <p>now use these torques to calcuate the twist in each section.</p>
+        The equation of twist = \(  \frac{\tau ~ L}{J G}    \)
+        <p>
+        G = \( 75*10^9 \)</p>
+        J = \( \frac{\pi}{2}(R^4) \)
+    </p><h2> Level 2 </h2><p>
+        <ul> 
+            Solving twist:
+            <li>Twist in sectuion AB = \( \frac{\tau_A ~ L_1}{G ~ J} \)</li>
+            <li>Twist in sectuion BC = \( \frac{(\tau_A - \tau_B) ~ L_2}{G ~ J} \)</li>
+            <li>Twist in sectuion CD = \( \frac{(\tau_A - \tau_B + \tau_C) ~ L_3}{G ~ J} \)</li>
+
+            Now you easily solve both of the questions by adding up the twist in each section.
+
+        
+        </ul>
+    </p><h2> Level 3 </h2><p> 
+        <ul>
+            Soltuion:
+            <p>A relitve to D</p>
+           <li> Twist AB + Twist BC + Twist CD = \( 0.007700595903883228 \)</li>
+           <p>A relitive to C</p>
+           <li> Twist AB + Twist BC = \( 0.00941964069536775 \)</li>
+
+        
+
+        </ul>
+    </p><h2> Level 4 </h2><p> 
+        <ul>
+           
+        </ul>
+    </p></html>

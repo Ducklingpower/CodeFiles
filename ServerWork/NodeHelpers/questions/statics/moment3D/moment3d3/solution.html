@@ -1,0 +1,39 @@
+<pl-solution-panel>
+    <pl-figure file-name="Moment3d3.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> First identify the unit vectors of both the red and green force vectors.</pl-hint>
+    <pl-hint level="2" data-type="text"> To find the unit vectors of both the green and red force vectors first you must find the direction of the vector.
+        You can find the direction of the vectors by identifying two points along the line of action of each vector.
+        Lable the point where the two forces are coming out of (C). And lable the ends of the ropes that are on the ground points R and G. R for the red force and G for the green force. 
+        Now to find the direction you can do R-C and G-C</pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul> 
+                    finding direction of green and red force vectors.
+                <li> Red vector: R-C = $(L_2,-L_3,0) - (0,0,L_1)$ = $(L_2,-L_3,-L_1)$ </li>
+                <li> Green vector: G-C =  $ (0,L_3,0) - (0,0,L_1)$ = $(0,L_3,-L_1) $</li>
+                    Now that we have the direction of both of the vectors we can find the unit vectors by dividing the lengths of the vectors by its self.
+                <li> Unit vector R:  $\vec{U}_R  $ = $\frac{(L_2,-L_3,-L_1) }{\sqrt{(L_2)^2+(L_3)^2+(L_1)^2} }$</li>
+                <li> Unit vector G:  $\vec{U}_G  $ = $\frac{(0,L_3,-L_1)}{\sqrt{(L_3)^2+ (L_1)^2} }$</li>
+                   Now that we have the unit vectors we can finally find the force vectors $\vec{F}_R$ and $\vec{F}_G$
+                <li> $\vec{F}_R$ = $(\mathbf{F}_R)(\vec{U}_R )$ = $(\mathbf{F}_R) \frac{(L_2,-L_3,-L_1) }{\sqrt{(L_2)^2+(L_3)^2+(L_1)^2} }$</li>
+                <li> $\vec{F}_G$ = $(\mathbf{F}_G)(\vec{U}_G )$ = $(\mathbf{F}_G) \frac{(0,L_3,-L_1)}{\sqrt{(L_3)^2+ (L_1)^2} }$</li>
+                </ul>
+            </pl-hint>
+        
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+           <li>It is important to note that when computing the moment about o we chose a vector that starts at o and ends somewhere along the line of action 
+           of the force vectors. In our case the vector that starts at o and ends along the line of action of the force vectors is $\vec{d} = 0\hat{i}+0\hat{j}+L_1\hat{k}$</li>
+           <li>$M_o = M_R + M_G$ = $ [\vec{d} X \vec{F}_R] + [\vec{d} X \vec{F}_G] $</li>
+           The net moment solution is:
+           <li>${{correct_answers.momenti}} \hat{i}$</li>
+           <li>${{correct_answers.momentj}} \hat{j}$</li>
+           <li>${{correct_answers.momentk}} \hat{k}$</li>
+
+          
+          
+        </ul>
+    </pl-hint>
+

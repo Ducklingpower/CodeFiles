@@ -1,0 +1,49 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">Start by identifying the given data and assumptions for the heat exchanger system.</pl-hint>
+    <pl-hint level="2" data-type="text">
+        <ul>
+            Given Data:
+            <li>Steam enters the system at $P_\mathrm{steam} = {{params.p_steam}}~\mathrm{kPa}$ as a saturated vapor.</li>
+            <li>Water enters at $T_\mathrm{water} = {{params.t_water}}~^\circ \mathrm{C}$ and $P_\mathrm{out} = {{params.p_out}}~\mathrm{kPa}$.</li>
+            <li>Mass flow rate of water: $\dot{m}_2 = {{params.mass}}~\mathrm{kg/s}$.</li>
+            <li>Water leaves as a saturated liquid at $P_\mathrm{out} = {{params.p_out}}~\mathrm{kPa}$.</li>
+        </ul>
+        <ul>
+            Assumptions:
+            <li>Steady-state and adiabatic conditions ($\dot{Q} = 0$, $\dot{W} = 0$).</li>
+            <li>Negligible changes in kinetic and potential energy.</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">Determine the enthalpy and entropy values for the given states using thermodynamic tables.</pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+            Enthalpy values:
+            <li>$h_1 = 2725.5~\mathrm{kJ/kg}$ (saturated vapor at $300~\mathrm{kPa}$).</li>
+            <li>$h_2 = 335.7~\mathrm{kJ/kg}$ (water at $80~^\circ \mathrm{C}$).</li>
+            <li>$h_3 = 561.2~\mathrm{kJ/kg}$ (saturated liquid at $300~\mathrm{kPa}$).</li>
+        </ul>
+        <ul>
+            Entropy values:
+            <li>$s_1 = 6.9919~\mathrm{kJ/kg\cdot K}$ (saturated vapor at $300~\mathrm{kPa}$).</li>
+            <li>$s_2 = 1.0751~\mathrm{kJ/kg\cdot K}$ (water at $80~^\circ \mathrm{C}$).</li>
+            <li>$s_3 = 1.6698~\mathrm{kJ/kg\cdot K}$ (saturated liquid at $300~\mathrm{kPa}$).</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="5" data-type="text">Apply the first law of thermodynamics to determine the steam flow rate ($\dot{m}_1$).</pl-hint>
+    <pl-hint level="6" data-type="text">
+        <ul>
+            <li>Energy balance: $\dot{m}_1 h_1 + \dot{m}_2 h_2 = \dot{m}_3 h_3$.</li>
+            <li>Rearranging: $\dot{m}_1 = \frac{\dot{m}_3 h_3 - \dot{m}_2 h_2}{h_1}$.</li>
+            <li>Given $\dot{m}_2 = {{params.mass}}~\mathrm{kg/s}$, solve for $\dot{m}_3 = \dot{m}_1 + \dot{m}_2$.</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="7" data-type="text">Calculate the entropy production using the entropy balance equation.</pl-hint>
+    <pl-hint level="8" data-type="text">
+        <ul>
+            Entropy balance:
+            <li>$\Delta S_\mathrm{prod} = \dot{m}_3 s_3 - \dot{m}_2 s_2 - \dot{m}_1 s_1$.</li>
+          
+        </ul>
+    </pl-hint>
+    <pl-hint level="9" data-type="text">Final Answer: The entropy production for the process is $\Delta S_\mathrm{prod} = {{correct_answers.entropyProduction}}~\mathrm{kW/K}$.</pl-hint>
+</pl-solution-panel>

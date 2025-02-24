@@ -1,0 +1,25 @@
+{
+    "title": "TaxableIncomeCalculationForACMEInc",
+    "stem": "Calculation of taxable income based on cash flow details",
+    "topic": "Taxation and Accounting",
+    "tags": [
+        "taxable income",
+        "cash flow",
+        "accounting",
+        "MACRS depreciation",
+        "financial analysis"
+    ],
+    "prereqs": [
+        "Basic understanding of taxable income",
+        "Knowledge of cash flow statements",
+        "Familiarity with MACRS depreciation"
+    ],
+    "isAdaptive": true,
+    "createdBy": "epere194@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

@@ -1,0 +1,37 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>First, try and establish the modulus of elasticity (E) using the given data.</p><h2> Level 1 </h2><p>Solving for E:
+
+
+
+
+<li>stress: \( \sigma = \frac{F}{A} \)</li>
+<li>strain: \( \epsilon_{Long} = \frac{\delta L}{L_o} \)</li>
+<p>Solving for stress and strain we can now find the modulus of elasticity: E =\( \frac{\sigma}{\epsilon} \)</p>
+
+
+
+
+        Now that we have young's modulus of elasticity and we are given Shears modulus of elasticity (G), We can find the poisons ratio.
+    </p><h2> Level 2 </h2><p>
+        <ul>
+         Finding poisons ratio:
+         <p>Using \( G = \frac{E}{2(1+\upsilon)} \) we can solve for \( \upsilon \)</p>
+         <li>\( \upsilon = \frac{E}{2G}-1 \)</li>
+         Now that we have the Poisson's ratio, try to compute the lateral strain.
+       
+        </ul>
+    </p><h2> Level 3 </h2><p>
+        <ul>
+          Since we have previously found the longitudinal strain and the poisson's ratio, we can easily find the lateral strain.
+          <li>lateral strain \( \epsilon_{Lat} = \upsilon ~ \epsilon_{Long} \)</li>
+          <p>Now we can compute the change in diameter to be</p>
+          <li>\( \delta D = \epsilon_{Lat} ~D = 0.0033076170874421266  \) mm</li>
+       
+        </ul>
+    </p></html>

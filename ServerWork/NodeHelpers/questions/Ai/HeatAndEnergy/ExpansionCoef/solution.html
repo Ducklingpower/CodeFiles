@@ -1,0 +1,17 @@
+```html
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        The coefficient of linear expansion (
+        \( \alpha \)) can be calculated using the formula: \( \alpha = \frac{\Delta L}{L_0 \Delta T} \), where \( \Delta L \) is the change in length, \( L_0 \) is the original length, and \( \Delta T \) is the change in temperature.
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        Here, the change in length is given as \( \Delta L = {{params.increase}} \) and the original length is \( L_0 = {{params.length}} \). The change in temperature is \( \Delta T = {{params.finalTemperature}} - {{params.initialTemperature}} \).
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        Substitute these values into the formula: \( \alpha = \frac{ {{params.increase}} }{ { {{params.length}} \times ({{params.finalTemperature}} - {{params.initialTemperature}} )} } \).
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        Therefore, the coefficient of linear expansion is \( \alpha = {{correct_answers.coefficientExpansion}} \) in appropriate units.
+    </pl-hint>
+</pl-solution-panel>
+```

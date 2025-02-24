@@ -1,0 +1,49 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>
+        To calculate the monthly loan payment, we will use the formula for the monthly payment of an amortizing loan:
+    </p><h2> Level 1 </h2><p>
+        The formula is given by: 
+        \[
+        A = P \frac{i(1 + i)^n} {(1 + i)^n - 1}
+        \]
+        where:
+       
+             <li> A is the total monthly payment</li>
+             <li> P is the loan principal (the amount borrowed)</li>
+             <li> i is the monthly interest rate (annual interest rate divided by 12)</li>
+             <li> n is the number of payments (loan term in months)</li>
+     
+    </p><h2> Level 2 </h2><p>
+        The loan principal can be calculated as:
+        \[
+        P = \text{ (purchasePrice) } - \text{ (downPayment) } = 30017~ USD - 18175~ USD
+        \]
+    </p><h2> Level 3 </h2><p>
+        The monthly interest rate is:
+        \[
+        i = \frac{ {\text{ (interestRate) } } }{100 \cdot 12}  = \frac{ 8 }{100 \cdot 12}
+        \]
+    </p><h2> Level 4 </h2><p>
+        The number of payments is simply:
+        \[
+        n = \text{ (loanTerm) } \times 12 = 69 \times 12
+        \]
+    </p><h2> Level 5 </h2><p>
+        Substituting these values into the monthly payment formula will yield the monthly loan payment:
+        \[
+        M = ( 30017 - 18175) \frac{ ( \frac{ 8 }{100 \cdot 12}  ) ( 1 + ( \frac{ 8 }{100 \cdot 12}  ) )^{( 69 \times 12)} }{( 1 + ( \frac{ 8 }{100 \cdot 12}  ) )^{( 69 \times 12)} - 1}
+        \]
+    </p><h2> Level 6 </h2><p>
+        Finally, calculating this will give the monthly loan payment as:  214.674 USD.
+    </p><h2> Level 7 </h2><p>
+     <p> To found how much they where trying to over charge per mont we can find the differnec between the proposed monthly payment and the actual monthly payment.  </p>
+
+     <p>Over chareg = 454.7 - 214.674  = $239.99999999999997 </p>
+
+    </p></html>

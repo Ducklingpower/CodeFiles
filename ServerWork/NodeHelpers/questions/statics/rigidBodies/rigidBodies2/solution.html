@@ -1,0 +1,42 @@
+<pl-solution-panel>
+    <pl-figure file-name="3dRigidBodies2.png"></pl-figure>
+    <pl-hint level="1" data-type="text">First, draw the reaction force at point A.</pl-hint>
+    <pl-hint level="2" data-type="text">
+        <p>The reaction forces at point A should have 6 components.</p>
+        <p>$A_x, A_y, A_z, $ and $M_x, M_y, M_z$.</p>
+        <P>Now write out the equations that describe the forces in all directions.</P>
+    </pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul>
+                   Equations that discribe all of the forces:
+                   <li>$\Sigma{F}_x = 0 \implies A_x-F_P =0$</li>
+                   <li>$\Sigma{F}_y = 0 \implies A_y+F_R =0$</li>
+                   <li>$\Sigma{F}_z = 0 \implies A_z-F_G =0$</li>
+                    Moment equations (about point A):
+                   <li>$\Sigma{M}_x = 0 \implies M_x-(L_3+L_2)(F_R)-(L_1)(F_G) =0$</li>
+                   <li>$\Sigma{M}_y = 0 \implies M_y-(L_2)(F_P)-(L_2)(F_G) =0$</li>
+                   <li>$\Sigma{M}_z = 0 \implies M_z =0$</li>
+
+                   With all of these equations you are able to solve for all of the reaction forces at point A.
+                </ul>
+            </pl-hint>
+        
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+           Reaction forces at point A:
+           <li>$A_x = {{correct_answers.Ax}} {{params.unitsForce}}</li>
+           <li>$A_y = {{correct_answers.Ay}} {{params.unitsForce}}</li>
+           <li>$A_z = {{correct_answers.Az}} {{params.unitsForce}}</li>
+           <li>$M_x = {{correct_answers.Mx}} {{params.unitsForce}} {{params.unitsDist}} </li>
+           <li>$M_y = {{correct_answers.My}} {{params.unitsForce}} {{params.unitsDist}}</li>
+           <li>$M_z = {{correct_answers.Mz}} {{params.unitsForce}} {{params.unitsDist}}</li>
+
+           
+
+
+
+        </ul>
+    </pl-hint>

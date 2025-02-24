@@ -1,0 +1,40 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>This is a curvilinear problem, we can take the derivatives of the theta and r equation to obtain the acceleration and velocity in the theta and r direction.</p><h2> Level 1 </h2><p>
+        <p>Talking derivatives of r:</p>
+        <li>\( r = k \theta \)</li>
+        <li>\( \dot{r} = k \dot{\theta} \)</li>
+        <li>\( \dot{\dot{r} } = 0 \)</li>
+      
+      
+        <p>Taking derivatives of \( \theta \)</p>
+
+        <li>\( \dot{\theta}  = c_1 \)</li>
+        <li>\( \dot{\dot{\theta} } = 0 \)</li>
+       
+      <p>Now we can solve for velocity and acceleration.</p>
+  </p><h2> Level 2 </h2><p>
+        <ul>
+ 
+            <p>Solving for Velocity:</p>
+            <li>\( v = \sqrt{ (\dot{r})^2 + (r \dot{\theta})^2   } \)</li>
+            <li>\( v = \sqrt{ (k c_1)^2 + (k\theta c_1)^2 } \) = 21.64312507220063 m/s</li>
+            
+            
+            <p>Solving for acceleration:</p>
+            <li> a =\(  \sqrt{(\dot{\dot{r} } - r\dot{\theta}^2)^2 + (r \dot{\dot{\theta} } + 2 \dot{r} \dot{\theta})^2} \)</li>
+            <li>a =\(  \sqrt{(0-k\theta c_1^2)^2   +   (0 + 2kc_1 c_1)^2} \) = 120.02832085076719 \( m/s^2 \)</li>
+
+            <p>Note: when plugging in \( \theta \) convert to radians: radians = \( 86^o \frac{\pi}{180^o} \)</p>
+            
+            
+
+
+ 
+     </ul>
+    </p></html>

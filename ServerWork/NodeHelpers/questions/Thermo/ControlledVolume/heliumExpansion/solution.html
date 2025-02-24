@@ -1,0 +1,34 @@
+<pl-solution-panel>
+    <pl-figure file-name="Helium.png"></pl-figure>
+
+    <p>We will solve for the exit temperature ($T_2$), the heat transferred ($\dot{Q}$), and the mass flow rate ($\dot{m}$) for helium expanding polytropically through a turbine.</p>
+
+    <pl-hint level="1" data-type="text">Use the polytropic relation to find the exit temperature $T_2$.</pl-hint>
+    <pl-hint level="2" data-type="text">
+        The polytropic relation between temperature and pressure is:
+        \[ \frac{T_2}{T_1} = \left(\frac{P_2}{P_1}\right)^{\frac{n-1}{n} } \]
+        Solving for $T_2$:
+        \[ T_2 = T_1 \left(\frac{P_2}{P_1}\right)^{\frac{n-1}{n} } \]
+        Substituting the given values:
+        \[ T_2 = {{params.T1}} \left(\frac{ {{params.P2}} }{ {{params.P1}} }\right)^{\frac{ {{params.n}}-1}{ {{params.n}} } } = {{correct_answers.T2}}~K \]
+    </pl-hint>
+
+    <pl-hint level="1" data-type="text">Use the energy balance to find the mass flow rate $\dot{m}$.</pl-hint>
+    <pl-hint level="2" data-type="text">
+        The power output from the turbine is given by:
+        \[ \dot{W} = \frac{n}{n-1} \dot{m} R T_1 \left[1 - \left(\frac{P_2}{P_1}\right)^{\frac{n-1}{n} }\right] \]
+        Solving for $\dot{m}$:
+        \[ \dot{m} = \frac{\dot{W} (n-1)}{n R T_1 \left[1 - \left(\frac{P_2}{P_1}\right)^{\frac{n-1}{n} }\right]} \]
+        Substituting the given values:
+        \[ \dot{m} = \frac{ {{params.W}} \cdot ({{params.n}}-1)}{ { {{params.n}} \cdot 2.077 \cdot {{params.T1}} \left[1 - \left(\frac{ {{params.P2}} }{ {{params.P1}} }\right)^{\frac{ {{params.n}}-1}{ {{params.n}} } }\right]} } = {{correct_answers.m_dot}}~kg/s \]
+    </pl-hint>
+
+    <pl-hint level="1" data-type="text">Apply the first law of thermodynamics to find the heat transferred $\dot{Q}$.</pl-hint>
+    <pl-hint level="2" data-type="text">
+        For a steady-state open system:
+        \[ \dot{Q} = \dot{W} + \dot{m} c_p (T_2 - T_1) \]
+        Substituting the values:
+        \[ \dot{Q} = {{params.W}} + ({{correct_answers.m_dot}})(5.1954)({{correct_answers.T2}} - {{params.T1}}) \]
+        \[ \dot{Q} = {{correct_answers.Q}}~kW \]
+    </pl-hint>
+</pl-solution-panel>

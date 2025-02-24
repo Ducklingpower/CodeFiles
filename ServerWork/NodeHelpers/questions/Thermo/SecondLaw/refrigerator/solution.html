@@ -1,0 +1,38 @@
+<pl-solution-panel>
+    <pl-figure file-name="refrigerator.png"></pl-figure>
+    
+    <pl-hint level="1" data-type="text">To begin, identify the given parameters and note the temperatures in Kelvin.</pl-hint>
+    
+    <pl-hint level="2" data-type="text">
+        Convert the temperatures to Kelvin:
+        <ul>
+            <li>Freezer compartment temperature: $T_L = {{params.T_L}} + 273.15 = {{params.T_L_K}}~K$</li>
+            <li>Ambient temperature: $T_H = {{params.T_H}} + 273.15 = {{params.T_H_K}}~K$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        Calculate the coefficient of performance (COP) of the refrigerator:
+        <ul>
+            <li>Formula: $\beta = \frac{\dot{Q}_L}{W_{cycle} }$</li>
+            <li>Substitute the given values: $\beta = \frac{ {{params.Q_L}} }{ {{params.W_in}} } = {{correct_answers.cop_actual}}$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        Calculate the coefficient of performance of the reversible refrigerator:
+        <ul>
+            <li>Formula: $\beta_{\text{max} } = \frac{T_L}{T_H - T_L}$</li>
+            <li>Substitute the converted values: $\beta_{\text{max} } = \frac{ {{params.T_L}} + 273.15}{ {{params.T_H}} + 273.15 - ({{params.T_L}} + 273.15)} = {{correct_answers.cop_reversible}}$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        Compare the actual and reversible coefficients of performance:
+        <ul>
+            <li>The actual coefficient of performance is $\beta = {{correct_answers.cop_actual}}$</li>
+            <li>The reversible coefficient of performance is $\beta_{\text{max} } = {{correct_answers.cop_reversible}}$</li>
+            <li>Since $\beta < \beta_{\text{max} }$, the refrigerator operates at a lower efficiency compared to the ideal reversible refrigerator.</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

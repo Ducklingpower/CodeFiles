@@ -1,0 +1,55 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">Start by applying the First Law of Thermodynamics for the open system.</pl-hint>
+
+    <pl-hint level="2" data-type="text">
+        <ul>
+            <li>Apply the steady-state energy equation to solve for the heat transfer rate:</li>
+            <p>$Q + \dot{m} h_1 = W + \dot{m} h_2$</p>
+            <li>Rearrange and simplify, assuming changes in kinetic and potential energy are negligible:</li>
+            <p>$Q = W + \dot{m} c_p (T_2 - T_1)$</p>
+            <li>Substitute known values:</li>
+            <p>$Q = -{{params.power}}~kW + \left( \frac{ {{params.mass_flow}} }{60}~kg/s \right) \times 1.0047~kJ/(kg \cdot K) \times ({{params.T2}} - {{params.T1}})$</p>
+            <li>Calculate $Q$.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <ul>
+            <li>Determine the entropy change of air using the relation:</li>
+            <p>$\Delta S_{air} = \dot{m} c_p \ln ( \frac{T_2}{T_1} ) - \dot{m} R \ln ( \frac{p_2}{p_1} )$</p>
+            <li>Substitute the given values:</li>
+            <p>$\Delta S_{air} = ( \frac{ {{params.mass_flow}} }{60}~kg/s ) \times 1.0047~kJ/(kg \cdot K) \times \ln ( \frac{ {{params.T2}} }{ {{params.T1}} } )$</p>
+            <p>$- ( \frac{ {{params.mass_flow}} }{60}~kg/s ) \times 0.287~kJ/(kg \cdot K) \times \ln ( \frac{ {{params.p2}} }{ {{params.p1}} } )$</p>
+            <li>Calculate $\Delta S_{air}$.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+            <li>Entropy change of the surroundings is given by:</li>
+            <p>$\Delta S_{surroundings} = \frac{ Q }{T_{surroundings} }$</p>
+            <li>Substitute the values:</li>
+            <p>$\Delta S_{surroundings} = \frac{ {Q} }{{params.T_surroundings}}$</p>
+            <li>Calculate $\Delta S_{surroundings}$.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        <ul>
+            <li>The total entropy production is:</li>
+            <p>$\Delta S_{prod} = \Delta S_{air} + \Delta S_{surroundings}$</p>
+            <li>Substitute the calculated values:</li>
+            <p>$\Delta S_{prod} = \Delta S_{air} + \Delta S_{surroundings}$</p>
+            <li>Calculate $\Delta S_{prod}$.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="6" data-type="text">
+        <ul>
+            <li>Final results: Net entropy change </li>
+            <li>$\Delta S_{air} = {{correct_answers.deltaS_air}}~kJ/K$</li>
+            <li>$\Delta S_{surroundings} = {{correct_answers.deltaS_surroundings}}~kJ/K$</li>
+            <li>$\Delta S_{prod} = {{correct_answers.entropy_production}}~kJ/K$</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

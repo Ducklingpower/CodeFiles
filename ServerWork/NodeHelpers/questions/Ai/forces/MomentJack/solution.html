@@ -1,0 +1,15 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">To determine the effective length of the handle of the jack, we can use the moment equation, which relates the moment to the force applied and the perpendicular distance from the point of rotation. The equation is given by $M = F \times d$, where $M$ is the moment, $F$ is the force applied, and $d$ is the effective length (distance) of the handle.</pl-hint>
+
+    <pl-hint level="2" data-type="text">Let's first analyze the situation for force (a) $F_1$:</pl-hint>
+    <pl-hint level="3" data-type="text">Rearranging the moment equation to solve for the effective length $d$, we have:
+        $$d_1 = \frac{M}{F_1}$$ where $M = {{params.moment}}$ N\cdot m and $F_1 = {{params.force1}}$ N.
+        Substitute the known values into the equation to find $d_1$.</pl-hint>
+
+    <pl-hint level="2" data-type="text">Now, analyze the situation for force (b) $F_2$:</pl-hint>
+    <pl-hint level="3" data-type="text">Rearranging the moment equation to solve for the effective length $d$, we have:
+        $$d_2 = \frac{M}{F_2}$$ where $M = {{params.moment}}$ N\cdot m and $F_2 = {{params.force2}} \times 1000$ N (since 1 kN = 1000 N).
+        Substitute the known values into the equation to find $d_2$.</pl-hint>
+
+    <pl-hint level="4" data-type="text">By calculating $d_1$ and $d_2$, we can determine the effective length of the jack handle required for each respective force.</pl-hint>
+</pl-solution-panel>

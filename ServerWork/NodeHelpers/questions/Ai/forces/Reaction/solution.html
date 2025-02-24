@@ -1,0 +1,17 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text"> Begin by considering the equilibrium of the beam. Apply the principles of static equilibrium: the sum of vertical forces and the sum of moments about any point must be zero. </pl-hint>
+    <pl-hint level="2" data-type="text"> Draw the freebody diagram of the beam. Identify the points of application of the given forces and the reaction forces at the supports A and B. </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+            <li> $ \Sigma F_y = 0 \implies R_A + R_B - {{params.force1}} - {{params.force2}} = 0 $ </li>
+            <li> Take moments about point A: $ \Sigma M_A = 0 \implies R_B \cdot {{params.length}} - {{params.force1}} \cdot {{params.distance1}} - {{params.force2}} \cdot {{params.distance2}} = 0 $ </li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+            <li> Solve the moment equation for $ R_B $: $ R_B = \frac{{{{params.force1}} \cdot {{params.distance1}} + {{params.force2}} \cdot {{params.distance2}}}}{ {{params.length}} } $ </li>
+            <li> Substitute $ R_B $ back into the equilibrium equation to solve for $ R_A $: $ R_A = {{params.force1}} + {{params.force2}} - R_B $ </li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="5" data-type="text"> After substituting, you find that the reactions are $ R_A = {{correct_answers.reactionA}} {{params.unitsForce}} $ and $ R_B = {{correct_answers.reactionB}} {{params.unitsForce}} $. Ensure these values satisfy both the equilibrium of forces and moments. </pl-hint>
+</pl-solution-panel>

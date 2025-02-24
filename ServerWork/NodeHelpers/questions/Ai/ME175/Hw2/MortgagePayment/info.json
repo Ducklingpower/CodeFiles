@@ -1,0 +1,24 @@
+{
+    "title": "MortgageCalculation",
+    "stem": "Calculating monthly payments and total interest for a mortgage",
+    "topic": "Finance",
+    "tags": [
+        "mortgage",
+        "interest rate",
+        "monthly payment",
+        "total interest",
+        "financial calculation"
+    ],
+    "prereqs": [
+        "Understanding of mortgage concepts",
+        "Basic knowledge of interest calculations"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

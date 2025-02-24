@@ -1,0 +1,24 @@
+{
+    "title": "IronPipeLengthExpansion",
+    "stem": "Calculating the length change of materials due to temperature variation",
+    "topic": "Thermal Expansion",
+    "tags": [
+        "iron",
+        "thermal expansion",
+        "length change",
+        "temperature",
+        "materials science"
+    ],
+    "prereqs": [
+        "Understanding of linear expansion",
+        "Basic physics concepts of temperature and materials"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

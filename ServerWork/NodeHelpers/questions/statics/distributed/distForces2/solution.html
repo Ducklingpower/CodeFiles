@@ -1,0 +1,20 @@
+<pl-solution-panel>
+    <pl-figure file-name="distributedForces1.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> Draw the freebody diagram. Then write out the equations for $ \Sigma F_x = 0 $, $ \Sigma F_y = 0 $ and $ \Sigma M_A = 0 $. You could also take sum of moments about point A. </pl-hint>
+    <pl-hint level="2" data-type="text"> Replace the distributed force by a single concentrated force acting at the centroid of the distributed force</pl-hint>
+    <pl-hint level="3" data-type="text"> 
+        <ul>
+            <li> By doing $ \Sigma F_x = 0 \implies A_x = 0 $</li>
+            <li> Replace the distributed force by a single concentrated force. </li>
+            <li> $ \Sigma M_A = 0 \implies B_y ({{params.length3}}+ {{params.length1}}) - ({{params.forceD}})({{params.length1}})({{params.length3}}+ {{params.length1}}/2) + ({{params.forceP}})({{params.length2}})({{params.length3}}+ {{params.length2}}/2)+ ({{params.force}})({{params.length3}}+ {{params.length1}}+ {{params.length3}})= 0 $</li>
+            <li> By doing $ \Sigma F_y = 0 \implies A_y + B_y + {{params.force}} - ({{params.forceD}})({{params.length1}}) - ({{params.forceP}})({{params.length2}}) = 0 $ </li>
+           
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+            <li> Solve the moment equation for $ B_y $ to obtain $ B_y = {{correct_answers.reactionBy}} {{params.unitsForce}} $</li>
+            <li> Substitute $ B_y $ and solve for $ A_y $ in the $ \Sigma F_y = 0 $ equation to obtain $ A_y = {{correct_answers.reactionAy}} {{params.unitsForce}} $ </li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

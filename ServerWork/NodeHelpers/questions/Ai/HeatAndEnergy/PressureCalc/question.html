@@ -1,0 +1,9 @@
+<pl-question-panel>
+    <p> A gas occupies a volume of ${{params.Volume1}} {{params.unitsVolume}}$ at a pressure of ${{params.Pressure1}} {{params.unitsPressure}}$. </p>
+    <p> Determine (a) the pressure if the volume is changed to ${{params.Volume2}} {{params.unitsVolume}}$ at constant temperature, and (b) the volume if the pressure is changed to ${{params.Pressure2}} {{params.unitsPressure}}$ at constant temperature. </p>
+</pl-question-panel>
+
+
+<pl-number-input answers-name="PressureAtVolume2" comparison="sigfig" digits="3" label="Pressure (in ${{params.unitsPressure}}$)"></pl-number-input>
+
+<pl-number-input answers-name="VolumeAtPressure2" comparison="sigfig" digits="3" label="Volume (in ${{params.unitsVolume}}$)"></pl-number-input>

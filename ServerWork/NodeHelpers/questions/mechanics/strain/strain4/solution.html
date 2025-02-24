@@ -1,0 +1,62 @@
+<pl-solution-panel>
+    <pl-figure file-name="strain4.png"></pl-figure>
+    <pl-hint level="1" data-type="text">Try to calculate the original length of corner CB and CB'(deformed CB)</pl-hint>
+    <pl-hint level="2" data-type="text">
+
+
+        <p>Calculating CB and CB':
+        </p>
+
+
+        <li>$L_{CB} = \sqrt{L_1^2+L_2^2}$</li>
+        <li>$L'_{CB} = \sqrt{(L_1+L_3)^2+(L_2-L_4)}$</li>
+
+
+        Now try and calculate the normal strain.
+
+
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+           Calculating normal strain:
+           <p></p>
+           <li>strain = $\frac{L'_{CB}-L_{CB} }{L_{CB} }$</li>
+
+
+           <p>Try to use the deformed shape to calculate the shear strain at points A and C</p>
+       
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+            Shear strain at point A:
+            <p></p>
+            <li>Strain at point A = $tan^{-1}(\frac{L_4}{L_1+L_3})$</li>
+            <p></p>
+            Shear strain at point C:
+            <p></p>
+            Let $\theta_1$ be the angle between the dashed line CB and the horizontal. We can calculate this angle to be:
+            <li>$\theta_1 = tan^{-1}(\frac{L_2-L_4}{L_1+L_3})$</li>
+            <p></p>
+            Let $\theta_2$ be the angle ACB, we can calculate that by:
+            <li>$\theta_2 = tan^{-1}(\frac{L_1}{L_2})$</li>
+            <p></p>
+            Finally, we can calculate the shear strain at corner C to be:
+            <li>shear strain at C = $\frac{\pi}{2}-(\theta_1+\theta_2)$</li>
+         </ul>
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        <ul>
+            Solutions:
+            Normal strain on edge BC in ($\frac{mm}{mm}$)= {{correct_answers.strain}}
+            <p></p>
+            Shear strain on corner A in (radians) = {{correct_answers.shearA}}
+            <p></p>
+            Shear strain on corner C in (radians) = {{correct_answers.shearC}}
+
+         </ul>
+    </pl-hint>
+ 
+ 

@@ -1,0 +1,15 @@
+{
+    "uuid": "7c4ccac6-843d-4392-a673-feb64c2a8bbf",
+    "title": "Freebody diagram beam distributed",
+	"stem": "Freebody",
+    "topic": "statics",
+    "tags": ["forces", "fbd"],
+    "prereqs":"",
+	"isAdaptive": "false",
+	"createdBy": "sundar@google.com",
+	"qType":"ma",
+	"nSteps": 1,
+	"updatedBy":"", 
+    "difficulty": 1,
+	"codelang": "none"
+}

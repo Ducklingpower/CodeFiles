@@ -1,0 +1,15 @@
+{
+    "uuid": "7c4ccac6-843d-4392-a673-feb64c2a8bbf",
+    "title": "Freebody diagram force distributed",
+	"stem": "Freebody",
+    "topic": "statics",
+    "tags": ["forces", "fbd"],
+    "prereqs":"",
+	"isAdaptive": "false",
+	"createdBy": "jlam154@ucr.edu",
+	"qType":"fb",
+	"nSteps": 1,
+	"updatedBy":"", 
+    "difficulty": 1,
+	"codelang": "none"
+}

@@ -1,0 +1,56 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To calculate the equivalent present worth (PW) of the cash flows, we can use the formula: 
+        \[ PW = \sum_{t=0}^{n} \frac{R_t}{(1 + i)^t} \]
+        where \( R_t \) is the net cash flow in year \( t \), \( i \) is the MARR, and \( n \) is the useful life of the asset.
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        First, we need to determine the net cash flow for each year: 
+        \[ R_t = \text{Annual Income} - \text{Annual Expenses} \] 
+        Substitute the known variables: 
+        \[ R_t = {{params.annualIncome}} - {{params.annualExpenses}} \]
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        Next, we will calculate the present worth for the income generated for each year over the lifespan of the band saw, excluding the salvage value, using the MARR: 
+        \[ PW_{income} = \sum_{t=1}^{n} \frac{R_t}{(1 + \frac{ {{params.MARR}} }{100})^t}  = ({{params.annualIncome}} - {{params.annualExpenses}}) \frac{(1 + \frac{ {{params.MARR}} }{100})^n -1}{ \frac{ {{params.MARR}} }{100}(1 + \frac{ {{params.MARR}} }{100})^n  } \] 
+        and for the salvage value at the end of the lifespan: 
+        \[ PW_{salvage} = \frac{ {{params.salvageValue}} }{ {(1 + \frac{ {{params.MARR}} }{100})^{n} } } \] 
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        Finally, the total equivalent present worth is given by: 
+        \[ PW = -Cost PW_{income} + PW_{salvage} \] 
+        Substitute the values to calculate the final present worth: 
+        \[ PW =- {{params.cost}} + ({{params.annualIncome}} - {{params.annualExpenses}}) \frac{(1 + \frac{ {{params.MARR}} }{100})^n -1}{ \frac{ {{params.MARR}} }{100}(1 + \frac{ {{params.MARR}} }{100})^n  } + \frac{ {{params.salvageValue}} }{ {(1 + \frac{ {{params.MARR}} }{100})^{n} } } \]
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        Therefore, the equivalent present worth of the cash flows is \( PW = {{correct_answers.presentWorth}} ~{{params.unitsCost}} \).
+    </pl-hint>
+
+    <pl-hint level="6" data-type="text">
+   The annual worth is calculated in a simular way, using annual given present:
+   <p>A = pw $\frac{i(1+i)^n}{(i+1)^n -1 }$</p>
+   Plugging in we can solve for A:
+   <p>\[ A = {{correct_answers.presentWorth}} \frac{ {{params.i}}(1+{{params.i}})^{7} }{(1+{{params.i}})^{7} -1 } = {{correct_answers.aw}}~ USD \]</p>
+
+    </pl-hint>
+    <pl-hint level="7" data-type="text">
+     The future worth can be solved by bringing the present worth fowards in time: Fw = Pw$(1+i)^7$
+
+     <p>Plugging in we can solve for the future worth to be:</p>
+     <p> \[Fw = {{correct_answers.presentWorth}} (1+{{params.i}})^7 = {{correct_answers.fw}} ~USD \]</p>
+         </pl-hint>
+
+         <pl-hint level="8" data-type="text">
+
+
+         To solve for the internal rate of return (IRR) we have to set the present worth equal to zero and solve for i = irr.
+         <p> \[ PW= 0 =- {{params.cost}} + ({{params.annualIncome}} - {{params.annualExpenses}}) \frac{(1 + IRR)^n -1}{ IRR(1 + IRR)^n  } + \frac{ {{params.salvageValue}} }{ {(1 + IRR)^{n} } } \]</p>
+
+         <p>Using a nonlinear solver we can obtain IRR to be: IRR = {{correct_answers.irr}} %</p>
+
+
+         </pl-hint>
+
+
+
+</pl-solution-panel>

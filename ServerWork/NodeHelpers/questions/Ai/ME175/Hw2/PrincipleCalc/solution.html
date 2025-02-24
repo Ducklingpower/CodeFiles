@@ -1,0 +1,22 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To determine the amount that should be deposited at time \( t_0 \) into the fund, we need to calculate the present value of each withdrawal and sum these values.
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        The present value of each withdrawal can be calculated using the formula: \[ PV = \frac{FV}{(1 + r)^n} \] where \( FV \) is the future value (withdrawal amount), \( r \) is the interest rate per period, and \( n \) is the number of periods until the withdrawal.
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        For the three withdrawals, we calculate: Here $t_0 = 0$
+        <ul>
+        <li>For the first withdrawal of \( \ {{params.withdraw1}} \) at time \( t_1 \): \[ PV_1 = \frac{ {{params.withdraw1}} }{(1 + {{params.rate}})^{t_1 - t_0} } \]</li>
+            <li>For the second withdrawal of \( \ {{params.withdraw2}} \) at time \( t_2 \): \[ PV_2 = \frac{ {{params.withdraw2}} }{(1 + {{params.rate}})^{t_2 - t_0} } \]</li>
+            <li>For the third withdrawal of \( \ {{params.withdraw3}} \) at time \( t_3 \): \[ PV_3 = \frac{ {{params.withdraw3}} }{(1 + {{params.rate}})^{t_3 - t_0} } \]</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        The total present value (deposit amount) required at time \( t_0 \) is the sum of the present values of all withdrawals: \[ Deposit = PV_1 + PV_2 + PV_3 \]
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        Substituting the values gives us the required deposit amount to ensure the fund is depleted at the last withdrawal: \[ Deposit = \frac{ {{params.withdraw1}} }{(1 + {{params.rate}})^{t_1 - t_0} } + \frac{ {{params.withdraw2}} }{(1 + {{params.rate}})^{t_2 - t_0} } + \frac{ {{params.withdraw3}} } {(1 + {{params.rate}})^{t_3 - t_0} } \]
+    </pl-hint>
+</pl-solution-panel>

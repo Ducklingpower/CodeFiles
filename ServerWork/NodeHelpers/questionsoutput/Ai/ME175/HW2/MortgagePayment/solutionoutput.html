@@ -1,0 +1,50 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>
+        To calculate the monthly payment and total interest paid on a mortgage, we can use the formula for the monthly payment on an amortizing loan.
+    </p><h2> Level 1 </h2><p>
+        The formula for the monthly payment (M) is given by:
+        
+        \[
+        M = P \frac{r(1 + r)^n}{(1 + r)^n - 1}
+        \]
+        
+        where:
+        <ul>
+            <li>P = principal amount (initial loan amount)</li>
+            <li>r = monthly interest rate (annual interest rate divided by 12)</li>
+            <li>n = number of payments (loan term in months)</li>
+        </ul>
+    </p><h2> Level 2 </h2><p>
+        In this case, we have:
+        <ul>
+            <li>P = 148219</li>
+            <li>r = \( \frac{ 5 }{100 \cdot 12} \)</li>
+            <li>n = \( 15 \cdot 12 \)</li>
+        </ul>
+    </p><h2> Level 3 </h2><p>
+        Substituting these values into the formula gives:
+        
+        \[
+        M = 148219 \frac{\frac5{100 \cdot 12} (1 + \frac5{100 \cdot 12} )^{(15 \times 12)} }{(1 + \frac5{100 \cdot 12} )^{(15 \times 12)} - 1}
+        \]
+    </p><h2> Level 4 </h2><p>
+        The total amount paid over the life of the mortgage is given by:
+        
+        \[
+        \text{Total Payments} = M \times n
+        \]
+        
+        Therefore, the total interest paid can be calculated as:
+        
+        \[
+        \text{Total Interest} = \text{Total Payments} - P
+        \]
+    </p><h2> Level 5 </h2><p>
+        Using the values calculated, we can find the monthly payment and total interest paid over the life of the mortgage.
+    </p></html>

@@ -1,0 +1,22 @@
+<pl-solution-panel>
+    <pl-figure file-name="distributedForces1.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> Break off member EG from the system and add the reaction forces at each point that are being applied to EG.  </pl-hint>
+    <pl-hint level="2" data-type="text"> It may be easier to write the reaction forecs acting on EG as a singulair force rather than breaking it up to x and y components.</pl-hint>
+    <pl-hint level="3" data-type="text"> 
+        <ul>
+            Reaction forces acting on EG:
+            <li>Point G: There is a weight force acting on G pointing down. </li>
+            <li>Point F: There is a reaction force on point F pointing towards point A.</li>
+            <li>Point E: There is a reaction force on point E point towards pin D.</li>
+            <li>From here you can try and solve for the raction at point E</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+            Solving for the reaction force on point E:
+            <li> $\Sigma M_F = 0, \implies$ Sin($\phi$)($E_r$)($L_4$) - Sin($\theta$)(W)($L_1$) = 0, $\implies E_r $= Sin($\theta$)(W)($L_1$) / Sin($\phi$)($L_4$) = ${{correct_answers.pinD}}$ ${{params.unitsForce}}$ </li>
+            <li>Where $\theta$ = ${{params.angle}}$ (deg) and $\phi$ = atan($L_3/L_4$), which is the anlgle between $E_r$ and the beam EG. </li>
+            <li>Now try solving for reaction at pin D now that you have the reaction force $E_r$.</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

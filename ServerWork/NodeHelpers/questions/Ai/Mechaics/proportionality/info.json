@@ -1,0 +1,25 @@
+{
+    "uuid": "123e4567-e89b-12d3-a456-426614174000",
+    "title": "ForceAndStretchInWire",
+    "stem": "Analysis of forces in elastic materials",
+    "topic": "Physics",
+    "tags": [
+        "wire",
+        "stretch",
+        "force",
+        "elasticity",
+        "mechanics"
+    ],
+    "prereqs": [
+        "Understanding of Hooke's Law",
+        "Basic algebra"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

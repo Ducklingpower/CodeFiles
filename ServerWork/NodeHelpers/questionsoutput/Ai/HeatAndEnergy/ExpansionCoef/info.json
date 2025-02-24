@@ -1,0 +1,25 @@
+{
+    "title": "CoefficientOfLinearExpansion",
+    "stem": "Calculating the coefficient of linear expansion for materials based on temperature change.",
+    "topic": "Thermal Expansion",
+    "tags": [
+        "thermal expansion",
+        "linear expansion",
+        "coefficient of expansion",
+        "physics",
+        "materials science"
+    ],
+    "prereqs": [
+        "Basic understanding of thermal expansion concepts",
+        "Knowledge of temperature scales",
+        "Familiarity with linear measurement units"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

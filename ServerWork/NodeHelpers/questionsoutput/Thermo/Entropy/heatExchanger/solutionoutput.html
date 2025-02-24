@@ -1,0 +1,46 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>Start by identifying the given data and assumptions for the heat exchanger system.</p><h2> Level 1 </h2><p>
+        <ul>
+            Given Data:
+            <li>Steam enters the system at \( P_\mathrm{steam} = 300~\mathrm{kPa} \) as a saturated vapor.</li>
+            <li>Water enters at \( T_\mathrm{water} = 80~^\circ \mathrm{C} \) and \( P_\mathrm{out} = 300~\mathrm{kPa} \).</li>
+            <li>Mass flow rate of water: \( \dot{m}_2 = 24.5~\mathrm{kg/s} \).</li>
+            <li>Water leaves as a saturated liquid at \( P_\mathrm{out} = 300~\mathrm{kPa} \).</li>
+        </ul>
+        <ul>
+            Assumptions:
+            <li>Steady-state and adiabatic conditions (\( \dot{Q} = 0 \), \( \dot{W} = 0 \)).</li>
+            <li>Negligible changes in kinetic and potential energy.</li>
+        </ul>
+    </p><h2> Level 2 </h2><p>Determine the enthalpy and entropy values for the given states using thermodynamic tables.</p><h2> Level 3 </h2><p>
+        <ul>
+            Enthalpy values:
+            <li>\( h_1 = 2725.5~\mathrm{kJ/kg} \) (saturated vapor at \( 300~\mathrm{kPa} \)).</li>
+            <li>\( h_2 = 335.7~\mathrm{kJ/kg} \) (water at \( 80~^\circ \mathrm{C} \)).</li>
+            <li>\( h_3 = 561.2~\mathrm{kJ/kg} \) (saturated liquid at \( 300~\mathrm{kPa} \)).</li>
+        </ul>
+        <ul>
+            Entropy values:
+            <li>\( s_1 = 6.9919~\mathrm{kJ/kg\cdot K} \) (saturated vapor at \( 300~\mathrm{kPa} \)).</li>
+            <li>\( s_2 = 1.0751~\mathrm{kJ/kg\cdot K} \) (water at \( 80~^\circ \mathrm{C} \)).</li>
+            <li>\( s_3 = 1.6698~\mathrm{kJ/kg\cdot K} \) (saturated liquid at \( 300~\mathrm{kPa} \)).</li>
+        </ul>
+    </p><h2> Level 4 </h2><p>Apply the first law of thermodynamics to determine the steam flow rate (\( \dot{m}_1 \)).</p><h2> Level 5 </h2><p>
+        <ul>
+            <li>Energy balance: \( \dot{m}_1 h_1 + \dot{m}_2 h_2 = \dot{m}_3 h_3 \).</li>
+            <li>Rearranging: \( \dot{m}_1 = \frac{\dot{m}_3 h_3 - \dot{m}_2 h_2}{h_1} \).</li>
+            <li>Given \( \dot{m}_2 = 24.5~\mathrm{kg/s} \), solve for \( \dot{m}_3 = \dot{m}_1 + \dot{m}_2 \).</li>
+        </ul>
+    </p><h2> Level 6 </h2><p>Calculate the entropy production using the entropy balance equation.</p><h2> Level 7 </h2><p>
+        <ul>
+            Entropy balance:
+            <li>\( \Delta S_\mathrm{prod} = \dot{m}_3 s_3 - \dot{m}_2 s_2 - \dot{m}_1 s_1 \).</li>
+          
+        </ul>
+    </p><h2> Level 8 </h2><p>Final Answer: The entropy production for the process is \( \Delta S_\mathrm{prod} = 0.985~\mathrm{kW/K} \).</p></html>

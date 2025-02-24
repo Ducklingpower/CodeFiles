@@ -1,0 +1,26 @@
+{
+    "uuid": "1f435c36-1126-43b0-aba5-627eeb2e10f9",
+    "title": "Frames and Machines",
+	"stem": "Force anylisis", 
+    "topic": "statics",
+    "tags": ["frames", "vector", "force", "moment"],
+	"prereqs": "",
+	"isAdaptive": "true",
+	"createdBy": "epere194@ucr.edu",
+    "qType": "num",
+	"nSteps": 1,
+	"updatedBy":"", 
+	"difficulty": 1,
+	"codelang": "javascript",
+	"resources": [
+        {
+            "type": "video",
+            "name": "video",
+            "title": "Video",
+            "url": "https://ucr.yuja.com/V/Video?v=3315719&node=14548629&a=39313595&autoplay=1"
+        }]
+}
+
+
+
+

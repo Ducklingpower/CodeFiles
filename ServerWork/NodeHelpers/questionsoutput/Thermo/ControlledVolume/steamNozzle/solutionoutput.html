@@ -1,0 +1,34 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>Start by analyzing the given data and assumptions for the problem.</p><h2> Level 1 </h2><p>
+        Assumptions:
+        <ul>
+            <li>The control volume is at steady state.</li>
+            <li>Heat transfer and work are negligible.</li>
+            <li>There is no significant change in potential energy.</li>
+        </ul>
+    </p><h2> Level 2 </h2><p>
+        <p>Next, use the mass flow rate equation to express the exit area:</p>
+        <p>\( A_2 = \frac{\dot{m} \cdot v_2}{V_2} \)</p>
+    </p><h2> Level 3 </h2><p>
+        To calculate \( v_2 \), the specific volume at the exit, we need to determine \( h_2 \) (specific enthalpy at the exit). Use the steady-state energy balance equation:<p></p>
+        <p>\( 0 = \dot{Q} - \dot{W} + \dot{m}(h_1 + \frac{V_1^2}{2} + gz_1) - \dot{m}(h_2 + \frac{V_2^2}{2} + gz_2) \)</p>
+        <p>Simplify using assumptions:</p>
+        <p>\( h_2 = h_1 + \frac{V_1^2}{2} - \frac{V_2^2}{2} \)</p>
+    </p><h2> Level 4 </h2><p>
+        Insert the values for \( h_1 \), \( V_1 \), and \( V_2 \) to calculate \( h_2 \):
+        <p>\( h_2 = 3213.6 + \frac{ 209^2}{2 \cdot 1000} - \frac{ 697^2}{2 \cdot 1000} \)</p>
+        <p>Result: \( h_2 = 2992.54~kJ/kg \)</p>
+    </p><h2> Level 5 </h2><p>
+        Use property tables to find \( v_2 \) corresponding to \( h_2 = undefined~kJ/kg \) and \( p_2 = 15~bar \).
+        <p>From the table: \( v_2 = 0.1627~m^3/kg \)</p>
+    </p><h2> Level 6 </h2><p>
+        Finally, calculate the exit area \( A_2 \):
+        <p>\( A_2 = \frac{ 3.3 \cdot 0.1627 }{ 697 } = 0.0007703156384505021~m^2 \)</p>
+        <p>Answer: \( A_2 = 770.316~mm^2 \)</p>
+    </p></html>

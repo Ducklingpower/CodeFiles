@@ -1,0 +1,76 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p> The first step is to convert the distributed force into a concentrated force as well as the location of the force.  </p><h2> Level 1 </h2><p> We can convert the distributed force into a concentrated force by computing the area under the curve. So we can compute the area under the curve as F = \( \frac{F_d(L_1)}{2} \).
+        We can also find the location under the curve as xx = \( \frac{L_1}{3} \).
+        <p>Now draw a free-body diagram of the beam to compute the tension force holding up the beam.</p>
+
+
+
+
+    </p><h2> Level 2 </h2><p>
+        <ul>
+      FBD of beam:
+      <p>There is an \( A_x \) and \( A_y \) reaction force both pointing in the positive direction at pin A. You can draw the concentrated force (F), xx distance away from point A.
+        Lastly, there is a tension force pointing into the beam at an angle \( \theta \) off the beam on point B.
+
+
+
+
+      </p>
+       
+      Using the free body diagram, try to compute the tension in the rod holding up the beam.
+
+
+
+
+
+
+
+
+        </ul>
+    </p><h2> Level 3 </h2><p>
+        <ul>
+       Computing tension:
+       <p>Using the free body diagram we can compute the moment about A.</p>
+       <li>\( \Sigma{M}_A = 0 ~\implies F(\frac{L_1}{3})-Tsin(\theta)(L_1+L_2+L_2) = 0 \)</li>
+       <li>Solving for T we get \( T = \frac{F(L_1)}{3sin(\theta)(L_1+L_2+L_2)} \)</li>
+
+
+
+
+       Now that we have the tension we can draw a free body of the beam from point B to C to solve for the internal forces.
+       
+        </ul>
+    </p><h2> Level 4 </h2><p>
+        <ul>
+       Drawing the free body diagram from point B to C we can draw the normal force pointing right starting from point C.
+       There is a shear force pointing down and a moment at point C. Lastly we can't forget the tension force acting on point B at an angle \( \theta \).
+           
+       <p>Using the free body diagram we can compute internal force acting on point C using static equations.</p>
+       <li>\( \Sigma{M}_C = 0 ~\implies M_C -Tsin(\theta)L_2=0 \)</li>
+       <li>\( M_C = Tsin(\theta)L_2 = 95.53591954022987~ Nm \)</li>
+       <p></p>
+       <li>\( \Sigma{F}_x = 0 ~\implies N - Tcos(\theta)=0 \)</li>
+       <li>\( N = Tcos(\theta) = 71.9448115615176 ~N \)</li>
+       <p></p>
+       <li>\( \Sigma{F}_y = 0 ~\implies V-Tsin(\theta)=0 \)</li>
+       <li>\( V = Tsin(\theta) = 41.53735632183908~N \)</li>
+
+
+
+
+
+
+
+
+
+
+
+
+        </ul>
+    </p></html>

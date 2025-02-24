@@ -1,0 +1,15 @@
+{
+    "uuid": "7c4rtac6-1031-43ed-a673-feb64c2a8bbf",
+    "title": "Inclined plane Friction FBD",
+	"stem": "Test your understanding of forces and friction",
+    "topic": "statics",
+    "tags": ["v2", "v3", "for3"],
+    "prereqs":"",
+	"isAdaptive": "false",
+	"createdBy": "jlam154@ucr.edu",
+	"qType":"tf",
+	"nSteps": 1,
+	"updatedBy":"", 
+    "difficulty": 1,
+	"codelang": "javascript"
+}

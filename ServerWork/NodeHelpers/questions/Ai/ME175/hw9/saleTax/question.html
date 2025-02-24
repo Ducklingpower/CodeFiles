@@ -1,0 +1,11 @@
+<pl-question-panel>
+  <p>A specialized autoclave for curing carbon fiber airplane parts is purchased for {{params.cost}} USD in 2024. The autoclave is depreciated using the appropriate MACRS schedule, which follows a 7-year deduction period. The tax rate is {{params.tax}}%</p>
+
+</pl-question-panel>
+<p>The autoclave is sold during year 10 for a salvage value of {{params.salvage}} USD. How much tax is paid on the salvage at EOY 10?</p>
+<pl-number-input answers-name="taxLiability" comparison="sigfig" digits="3" label="Tax payed in EOY 10"></pl-number-input>
+<p>The autoclave is sold during year {{params.year}} for a salvage value of {{params.salvage}} USD. How much tax is paid on the salvage at EOY {{params.year}}?</p>
+<pl-number-input answers-name="taxpayed" comparison="sigfig" digits="3" label="Tax payed in EOY {{params.year}}"></pl-number-input>
+<p>The autoclave is sold during year {{params.year}} for a salvage value of {{params.salvageLow}} USD. How much tax is paid on the salvage at EOY {{params.year}}?</p>
+<pl-number-input answers-name="taxpayedLow" comparison="sigfig" digits="3" label="Tax payed in EOY {{params.year}}"></pl-number-input>
+

@@ -1,0 +1,17 @@
+```html
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        The length of the pipe at a new temperature can be calculated using the formula: 
+        \[ L_f = L_0 (1 + \alpha (T_f - T_0)) \] 
+        where \( L_f \) is the final length, \( L_0 \) is the initial length, \( \alpha \) is the coefficient of linear expansion, \( T_f \) is the final temperature, and \( T_0 \) is the initial temperature.
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        Substitute the given values into the formula: 
+        \[ L_f = {{params.L0}} (1 + {{params.alpha}} ({{params.Tf}} - {{params.T0}})) \]
+        Ensure that the units are consistent before substituting.
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        The length of the pipe under working conditions is \( L_f = {{correct_answers.L}} {{params.unitsLength}} \).
+    </pl-hint>
+</pl-solution-panel>
+```

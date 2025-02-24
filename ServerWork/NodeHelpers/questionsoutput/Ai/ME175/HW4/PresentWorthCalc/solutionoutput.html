@@ -1,0 +1,29 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>
+        To calculate the equivalent present worth (PW) of the cash flows, we can use the formula: 
+        \[ PW = \sum_{t=0}^{n} \frac{R_t}{(1 + i)^t} \]
+        where \( R_t \) is the net cash flow in year \( t \), \( i \) is the MARR, and \( n \) is the useful life of the asset.
+    </p><h2> Level 1 </h2><p>
+        First, we need to determine the net cash flow for each year: 
+        \[ R_t = \text{Annual Income} - \text{Annual Expenses} \] 
+        Substitute the known variables: 
+        \[ R_t = 9752 - 1779 \]
+    </p><h2> Level 2 </h2><p>
+        Next, we will calculate the present worth for the income generated for each year over the lifespan of the band saw, excluding the salvage value, using the MARR: 
+        \[ PW_{income} = \sum_{t=1}^{n} \frac{R_t}{(1 + \frac{ 5 }{100})^t}  = (9752 - 1779) \frac{(1 + \frac{ 5 }{100})^n -1}{ \frac{ 5 }{100}(1 + \frac{ 5 }{100})^n  } \] 
+        and for the salvage value at the end of the lifespan: 
+        \[ PW_{salvage} = \frac{ 5000 }{ {(1 + \frac{ 5 }{100})^{n} } } \] 
+    </p><h2> Level 3 </h2><p>
+        Finally, the total equivalent present worth is given by: 
+        \[ PW = -Cost PW_{income} + PW_{salvage} \] 
+        Substitute the values to calculate the final present worth: 
+        \[ PW =- 15000 + (9752 - 1779) \frac{(1 + \frac{ 5 }{100})^n -1}{ \frac{ 5 }{100}(1 + \frac{ 5 }{100})^n  } + \frac{ 5000 }{ {(1 + \frac{ 5 }{100})^{n} } } \]
+    </p><h2> Level 4 </h2><p>
+        Therefore, the equivalent present worth of the cash flows is \( PW = 34688.16 ~USD \).
+    </p></html>

@@ -1,0 +1,53 @@
+<pl-solution-panel>
+    <pl-figure file-name="energyConservtion2.png"></pl-figure>
+    <pl-hint level="1" data-type="text">The first step is to identify state 1 and state 2. Also, describe the energy forms at each state.</pl-hint>
+
+
+
+
+
+
+
+
+
+
+
+
+    <pl-hint level="2" data-type="text">
+   <p>states and there energy forms:</p>
+   <p>- State 1:Bar starting position, ie $\theta =0^o$</p>
+   <li>PE = 0 since the motion is not dependent on the weight of the rod</li>
+   <li>KE = 0 since the bar starts from rest</li>
+   <p>- State 2: Bar has now fallen down 90 degrees </p>
+   <li>PE = 0 since the motion is not dependent on the weight of the rod</li>
+   <li>KE = $\frac{1}{2} m (v)^2 + \frac{1}{2} I \omega ^2$ , where $v = \omega r$ and $I = \frac{1}{12} m L^2$</li>
+
+
+   <p>Energy conservation equation: $KE_1 + PE_1 + U_{1 \implies 2} = KE_2 + PE_2$. Here we have work done on the system.
+
+
+    <p>Work done:  $U_{1 \implies 2}$  </p>
+    <li>$mg(\Delta y) + F(\Delta x)$ , where $\Delta y =\frac{L}{2} - \frac{L}{2} cos(\theta)$ and $\Delta x = L sin(\theta)$.</li>
+
+
+
+
+
+
+   </p>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+           <p>pluggin in the energy conservation we get: </p>
+           
+           <li> 0 + 0 + $mg(\Delta y) + F(\Delta x)$ = $\frac{1}{2} m (v)^2 ~+ ~\frac{1}{2} I \omega ^2$ + 0, we can now plug in $v, I, \Delta y , and \Delta x$.</li>
+           <li> 0 + 0 + $mg(\frac{L}{2} - \frac{L}{2} cos(\theta))~ + ~F( L sin(\theta))$ = $\frac{1}{2} m (\omega r)^2 ~+ ~\frac{1}{2} \frac{1}{12} m L^2 \omega ^2$ + 0.</li>
+           <li>Simplifying:  $mg(\frac{L}{2} - \frac{L}{2} cos(\theta)) ~+ ~F( L sin(\theta))$ = $\omega^2(\frac{1}{2}mr^2 + \frac{1}{24} m L^2)$</li>
+           <p>$~$</p>
+           <li>Solving for $\omega$ we get : $\omega$ = $\sqrt{\frac{mg(\frac{L}{2} - \frac{L}{2} cos(\theta))~ + ~F( L sin(\theta))}{\frac{1}{2}mr^2 + \frac{1}{24} m L^2} }$ = {{correct_answers.w}} rad/s</li>
+         
+
+
+        </ul>
+    </pl-hint>
+ 

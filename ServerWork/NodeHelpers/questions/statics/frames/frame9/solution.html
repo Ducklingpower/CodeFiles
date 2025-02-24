@@ -1,0 +1,112 @@
+<pl-solution-panel>
+    <pl-figure file-name="frame9.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> The first step is to compute the rection forces by using all of the external forces acting on the body. Also W = weight of person /2. </pl-hint>
+    <pl-hint level="2" data-type="text">  
+        
+    <p>Solving for rection forces:  </p>
+    By using our static equilibrium force equations we can solve for $B_y$ and $A_y$. Since there is no friction we know $B_x$ and $A_x$ = 0.
+    <li>By doing $\Sigma{M}_A = 0$ $\implies$ $W(L_2+L_1+\frac{L_1}{2})-B_y(L_1+L_1+\frac{L_1}{2}) =0$</li>
+    <li>Solving for $B_y$ we get $B_y = \frac{W(L_2+L_1+\frac{L_1}{2})}{L_1+L_1+\frac{L_1}{2}} $</li>
+    <p></p>
+    <li>By doing $\Sigma{F}_y = 0$ $\implies$ $ A_y + B_y -W =0 $</li>
+    <li>Solving for $A_y$ we get $ A_y = W-B_y$</li>
+     <p> Now that you have the reaction forces, the next step is to break the 3 members into there own components and draw free body diagrams on each of them. Using each members free body diagram you can start to solve for the rest of the points.</p>
+
+    
+    </pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul>
+                Using member CD to solve for $C_y$ and $ D_y$:
+                <p></p>
+                FBD of CD:   
+                <li> On points C you can draw the reaction forces as up and right.On points D you can draw the reaction forces as down and right. Dont forget to draw the weight force pointing down $L_2$ distance away from C. </li>           
+                <p></p>
+                Solving:
+                <li>By doing $\Sigma{M}_D = 0$ $\implies$ $ W(L_2+L_1) - C_y(L_1)=0 $</li>
+                <li>Solving for $C_y$ we get $C_y = \frac{W(L_2+L_1)}{L_1}$</li>
+                <p></p>
+                <li>By doing $\Sigma{F}_y = 0$ $\implies$ $ C_y+D_y-W=0 $</li>
+                <li>Solving for $D_y$ we get $D_y =W-C_y$</li>
+
+                Now try and do the same method but instead with member CE this time.
+                </ul>
+            </pl-hint>
+        
+            
+            <pl-hint level="4" data-type="text">
+                <ul>
+                Using member CE to solve for $E_y$, $ E_x$, and $C_x$:
+                <p></p>
+                FBD of CD:   
+               <li>On point E you can draw the reactions as up and left. On point C you can draw the reactions as down and left. Dont forget the $B_y$ reaction force on point B.</li>
+                    <p></p>
+                Solving:
+                <li>By doing $\Sigma{F}_y = 0$ $ \implies$ $ B_y + E_y - C_y = 0 $</li>
+                <li>Solving for $E_y$ we get $E_y =C_y-B_y$</li>
+                <p></p>
+                <li>By doing $\Sigma{M}_C = 0$ $ \implies$ $ B_y(L_1)-E_y(xcos(\theta))-E_x(xsin(\theta)) = 0 $</li>
+                <li>Solving for $E_x$ we get $E_x = \frac{B_y(L_1)-E_y(xcos(\theta))}{xsin(\theta)}$</li>
+                    Where $\theta$ is the angle ECD, and x is ther length from C to E. You can find these values by doing some trig and geometry.
+                <p></p>
+                Explanation:
+                <li>Let angle A = angle CDE = $tan^{-1}(\frac{2L_1}{\frac{L_1}{2}})$</li>
+                <li>Let angle $\theta$ = angle ECD = $tan^{-1}(\frac{2L_1}{L_1})$</li>
+                <li>let angle C = angle DEC = 180 - (A+$\theta$)</li>
+                <li>Now let x = distance from C to E = $\frac{L_1sin(A)}{sin(C)}$</li>
+                    <p></p>
+                <li>By doing $\Sigma{F}_x = 0$ $ \implies$ $-C_x-E_x = 0 $</li>
+                <li>Solving for $C_x$ we get $C_x = E_x$</li>
+                Now try and do the same method but instead with member DE this time.
+
+
+
+
+                </ul>
+            </pl-hint>
+
+
+            <pl-hint level="5" data-type="text">
+                <ul>
+                    Using member DE to solve for $D_y$ and $D_x$:
+                    <p></p>
+                    FBD of DE: 
+                    <li>On point E you can draw the forces pointing down and right. On point D you can draw the reaction force as up and left. Dont forget about the $A_y$ reaction force on point A. </li>
+                   <p></p>
+                   Solving:
+                   <li>By doing $\Sigma{F}_y = 0 $ $\implies $ $  A_y+D_y-E_y =0 $</li>
+                   <li>Solving for $D_y$ we get $D_y = E_y - A_y$</li>
+                   <p></p>
+                   <li>By doing $\Sigma{F}_x = 0 $ $\implies $ $  D_x-E_x =0 $</li>
+                   <li>Solving for $D_x$ we get $D_x = E_x $</li>
+
+
+
+                </ul>
+            </pl-hint>
+            <pl-hint level="5" data-type="text">
+                <ul>
+                   Solutions:
+                   <li>$A_x = {{correct_answers.Ax}}$ $ {{params.unitsForce}}$</li> 
+                   <li>$A_y = {{correct_answers.Ay}}$ $ {{params.unitsForce}}$</li>
+                   <li>$B_x = {{correct_answers.Bx}}$ $ {{params.unitsForce}}$</li>
+                   <li>$B_y = {{correct_answers.By}}$ $ {{params.unitsForce}}$</li> 
+                   <li>$C_x = {{correct_answers.Cx}}$ $ {{params.unitsForce}}$</li>
+                   <li>$C_y = {{correct_answers.Cy}}$ $ {{params.unitsForce}}$</li> 
+                   <li>$D_x = {{correct_answers.Dx}}$ $ {{params.unitsForce}}$</li>
+                   <li>$D_y = {{correct_answers.Dy}}$ $ {{params.unitsForce}}$</li>
+                   <li>$E_x = {{correct_answers.Ex}}$ $ {{params.unitsForce}}$</li>
+                   <li>$E_y = {{correct_answers.Ey}}$ $ {{params.unitsForce}}$</li>  
+
+
+
+
+
+
+                </ul>
+            </pl-hint>
+        
+        
+
+        

@@ -1,0 +1,64 @@
+<pl-solution-panel>
+    <pl-figure file-name="planarKinematicsForces2.png"></pl-figure>
+    <pl-hint level="1" data-type="text">The first step is to draw a free-body diagram.</pl-hint>
+    <pl-hint level="2" data-type="text">
+
+
+        <p>Free body diagram:</p>
+        <li>Weight force pointing down</li>
+        <li>Friction force pointing up</li>
+        <li>Normal force pointing right</li>
+        <li>Tension force points up along the support beam</li>
+
+
+        <p>Now you can write out the force equations.</p>
+
+
+    </pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul>
+     
+                    <p>Force equations:</p>
+                    <li>$\Sigma{F_x} = 0 ~\implies~ Tcos(\theta) - N = 0 $</li>
+                    <li>$\Sigma{F_y} = 0 ~\implies~ F_{fric} - w + Tsin(\theta)= 0 ~\implies~  \mu N - w + Tsin(\theta)= 0$</li>
+                    <li>$\Sigma{M_G} = I_g \alpha ~\implies~ F_{fric}r= I_g \alpha$</li>
+
+
+                    <p>Here you have 3 equations and 3 unknowns: (T,N,$\alpha$)</p>
+                    <p>Now you can try and solve for them </p>
+                   
+                </ul>
+            </pl-hint>
+       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+         
+            <p> Solving the equations we can obtain the unknowns:</p>
+            <li>$T = \frac{w}{\mu cos(\theta) + sin(\theta)} $ = {{correct_answers.T}} N</li>
+            <li>$F_{fric} = w - Tsin(\theta)$ = {{correct_answers.fric}} N</li>
+            <li>$\alpha = \frac{F_{fric} r }{I} ~\implies~ \frac{2F_{fric} }{mr}$ = {{correct_answers.alpha}} $rad/s^2$</li>
+            <p>Here I = $\frac{1}{2}mr^2$</p>
+       
+            Now that we have the deceleration of the system ($\alpha$). We can compute time to slow down as: t = $\frac{\omega}{\alpha}$ = {{correct_answers.t}} s
+
+
+        </ul>
+    </pl-hint>

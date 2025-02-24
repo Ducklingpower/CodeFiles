@@ -1,0 +1,11 @@
+<pl-question-panel>
+    <p>A rectangular block of plastic material is described as having the following dimensions: length $L = {{params.length}}$ mm, width $W = {{params.width}}$ mm, and height $H = {{params.height}}$ mm. Its lower face is glued to a bench, and a force of $F = {{params.force}}$ N is applied to the upper face, resulting in the upper face moving $\delta = {{params.displacement}}$ mm relative to the lower face.</p>
+    <ol>
+        <li>Determine the shear stress on the upper face in {{params.unitsStress}}.</li>
+        <li>Determine the shear strain on the upper face.</li>
+    </ol>
+    <p>Assume the deformation is uniform.</p>
+</pl-question-panel>
+
+<pl-number-input answers-name="shearStress" comparison="sigfig" digits="3" label="Shear Stress ="></pl-number-input>
+<pl-number-input answers-name="shearStrain" comparison="sigfig" digits="3" label="Shear Strain ="></pl-number-input>

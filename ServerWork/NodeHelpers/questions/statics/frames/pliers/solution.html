@@ -1,0 +1,29 @@
+<pl-solution-panel>
+    <pl-figure file-name="pliers.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> Breake up plier into 4 parts and add the reaction forces to each part. </pl-hint>
+    <pl-hint level="2" data-type="text"> Look at the bottem are member BD, try and solve for the reaction force at B ($B_r$).</pl-hint>
+    <pl-hint level="3" data-type="text"> 
+        <ul>
+            Reaction forces acting at B:
+            <li>$\Sigma M_D = 0, \implies -F(L_1+L_2+L_1)-B_r$Sin$(\theta)(L_1)=0 \implies B_r= \frac{-F(L_1+L_2+L_1)}{Sin(\theta)(L_1)}$.</li>
+            <li> Where theta= atan($\frac{L_1}{L_2}$)</li>
+            <li> This was solved assuming the reaction force was pointing away from the bottem arm, but since we got a negative soltuion we know the true direction of $B_r$ points towards the arm.</li>
+            Now you can try and solve for the reaction at A
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+            Reaction at A: 
+        <li>Since there are only 2 forces acting on member AB that we can do $\Sigma F_x = B_r-A_r = 0$</li>
+        <li> So $A_r=B_r$</li>
+        Now try and using the top arm, member AC, to solve for the normal force.
+        </ul> 
+    </pl-hint>
+    <pl-hint level="5" data-type="text"> 
+        <ul>
+        Solving for normal force: Using member AC
+        <li>$\Sigma M_C=F(L_1+L_2+L_1)+A_r$Sin$(\theta)(L_2+L_1)+N(L_1) = 0 \implies N=\frac{-F(L_1+L_2+L_1)-A_rSin(\theta)(L_2+L_1)}{L_1}$  </li>
+        <li> N= ${{correct_answers.boltForce}}$ ${{params.unitsForce}}$</li>
+        </ul> 
+    </pl-hint>
+    

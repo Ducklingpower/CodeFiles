@@ -1,0 +1,35 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To find the annual payment for the loan, we can use the formula for the present value of an annuity, which is given by:
+      $P = A + A \frac{(r+1)^{n-1} }{r(r+1)^{n-1} }$
+        where:
+        <ul>
+            <li>\( P \) is the present value of the loan (loan amount),</li>
+            <li>\( A \) is the annual payment,</li>
+            <li>\( r \) is the interest rate per period (annual interest rate), and</li>
+            <li>\( n \) is the total number of payments.</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        Rearranging the formula to solve for the annual payment \( A \), we get:
+      $A = \frac{P}{1+ \frac{(r+1)^{n-1} }{r(r+1)^{n-1} } }$
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        In this case, the values we need to substitute are:
+        <ul>
+            <li>\( P = {{params.loanAmount}} \text{ USD} \),</li>
+            <li>\( r = \frac{ {{params.interestRate}} } {100} \),</li>
+            <li>\( n = {{params.numPayments}} \).</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        Substituting these values into the equation for \( A \), we have:
+        
+
+
+        $A = \frac{ {{params.loanAmount}} }{1+ \frac{(\frac{ {{params.interestRate}} } {100}+1)^{ {{params.numPayments}}-1} }{\frac{ {{params.interestRate}} } {100}(\frac{ {{params.interestRate}} } {100}+1)^{ {{params.numPayments}}-1} } }$
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        This gives us the annual payment amount of \( {{correct_answers.annualPayment}} \text{ USD} \).
+    </pl-hint>
+</pl-solution-panel>

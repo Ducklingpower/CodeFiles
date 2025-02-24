@@ -1,0 +1,43 @@
+<pl-solution-panel>
+    <pl-figure file-name="LoadWithRopes.png"></pl-figure>
+    <pl-hint level="1" data-type="text">The problem involves determining the tensions in two ropes lifting a load at equilibrium. We must consider the geometry and static equilibrium conditions to solve this.</pl-hint>
+
+    <pl-hint level="2" data-type="text">
+        Let's define the variables:
+        <ul>
+            <li>$F_1$ = Weight of the load = {{params.F1}} {{params.unitsForce}}</li>
+            <li>$\theta_1$ = Angle of rope 1 with the vertical = {{params.theta1}}°</li>
+            <li>$\theta_2$ = Angle of rope 2 with the vertical = {{params.theta2}}°</li>
+        </ul>
+        Angle descriptions are given in degrees but we will use radians in calculations, if necessary.
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        Set up the equilibrium equations:
+        <ul>
+            <li>The system is in equilibrium, so the sum of forces in both the x and y directions must equal zero.</li>
+            <li>In the x-direction: $T_1 \cdot \sin(\theta_1) - T_2 \cdot \sin(\theta_2) = 0$</li>
+            <li>In the y-direction: $T_1 \cdot \cos(\theta_1) + T_2 \cdot \cos(\theta_2) = F_1$</li>
+            Where $T_1$ and $T_2$ are the tensions in ropes 1 and 2, respectively.
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        Solve the equations:
+        <ul>
+            <li>From the x-direction equation: $T_1 = T_2 \cdot \frac{\sin(\theta_2)}{\sin(\theta_1)}$</li>
+            <li>Substitute $T_1$ in the y-direction equation to solve for $T_2$.</li>
+            <li>Solve for $T_2$ using: $T_2 \cdot \left( \cos(\theta_2) + \frac{\sin(\theta_2)\cos(\theta_1)}{\sin(\theta_1)} \right) = F_1$</li>
+            <li>Using $T_2$, find $T_1$ from the relation above.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        Calculate and verify the solution:
+        <ul>
+            <li>Substitute the given values $\theta_1 = {{params.theta1}}$, $\theta_2 = {{params.theta2}}$, and $F_1 = {{params.F1}}$ to calculate $T_1$ and $T_2$.</li>
+            <li>Ensuring that the forces satisfy the equilibrium condition in both x and y directions confirms the solution.</li>
+            <li>Offering $Tension_1 = {{correct_answers.Tension1}} {{params.unitsForce}}$ and $Tension_2 = {{correct_answers.Tension2}} {{params.unitsForce}}$ as final results.</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

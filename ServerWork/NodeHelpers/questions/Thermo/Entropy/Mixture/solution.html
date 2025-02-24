@@ -1,0 +1,54 @@
+<pl-solution-panel>
+    <pl-figure file-name="Micture.png"></pl-figure>
+
+    <pl-hint level="1" data-type="text">The first step is to determine the enthalpy and entropy values at the three given states.</pl-hint>
+    
+    <pl-hint level="2" data-type="text">
+        <ul>
+            <li>For state 1 (saturated steam at {{params.P1}} kPa):</li>
+            <p>$h_1 = h_g @ {{params.P1}} kPa = {{correct_answers.h1}}$ kJ/kg</p>
+            <p>$s_1 = s_g @ {{params.P1}} kPa = {{correct_answers.s1}}$ kJ/kg-K</p>
+        </ul>
+        <ul>
+            <li>For state 2 (subcooled liquid at {{params.T2}}°C):</li>
+            <p>$h_2 = h_f @ {{params.T2}}^\circ C = {{correct_answers.h2}}$ kJ/kg</p>
+            <p>$s_2 = s_f @ {{params.T2}}^\circ C = {{correct_answers.s2}}$ kJ/kg-K</p>
+        </ul>
+        <ul>
+            <li>For state 3 (saturated liquid at {{params.P3}} kPa):</li>
+            <p>$h_3 = h_f @ {{params.P3}} kPa = {{correct_answers.h3}}$ kJ/kg</p>
+            <p>$s_3 = s_f @ {{params.P3}} kPa = {{correct_answers.s3}}$ kJ/kg-K</p>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <p>Using the First Law of Thermodynamics for a steady-state open system:</p>
+        <p>$\dot{Q} + \dot{m}_1(h_1 + ke_1 + pe_1) + \dot{m}_2(h_2 + ke_2 + pe_2) = \dot{W} + \dot{m}_3(h_3 + ke_3 + pe_3)$</p>
+        <p>Assumptions that allow us to simplify the equation:</p>
+        <ul>
+            <li>The system is adiabatic, so $\dot{Q} = 0$.</li>
+            <li>There is no shaft work, so $\dot{W} = 0$.</li>
+            <li>Changes in kinetic energy are negligible: $ke_1 = ke_2 = ke_3 = 0$.</li>
+            <li>Changes in potential energy are negligible: $pe_1 = pe_2 = pe_3 = 0$.</li>
+        </ul>
+        <p>Thus, the equation simplifies to:</p>
+        <p>$\dot{m}_1 h_1 + \dot{m}_2 h_2 = \dot{m}_3 h_3$</p>
+        <p>Solving for $\dot{m}_1$:</p>
+        <p>$\dot{m}_1 = \frac{\dot{m}_2(h_3 - h_2)}{h_1 - h_3}$</p>
+        <p>Substituting values:</p>
+        <p>$\dot{m}_1 = {{correct_answers.m1}}$ kg/s</p>
+        <p>And the total mass flow rate:</p>
+        <p>$\dot{m}_3 = \dot{m}_1 + \dot{m}_2 = {{correct_answers.m3}}$ kg/s</p>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        <p>Using the Second Law of Thermodynamics for entropy balance:</p>
+        <p>$\frac{dS_{cv} }{dt} = \sum \frac{\dot{Q}_i}{T_i} + \sum \dot{m}_{in} s_{in} - \sum \dot{m}_{out} s_{out} + \dot{S}_{prod}$</p>
+        <p>Since it is adiabatic and steady-state, this reduces to:</p>
+        <p>$\dot{m}_3 s_3 - \dot{m}_1 s_1 - \dot{m}_2 s_2 = \dot{S}_{prod}$</p>
+        <p>Substituting values:</p>
+        <p>$\dot{S}_{prod} = ({{correct_answers.m3}} kg/s)({{correct_answers.s3}} kJ/kg-K) - ({{correct_answers.m1}} kg/s)({{correct_answers.s1}} kJ/kg-K) - ({{params.m2}} kg/s)({{correct_answers.s2}} kJ/kg-K)$</p>
+        <p>Solving, we get:</p>
+        <p>$\dot{S}_{prod} = {{correct_answers.entropy_production}}$ kW/K</p>
+    </pl-hint>
+</pl-solution-panel>

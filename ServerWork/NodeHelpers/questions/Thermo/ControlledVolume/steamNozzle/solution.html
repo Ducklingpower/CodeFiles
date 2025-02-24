@@ -1,0 +1,43 @@
+<pl-solution-panel>
+    <pl-figure file-name="Nozzle.png"></pl-figure>
+
+    <pl-hint level="1" data-type="text">Start by analyzing the given data and assumptions for the problem.</pl-hint>
+
+    <pl-hint level="2" data-type="text">
+        Assumptions:
+        <ul>
+            <li>The control volume is at steady state.</li>
+            <li>Heat transfer and work are negligible.</li>
+            <li>There is no significant change in potential energy.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <p>Next, use the mass flow rate equation to express the exit area:</p>
+        <p>$A_2 = \frac{\dot{m} \cdot v_2}{V_2}$</p>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        To calculate $v_2$, the specific volume at the exit, we need to determine $h_2$ (specific enthalpy at the exit). Use the steady-state energy balance equation:</p>
+        <p>$0 = \dot{Q} - \dot{W} + \dot{m}(h_1 + \frac{V_1^2}{2} + gz_1) - \dot{m}(h_2 + \frac{V_2^2}{2} + gz_2)$</p>
+        <p>Simplify using assumptions:</p>
+        <p>$h_2 = h_1 + \frac{V_1^2}{2} - \frac{V_2^2}{2}$</p>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        Insert the values for $h_1$, $V_1$, and $V_2$ to calculate $h_2$:
+        <p>$h_2 = {{params.h1}} + \frac{ {{params.V1}}^2}{2 \cdot 1000} - \frac{ {{params.V2}}^2}{2 \cdot 1000}$</p>
+        <p>Result: $h_2 = {{params.h2}}~kJ/kg$</p>
+    </pl-hint>
+
+    <pl-hint level="6" data-type="text">
+        Use property tables to find $v_2$ corresponding to $h_2 = {{correct_answers.h2}}~kJ/kg$ and $p_2 = {{params.p2}}~bar$.
+        <p>From the table: $v_2 = {{params.v2}}~m^3/kg$</p>
+    </pl-hint>
+
+    <pl-hint level="7" data-type="text">
+        Finally, calculate the exit area $A_2$:
+        <p>$A_2 = \frac{ {{params.m_dot}} \cdot {{params.v2}} }{ {{params.V2}} } = {{params.a2}}~m^2$</p>
+        <p>Answer: $A_2 = {{correct_answers.exitArea}}~mm^2$</p>
+    </pl-hint>
+</pl-solution-panel>

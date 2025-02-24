@@ -1,0 +1,11 @@
+<pl-question-panel>
+    <p>A force of $F = {{params.force}} {{params.unitsForce}}$ is applied to a spanner at an effective length of $L_1 = {{params.l1}} {{params.unitsLength}}$ from the center of a nut.</p>
+    <p>Calculate:</p>
+    <ol>
+        <li>(a) the moment of the force applied to the nut in ${{params.unitsMoment}}$.</li>
+        <li>(b) the magnitude of the force required to produce the same moment if the effective length is reduced to $L_2 = {{params.l2}} {{params.unitsLength}}$.</li>
+    </ol>
+</pl-question-panel>
+
+<pl-number-input answers-name="moment" comparison="sigfig" digits="3" label="Moment of the force (a) = "></pl-number-input>
+<pl-number-input answers-name="requiredForce" comparison="sigfig" digits="3" label="Magnitude of the force (b) = "></pl-number-input>

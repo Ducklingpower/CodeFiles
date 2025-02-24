@@ -1,0 +1,44 @@
+<pl-solution-panel>
+    <pl-figure file-name="condenser.png"></pl-figure>
+    
+    <pl-hint level="1" data-type="text">Start by analyzing the problem statement and the given data.</pl-hint>
+    <pl-hint level="2" data-type="text">List the known parameters and assumptions for the condenser and cooling water streams:</pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <ul>
+            <li>Steam enters at a pressure $P_1 = {{params.P1}}~bar$ and quality $x_1 = {{params.x1}}$.</li>
+            <li>Steam exits at $P_2 = {{params.P2}}~bar$ and temperature $T_2 = {{params.T2}}~^\circ C$.</li>
+            <li>Cooling water enters at $T_3 = {{params.T3}}~^\circ C$ and exits at $T_4 = {{params.T4}}~^\circ C$.</li>
+            <li>Assume steady-state operation, no heat transfer with surroundings, and negligible kinetic and potential energy changes.</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        (a) To determine the ratio of mass flow rates of cooling water to steam ($\dot{m}_3/\dot{m}_1$):
+        <ul>
+            <li>Apply the energy balance for the condenser: $0 = \dot{Q} - \dot{m}_1(h_1 - h_2)$</li>
+            <li>From steam tables, find $h_1$ using $P_1$ and $x_1$: $h_1 = 2584.7x_1 + 191.83(1 - x_1)$.</li>
+            <li>Find $h_2$ using $P_2$ and $T_2$: $h_2 = h_f(T_2)$.</li>
+            <li>For cooling water, $q_{cooling} = \dot{m}_3(h_4 - h_3)$.</li>
+            <li>Using $h_3 = c_p T_3$ and $h_4 = c_p T_4$, solve for $\dot{m}_3/\dot{m}_1$:</li>
+            <li>$\frac{\dot{m}_3}{\dot{m}_1} = \frac{h_1 - h_2}{h_4 - h_3}$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        (b) To determine the rate of energy transfer per kg of steam ($q_{cond}$):
+        <ul>
+            <li>Use the formula $q_{cond} = h_2 - h_1$.</li>
+            <li>From the earlier calculations of $h_1$ and $h_2$, substitute the values to find $q_{cond}$:</li>
+            <li>$q_{cond} = h_2 - h_1 = {{correct_answers.heatTransfer}}~kJ/kg$</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        Final expressions:
+        <ul>
+            <li>Mass flow rate ratio: $\frac{\dot{m}_3}{\dot{m}_1} = {{correct_answers.ratio}}$</li>
+            <li>Rate of energy transfer: $q_{cond} = {{correct_answers.heatTransfer}}~kJ/kg$</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

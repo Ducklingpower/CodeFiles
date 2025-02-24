@@ -1,0 +1,27 @@
+
+
+<pl-question-panel>
+    <pl-figure file-name="bending1.png"></pl-figure>
+     
+    <p>The supported beam has a cross-sectional area as shown. Determine the absolute maximum bending stress in the beam.</p>
+    <p>The distributed force is given as $\mathbf{F}  = {{params.f}} ~kN/m$ and the lengths are $\mathbf{L} = {{params.l}}~ {{params.unitsDist}}   $,  $\mathbf{L}_1 = {{params.l1}}~ {{params.unitsDistt}} $, $\mathbf{L}_2 = {{params.l2}}~ {{params.unitsDistt}} $, and $\mathbf{L}_3 = {{params.l3}}~ {{params.unitsDistt}} $</p>
+    <p>Note: The entire cross section has a thickness of length $L_3$.</p>
+    </pl-question-panel>
+   
+    <p>Compute the reaction forces at A and B. ( Magnitude in kN )</p>
+    <pl-number-input answers-name="reactionA" comparison="sigfig" digits="3" label="Ay  ="></pl-number-input>
+    <pl-number-input answers-name="reactionB" comparison="sigfig" digits="3" label="By  ="></pl-number-input>
+    <p>Compute the maximum bending moment in the beam. ( Magnitude in kN*m)</p>
+    <pl-number-input answers-name="maxM" comparison="sigfig" digits="3" label="Maximum moment  ="></pl-number-input>
+    <p>Compute the moment of inertia about the central axis. In our case the central axis is in the center of the beam, ie $\frac{L_1}{2}$. ( Magnitude in $\mu m^4$)</p>
+
+
+
+
+    <pl-number-input answers-name="I" comparison="sigfig" digits="3" label="Moment of Inertia  ="></pl-number-input>
+    <p>Compute the absolute max bending stress in the beam.  (Magnitude in Mpa)</p>
+    <pl-number-input answers-name="stress" comparison="sigfig" digits="3" label="Max bending stress  ="></pl-number-input>
+
+
+
+

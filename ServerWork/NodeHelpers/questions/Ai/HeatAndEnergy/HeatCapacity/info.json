@@ -1,0 +1,25 @@
+{
+    "title": "SpecificHeatCapacityCalculation",
+    "stem": "Calculating the specific heat capacity from heat energy, mass, and temperature change.",
+    "topic": "Thermodynamics",
+    "tags": [
+        "Specific Heat",
+        "Thermodynamics",
+        "Energy Transfer",
+        "Copper",
+        "Physics"
+    ],
+    "prereqs": [
+        "Understanding of heat transfer concepts",
+        "Basic knowledge of specific heat capacity",
+        "Familiarity with temperature changes"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}

@@ -1,0 +1,6 @@
+<pl-question-panel>
+    <p>How much can Taylor withdraw each month during retirement if she deposits {{params.deposit}} {{params.unitsCurrency}} monthly for {{params.yearsDeposit}} years into an account that pays {{params.interestRate1}}% per year compounded monthly, and then after the last deposit, the interest rate increases to {{params.interestRate2}}% per year compounded monthly? The withdrawals will occur monthly for {{params.yearsWithdraw}} years.</p>
+    <p>What is the monthly withdrawal amount (in {{params.unitsCurrency}})?</p>
+  </pl-question-panel>
+  
+  <pl-number-input answers-name="withdrawal" comparison="sigfig" digits="2" label="Monthly withdrawal ({{params.unitsCurrency}})"></pl-number-input>

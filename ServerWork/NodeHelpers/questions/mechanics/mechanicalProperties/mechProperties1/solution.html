@@ -1,0 +1,21 @@
+
+<pl-solution-panel>
+  <pl-figure file-name="mechProperties1.png"></pl-figure>
+  <pl-hint level="1" data-type="text">Identify what properties you have and try to make an equation that solves for the modulus of elasticity.</pl-hint>
+  <pl-hint level="2" data-type="text">You can use these three equations: $\sigma = \frac{F}{A},~\sigma = \epsilon E, ~ \epsilon = \frac{\delta L}{L}$</pl-hint>
+  <pl-hint level="3" data-type="text">
+      <ul>
+        Using the equations we can put them together to make one equation: $\frac{F}{A} = \frac{\delta L}{L} E ~\implies E = \frac{F~L}{A~\delta L}$
+        Now you can plug in all of your variables. It might be good to convert Kn to N and mm to m. Then convert pa to Mpa after plugging in.
+      </ul>
+  </pl-hint>
+  <pl-hint level="4" data-type="text">
+      <ul>
+         <li>F = ${{params.force}}$(1000) (N)</li>
+         <li>A = $\pi (\frac{~{{params.radius}}~}{1000})^2$ (m$^2$)</li>
+         <li>L =$ \frac{~{{params.l}}~}{1000}$ (m)</li>
+         <li>$\delta L = \frac{~{{params.l2}}-{{params.l}}~}{1000}$ (m)</li>
+         <p>Plugging everything into $E = \frac{F~L}{A~\delta L} (10^{-9})$ we get ${{correct_answers.E}}$ (MPa)</p>
+         
+  </ul>
+  </pl-hint>

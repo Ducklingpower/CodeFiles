@@ -1,0 +1,18 @@
+<pl-question-panel>
+    <p> A sum of ${{params.principal}} is borrowed at an interest rate of {{params.interestRate}}% per year.</p>
+  </pl-question-panel>
+  
+  <pl-quest> 
+    <pl-quest-prompt >Calculate the amount owed after 1 year if the interest is compounded monthly.</pl-quest-prompt>
+    <pl-number-input answers-name="amountMonthly" comparison="sigfig" digits="3" label="Amount owed (Monthly Compounding) ="></pl-number-input>
+  </pl-quest>
+  
+  <pl-quest> 
+    <pl-quest-prompt >Calculate the amount owed after 1 year if the interest is compounded weekly.</pl-quest-prompt>
+    <pl-number-input answers-name="amountWeekly" comparison="sigfig" digits="3" label="Amount owed (Weekly Compounding) ="></pl-number-input>
+  </pl-quest>
+  
+  <pl-quest> 
+    <pl-quest-prompt >Calculate the amount owed after 1 year if the interest is compounded daily.</pl-quest-prompt>
+    <pl-number-input answers-name="amountDaily" comparison="sigfig" digits="3" label="Amount owed (Daily Compounding) ="></pl-number-input>
+  </pl-quest>

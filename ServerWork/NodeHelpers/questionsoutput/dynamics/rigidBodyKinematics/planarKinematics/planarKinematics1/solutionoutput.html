@@ -1,0 +1,37 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p> For this problem it is best to write out the equation for solving \( \omega_{CD} \). Then we can identify what we have and what we need to solve. </p><h2> Level 1 </h2><p>
+   The equation for solving the velocity of point D:
+   <li>\( \vec{v_D} = \vec{v_c} + \omega_{CD} \) x \( \vec{L_3} \)</li>
+   <p>Here we know the velocity at point D is zero since it is locked in place. We want \( \omega_{CD} \) and we don't know what \( \vec{v_c} \) is. So before we can solve for \( \omega_{CD} \), we have to first find what \( \vec{v_c} \) is. </p>
+   
+   
+    </p><h2> Level 2 </h2><p>
+        <ul>
+           Solving for \( \vec{v_c} \): We can write out an equation that solves for \( \vec{v_c} \) similar to how we wrote out the equation for \( \vec{v_D} \).
+<li>\( \vec{v_c} = \vec{v_B} + \omega_{BC} \) x \( \vec{L_2} \)</li>
+<p>Where \( \vec{v_B} \) = \( \omega_A \) x \( L_1 \) = \( -\omega_A L_1~\hat{j} \)</p>
+<p>Taking the cross product and plugging in \( \vec{v_B} \)</p>
+<li>\( \vec{v_c} = L_2sin(\theta)\omega_{BC}~\hat{i}-\omega_AL_1~\hat{j}-L_2cos(\theta)\omega_{BC}~\hat{j} \)</li>
+Now we can plug in \( \vec{v_c} \) into \( \vec{v_D} = \vec{v_c} + \omega_{CD} \) x \( \vec{L_3} \). So that we can solve for \( \omega_{CD} \)
+         </ul>
+    </p><h2> Level 3 </h2><p>
+        <ul>
+Plugging in \( \vec{v_c} \) into \( \vec{v_D} = \vec{v_c} + \omega_{CD} \) x \( \vec{L_3} \), and taking the cross product, we get:
+<li>\( \vec{v_D} = L_2sin(\theta)\omega_{BC}~\hat{i}-\omega_AL_1~\hat{j}-L_2cos(\theta)\omega_{BC}~\hat{j}    + L_3cos(\phi) \omega_{CD}~\hat{j} + L_3sin(\phi)\omega_{CD}~\hat{i} \)</li>
+<p>Remember \( \vec{v}_D = 0 \). Separating the vector into \( \hat{i}, \hat{j} \) components we get: </p>
+<li>\( 0\hat{i} = L_2sin(\theta)\omega_{BC}~\hat{i} + L_3sin(\phi)\omega_{CD}~\hat{i} \)</li>
+<li>\( 0\hat{j} = -\omega_AL_1~\hat{j}-L_2cos(\theta)\omega_{BC}~\hat{j} + L_3cos(\phi) \omega_{CD}~\hat{j} \)</li>
+<p>Now we have 2 equations and 2 unknowns. We can solve for \( \omega_{CD} \) now.</p>
+
+
+<p>\( \omega_{CD} = \frac{\omega_A L_1}{\frac{L_2cos(\theta)L_3sin(\phi)}{L_2sin(\theta)}+L_3cos(\phi)} \) = 3.6415323071709467 rad/s</p>
+
+
+       </ul>
+    </p></html>

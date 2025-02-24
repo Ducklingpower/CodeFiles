@@ -1,0 +1,51 @@
+<pl-solution-panel>
+    <pl-figure file-name="rectilinearMotion1.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> The area under the acceleration vs time graph will give you the velocity at any time. You may want to take the integral of the function a =$\frac{1}{6}t^2.$        </pl-hint>
+
+
+
+
+    <pl-hint level="2" data-type="text">
+     <p>Taking the integral of a =$\frac{1}{6}t^2$ to obtain the velocity function with respect to time, we get $\int_{0}^{t}\frac{1}{6}t^2dt = \frac{1}{18}t^3 = v(t)$ </p>
+     <p>We need to find the total distance traveled and in order to know the distance we must obtain the distance vs time equation, so we will have to take the integral of v(t) to obtain s(t).</p>
+
+
+
+
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+            <p>Taking the integral of $v(t)$ we get, $\int_0^t \frac{1}{18}t^3 = \frac{1}{72}t^4 = s(t)$</p>
+
+
+            <p>Now that we have the velocity and position equations, we can compute the velocity and position of the car after ${{params.t1}}$ seconds.</p>
+            <p>Although the question asks for the total distance traveled in ${{params.t2}}$, having the velocity and position at time  ${{params.t1}}$ will be important for the bounds when integrating $t1$ through $t2$. </p>
+
+
+      </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+       
+            <p>For the second half we see acceloration is constant at ${{params.A1}}$ $m/s^2$. we need to obtain the position vs time equation. so let's take the integral of acceleration 2 times.  </p>
+            <p>A(t) = $\frac{dv}{dt} =  {{params.A1}} $ $\implies \int_{v_1} ^v dv = \int_{t_1} ^t {{params.A1}} dt$ $\implies $ $v =  {{params.A1}}t-{{params.A1}}t_1 + v_1$.  Note: here $v_1 = \frac{1}{18} {t_1}^3$ </p>
+
+
+            <p></p>
+            <p>v(t) = $\frac{ds}{dt} = {{params.A1}}t-{{params.A1}}t_1 + v_1$  $\implies $  $\int_{s_1} ^s ds = \int _{t_1} ^t {{params.A1}}t-{{params.A1}}t_1 + v_1 dt$ $\implies $ $s = \frac{ {{params.A1}}t^2  }{2} + t(-t_1  {{params.A1}} + v_1 ) - ( \frac{ {{params.A1}}{t_1}^2  }{2} + t_1 (-t_1  {{params.A1}} + v_1 )) + s_1$</p>
+<p> Here $s_1  = \frac{1}{74} {t_1}^4$</p>
+
+
+        </ul>
+    </pl-hint>
+
+
+
+
+    <pl-hint level="5" data-type="text">
+        <ul>
+       Evaluating $s(t)$ at $t_2 = {{params.t2}}$,
+       <p> $s({{params.t2}}) = \frac{ {{params.A1}} ({{params.t2}})^2  }{2} + {{params.t2}}(-t_1  {{params.A1}} + v_1 ) - ( \frac{ {{params.A1}} {t_1}^2  }{2} + t_1 (-t_1  {{params.A1}} + v_1 )) + s_1  =  {{correct_answers.d}}$ meters
+    </p>
+        </ul>
+    </pl-hint>

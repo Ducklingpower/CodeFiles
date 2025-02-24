@@ -1,0 +1,51 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To calculate the monthly payment, we will use the following formula:
+        \[ A = \frac{P \cdot i \cdot (1 + i)^n} {(1 + i)^n - 1} \]
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        Here, the variables are defined as follows:
+        <ul>
+            <li>\( A \): Monthly payment</li>
+            <li>\( P \): Loan principal</li>
+            <li>\( i \): Monthly interest rate, calculated as \( i = \frac{r}{12} \)</li>
+            <li>\( n \): Total number of payments, calculated as \( n = \text{loanTerm} \times 12 \)</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        First, calculate the monthly interest rate:
+        \[ i = \frac{\frac{\text{annualInterestRate} }{100} }{12} \]
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        Next, calculate the total number of payment periods:
+        \[ n = \text{loanTerm} \times 12 \]
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        Substitute the values of \( P \), \( i \), and \( n \) into the formula to calculate the monthly payment:
+        \[ A = \frac{P \cdot i \cdot (1 + i)^n}{(1 + i)^n - 1} = \frac{ {{params.P}} \cdot {{params.im}} \cdot (1 + {{params.im}})^{360} }{(1 + {{params.im}})^{360} - 1}  = {{params.A}}\]
+    </pl-hint>
+    <pl-hint level="6" data-type="text">
+        To calculate the remaining balance after \( k \) payments, we use the following formula:
+        \[ B_k = A \cdot \frac{(1 + i)^{360-t} } {(1 + i)^{360-t} - 1}  = {{params.A}} \cdot \frac{(1 + {{params.im}})^{360-{{params.t}} } } {(1 + {{params.im}})^{360-{{params.t}} } - 1} = {{correct_answers.amountOwed}} \]
+    </pl-hint>
+    <pl-hint level="7" data-type="text">
+        Here, the variables are defined as follows:
+        <ul>
+            <li>\( B_k \): Remaining balance after \( k \) payments</li>
+            <li>\( t \): Number of payments made</li>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="8" data-type="text">
+        To find the total amount paid by the lender, use the formula:
+        \[ \text{Total Paid} = A \cdot t  = {{params.A}} \cdot {{params.t}} = {{correct_answers.AmountPayed}}\]
+    </pl-hint>
+    <pl-hint level="9" data-type="text">
+        To find the principal paid, subtract the remaining balance from the loan amount:
+        \[ \text{Principal Paid} = P - B_k = {{params.P}} - {{correct_answers.amountOwed}}  = {{correct_answers.PrincipalPayed}}\]
+    </pl-hint>
+    <pl-hint level="10" data-type="text">
+        Finally, to calculate the interest paid, subtract the principal paid from the total amount paid:
+        \[ \text{Interest Paid} = \text{Total Paid} - \text{Principal Paid} = {{correct_answers.AmountPayed}} - {{correct_answers.PrincipalPayed}} = {{correct_answers.IntrestPayed}} \]
+    </pl-hint>
+</pl-solution-panel>

@@ -1,0 +1,15 @@
+{
+    "uuid": "8abcd91d6-64d1-4e89-b72d-ad2133f25b2f",
+    "title": "thermalExpansion1",
+    "stem":"Mechanics of Materials",
+    "topic": "Thermal Expansion",
+    "tags": ["thermal strain", "thermal stress", "expansion", "temperature", "stainless steel bar"],
+    "prereqs":"",
+    "isAdaptive": "true",
+    "createdBy": "dbare004@ucr.edu",
+    "qType":"num",
+    "nSteps": 1,
+    "updatedBy":"", 
+    "difficulty": 1,
+	"codelang": "javascript"
+}

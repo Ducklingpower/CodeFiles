@@ -1,0 +1,51 @@
+<pl-solution-panel>
+    <pl-figure file-name="rectilinearMotion3.png"></pl-figure>
+    <pl-hint level="1" data-type="text">   First seperate the problem into two compenets. Up and down and left and right. In the Horizontal direction, the velocity will be constant, and in the verticle direction, the acceleration will be constant pointing downwards.</pl-hint>
+     
+
+
+
+
+
+
+
+
+
+
+
+
+    <pl-hint level="2" data-type="text">
+        <ul>
+            When breaking down the components we are going to make everything relate to perfectly horizontal and verticle.
+            <p>Horizontal equation of motion: $V = \frac{D}{t}$ $\implies$ $Vcos(\theta) = \frac{Dcos(\phi)}{t}$</p>
+            <p>Verticle equation of motion: $\Delta y = vt+\frac{1}{2}gt^2$ $\implies$ $-Dsin(\phi) = Vsin(\theta)t - \frac{1}{2}gt^2$</p>
+           <p>Now we have two equations and two unknowns to solve for.</p>
+        </ul>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+           
+Solving for time:
+
+
+<p>Horizontal equation of motion: $v = \frac{Dcos(\phi)}{t}$ $\implies$ $D = \frac{Vcos(\theta)t}{cos(\phi)}$</p>
+<p>plug in $D = \frac{Vcos(\theta)t}{cos(\phi)}$ into verticle equation.</p>
+<p>Verticel equation of motion: $0 = Dsin(\phi)+ Vsin(\theta)t - \frac{1}{2}gt^2$ , plug-in D, $\implies $ $0 = \frac{vcos(\theta)t}{cos(\phi)}sin(\phi)+ vsin(\theta)t - \frac{1}{2}gt^2$</p>
+<p>Solving for t we get t = {{correct_answers.t}} seconds</p>
+Now you can find the total distance traveled.
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+
+
+Plug time into the horizontal equation you can solve for D.
+<p>$ D = \frac{Vcos(\theta)t}{cos(\phi)} $  $\implies $ $\frac{ ({{params.V}}) cos( {{params.theta}}^o ) ({{correct_answers.t}}) }{cos({{params.phi}}^o)} =  {{correct_answers.D}}$ m</p>
+
+
+        </ul>
+    </pl-hint>
+
+
+
+

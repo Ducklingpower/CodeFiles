@@ -1,0 +1,11 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">The moment of a force is calculated as the product of the force and the effective length from the point of rotation. For part (a), you need to calculate the moment produced by the force $F$ applied at an effective length $L_1$.</pl-hint>
+
+    <pl-hint level="2" data-type="text">The moment $M$ is given by the formula: \\[ M = F \cdot L_1 \\] where $M$ is the moment, $F$ is the force applied, and $L_1$ is the effective length from the center of the nut.</pl-hint>
+
+    <pl-hint level="3" data-type="text">Substitute the values given: \\[ M = {{params.force}} \cdot {{params.l1}} = {{params.force}} \times {{params.l1}} \\] Calculate the resulting moment in ${{params.unitsMoment}}$.</pl-hint>
+
+    <pl-hint level="4" data-type="text">For part (b), we are asked to find the force required to produce the same moment if the effective length is reduced to $L_2$. Using the rearranged formula: \\[ F_{\text{required}} = \frac{M}{L_2} \\] where $F_{\text{required}}$ is the new force necessary to produce the moment $M$ at length $L_2$.</pl-hint>
+
+    <pl-hint level="5" data-type="text">Using the moment calculated in part (a), substitute the values: \\[ F_{\text{required}} = \frac{M}{{params.l2}} = \frac{{params.force} \times {{params.l1}}}{{params.l2}} \\] Compute the $F_{\text{required}}$ in ${{params.unitsForce}}$ to maintain the moment at the new effective length.</pl-hint>
+</pl-solution-panel>

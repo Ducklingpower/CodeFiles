@@ -1,0 +1,52 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To calculate the monthly loan payment, we will use the formula for the monthly payment of an amortizing loan:
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        The formula is given by: 
+        \[
+        A = P \frac{i(1 + i)^n} {(1 + i)^n - 1}
+        \]
+        where:
+       
+             <li> A is the total monthly payment</li>
+             <li> P is the loan principal (the amount borrowed)</li>
+             <li> i is the monthly interest rate (annual interest rate divided by 12)</li>
+             <li> n is the number of payments (loan term in months)</li>
+     
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        The loan principal can be calculated as:
+        \[
+        P = \text{ (purchasePrice) } - \text{ (downPayment) } = {{params.purchasePrice}}~ {{params.unitsCurrency}} - {{params.downPayment}}~ {{params.unitsCurrency}}
+        \]
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        The monthly interest rate is:
+        \[
+        i = \frac{ {\text{ (interestRate) } } }{100 \cdot 12}  = \frac{ {{params.interestRate}} }{100 \cdot 12}
+        \]
+    </pl-hint>
+    <pl-hint level="5" data-type="text">
+        The number of payments is simply:
+        \[
+        n = \text{ (loanTerm) } \times 12 = {{params.loanTerm}} \times 12
+        \]
+    </pl-hint>
+    <pl-hint level="6" data-type="text">
+        Substituting these values into the monthly payment formula will yield the monthly loan payment:
+        \[
+        M = ( {{params.purchasePrice}} - {{params.downPayment}}) \frac{ ( \frac{ {{params.interestRate}} }{100 \cdot 12}  ) ( 1 + ( \frac{ {{params.interestRate}} }{100 \cdot 12}  ) )^{( {{params.loanTerm}} \times 12)} }{( 1 + ( \frac{ {{params.interestRate}} }{100 \cdot 12}  ) )^{( {{params.loanTerm}} \times 12)} - 1}
+        \]
+    </pl-hint>
+    <pl-hint level="7" data-type="text">
+        Finally, calculating this will give the monthly loan payment as:  {{correct_answers.monthlyPayment}} {{params.unitsCurrency}}.
+    </pl-hint>
+
+    <pl-hint level="8" data-type="text">
+     <p> To found how much they where trying to over charge per mont we can find the differnec between the proposed monthly payment and the actual monthly payment.  </p>
+
+     <p>Over chareg = {{params.scam}} - {{correct_answers.monthlyPayment}}  = ${{correct_answers.over}} </p>
+
+    </pl-hint>
+</pl-solution-panel>

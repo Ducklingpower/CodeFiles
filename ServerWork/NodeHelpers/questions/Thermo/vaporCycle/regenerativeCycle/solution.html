@@ -1,0 +1,94 @@
+<pl-solution-panel>
+    <pl-figure file-name="regenertiveCycle.png"></pl-figure>
+
+    <pl-hint level="1" data-type="text">Start by identifying the states and their properties using steam tables and the provided data.</pl-hint>
+
+    <pl-hint level="2" data-type="text">Use the isentropic efficiency to determine the enthalpies at key states in the cycle, especially after expansion in turbines and compression in pumps.</pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <ul>
+            <li><strong>Determining Properties for Each State:</strong></li>
+            <li><strong>State 1:</strong> Use steam tables to find enthalpy ($h_1$) and entropy ($s_1$) at the given pressure ($P_1$) and temperature ($T_1$).</li>
+            <p>From steam tables: $h_1 = {{correct_answers.h1}}$ kJ/kg, $s_1 = {{correct_answers.s1}}$ kJ/kg·K</p>
+            
+            <li><strong>State 2:</strong> To determine $h_2$, first find the isentropic enthalpy $h_{2s}$:</li>
+            <ul>
+                <li>Use the fact that isentropic expansion means constant entropy: $s_1 = s_{2s}$.</li>
+                <li>At the lower pressure $P_2$, use steam tables to find the corresponding enthalpy $h_{2s}$ that matches $s_1$.</li>
+                <li>If $s_1$ falls between saturated liquid and vapor entropy values at $P_2$, calculate quality $x$ using:</li>
+                <p>$x = \frac{s_1 - s_f}{s_g - s_f}$</p>
+                <li>Then find $h_{2s}$ using:</li>
+                <p>$h_{2s} = h_f + x(h_g - h_f)$</p>
+                <p>With values: $h_{2s} = {{correct_answers.h2s}}$ kJ/kg</p>
+                <li>Finally, apply the isentropic efficiency to find $h_2$:</li>
+                <p>$h_2 = h_1 - \eta_t (h_1 - h_{2s})$</p>
+                <p>With values: $h_2 = {{correct_answers.h1}} - \eta_t ({{correct_answers.h1}} - {{correct_answers.h2s}}) = {{correct_answers.h2}}$ kJ/kg</p>
+            </ul>
+            
+            <li><strong>State 3:</strong> Repeat the process used for State 2 for the second-stage turbine. To determine $h_{3s}$:</li>
+            <ul>
+                <li>Use constant entropy: $s_2 = s_{3s}$.</li>
+                <li>At pressure $P_3$, use steam tables to find the enthalpy $h_{3s}$ that matches $s_2$.</li>
+                <li>Calculate quality $x$ if $s_2$ is between $s_f$ and $s_g$:</li>
+                <p>$x = \frac{s_2 - s_f}{s_g - s_f}$</p>
+                <li>Find $h_{3s}$:</li>
+                <p>$h_{3s} = h_f + x(h_g - h_f)$</p>
+                <p>With values: $h_{3s} = {{correct_answers.h3s}}$ kJ/kg</p>
+                <li>Apply isentropic efficiency to determine $h_3$:</li>
+                <p>$h_3 = h_2 - \eta_t (h_2 - h_{3s})$</p>
+                <p>With values: $h_3 = {{correct_answers.h2}} - \eta_t ({{correct_answers.h2}} - {{correct_answers.h3s}}) = {{correct_answers.h3}}$ kJ/kg</p>
+            </ul>
+            
+            <li><strong>State 4:</strong> As the condenser outputs saturated liquid, use steam tables to find $h_4$ and specific volume $v_4$ at $P_3$.</li>
+            <p>From steam tables: $h_4 = {{correct_answers.h4}}$ kJ/kg, $v_4 = {{correct_answers.v4}}$ m³/kg</p>
+            
+            <li><strong>State 5:</strong> Calculate $h_5$ using the pump work equation, assuming isentropic compression:</li>
+            <p>$h_5 = h_4 + v_4 (P_2 - P_3)$</p>
+            <p>With values: $h_5 = {{correct_answers.h4}} + {{correct_answers.v4}} (P_2 - P_3) = {{correct_answers.h5}}$ kJ/kg</p>
+            
+            <li><strong>State 6:</strong> Since this is saturated liquid from the feedwater heater, obtain $h_6$ and $v_6$ directly from steam tables at $P_2$.</li>
+            <p>From steam tables: $h_6 = {{correct_answers.h6}}$ kJ/kg, $v_6 = {{correct_answers.v6}}$ m³/kg</p>
+            
+            <li><strong>State 7:</strong> Use the pump work relation for Pump 2 to find $h_7$:</li>
+            <p>$h_7 = h_6 + v_6 (P_1 - P_2)$</p>
+            <p>With values: $h_7 = {{correct_answers.h6}} + {{correct_answers.v6}} (P_1 - P_2) = {{correct_answers.h7}}$ kJ/kg</p>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+            <li>Determine the pump work using isentropic relations:</li>
+            <p>$h_5 = h_4 + v_4 (P_2 - P_3)$</p>
+            <p>$h_7 = h_6 + v_6 (P_1 - P_2)$</p>
+            <li>Calculate the mass extraction fraction (y) at the open feedwater heater:</li>
+            <p>$y = \frac{h_6 - h_5}{h_2 - h_5}$</p>
+            <p>With values: $y = \frac{ {{correct_answers.h6}} - {{correct_answers.h5}} }{ {{correct_answers.h2}} - {{correct_answers.h5}} }$</p>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        <ul>
+            <li>Calculate the turbine work per unit mass:</li>
+            <p>$\frac{\dot{W}_t}{\dot{m}_1} = (h_1 - h_2) + (1 - y)(h_2 - h_3)$</p>
+            <p>With values: $\frac{\dot{W}_t}{\dot{m}_1} = ({{correct_answers.h1}} - {{correct_answers.h2}}) + (1 - y)({{correct_answers.h2}} - {{correct_answers.h3}})$</p>
+            
+            <li>Calculate the pump work per unit mass:</li>
+            <p>$\frac{\dot{W}_p}{\dot{m}_1} = (h_7 - h_6) + (1 - y)(h_5 - h_4)$</p>
+            <p>With values: $\frac{\dot{W}_p}{\dot{m}_1} = ({{correct_answers.h7}} - {{correct_answers.h6}}) + (1 - y)({{correct_answers.h5}} - {{correct_answers.h4}})$</p>
+            
+            <li>Calculate the heat added in the steam generator:</li>
+            <p>$\frac{\dot{Q}_{in} }{\dot{m}_1} = h_1 - h_7$</p>
+            <p>With values: $\frac{\dot{Q}_{in} }{\dot{m}_1} = {{correct_answers.h1}} - {{correct_answers.h7}}$</p>
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="6" data-type="text">
+        <ul>
+            <li>Determine the thermal efficiency:</li>
+            <p>$\eta = \frac{\frac{\dot{W}_t}{\dot{m}_1} - \frac{\dot{W}_p}{\dot{m}_1} }{\frac{\dot{Q}_{in} }{\dot{m}_1} } = {{correct_answers.thermal_efficiency}}\%$</p>
+            
+            <li>Calculate the mass flow rate using the net power output:</li>
+            <p>$\dot{m}_1 = \frac{\dot{W}_{net} \times 3600}{(\frac{\dot{W}_t}{\dot{m}_1} - \frac{\dot{W}_p}{\dot{m}_1})} = {{correct_answers.mass_flow_rate}} \ kg/h$</p>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

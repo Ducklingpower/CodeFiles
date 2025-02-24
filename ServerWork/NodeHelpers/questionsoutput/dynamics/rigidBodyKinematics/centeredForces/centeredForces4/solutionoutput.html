@@ -1,0 +1,47 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>The first step is to draw the fre body diagram for the wheel. There should ber 5 forces acting on the wheel.</p><h2> Level 1 </h2><p>
+ 
+    <p>Free body diagram of the wheel:</p>
+    <li>Weight force pulling down from the center</li>
+    <li>Tention force puling up along the rod</li>
+    <li>normal force pushing right at the contact area of the wall and the wheel.</li>
+    <li>friction force pulling down at the conatct area of the wall and the wheel.</li>
+    <li>force pulling down</li>
+
+    <p>Now we can write out equations of motion to solve for the angulare acceloration.</p>
+
+
+    </p><h2> Level 2 </h2><p>
+        <ul>
+       
+            <p>\( \Sigma{F_x} = 0 ~\implies~ N-Tcos(\theta) = 0 ~\implies~ N = Tcos(\theta) \)</p>
+            <p>\( \Sigma{F_y} = 0 ~\implies~ Tsin(\theta) - w - \mu_k N - F = 0 \)</p>
+            <p>\( \Sigma{M_G} = I\alpha ~\implies ~ I \alpha = r \mu N - F r \)</p>
+
+            Now we have 3 equations and 3 unknowns. (\( \alpha T N \))
+
+            <p>Note: \( I = k^2 m  \) and \( \theta = tan^{-1}(\frac{L}{r}) \)&gt;</p>
+
+        </ul>
+    </p><h2> Level 3 </h2><p>
+        <ul>
+       
+            <p>Solving for alpha:</p>
+            <p>Plug in, \( N = Tcos(\theta) \) , into , \( Tsin(\theta) - w - \mu_k N - F = 0 \) , and solve for T </p>
+            <li> \( T = \frac{F + w }{sin(\theta) - \mu_kcos(\theta)} \)</li>
+<p>\( ~ \)</p>
+            <p>Now we can plug in T into  \( N = Tcos(\theta) \)</p>
+            <li> \( N = \frac{Fcos(\theta) + wcos(\theta) }{sin(\theta) - \mu_kcos(\theta)} \)</li>
+
+            <p>\( ~ \)</p>
+<p>Lastly we can plug in N and \( I = K^2m \) into \( I \alpha = r \mu N - F r \) and solve for \( \alpha \)</p>
+<li>\( \alpha = \frac{r \mu_k Fcos(\theta) + r \mu_k m g cos(\theta)}{k^2 m sin(\theta) - k^2 m \mu_k cos(\theta)} - \frac{Fr}{k^2 m} =  11.41449426898917 \frac{rad}{s^2} \)</li>
+<p>Note: The answer will come out negative if you did in your calculater. Which is correct since we take clock wise as negative motion. Since the question asks for magnitude, the dirction doesnt matter.</p>
+        </ul>
+    </p></html>

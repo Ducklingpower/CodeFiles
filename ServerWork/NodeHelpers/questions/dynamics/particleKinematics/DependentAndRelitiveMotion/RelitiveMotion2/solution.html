@@ -1,0 +1,39 @@
+
+<pl-solution-panel>
+  <pl-figure file-name="RelitiveMotion2.png"></pl-figure>
+  <pl-hint level="1" data-type="text">The first step is to break up the velocity and acceleration of particle A and particle B into x, and y components.</pl-hint>
+
+  <pl-hint level="2" data-type="text">
+ 
+  <p>Breaking down particles A velocity and acceleration into x,y its vector components. </p>
+  <li>$\vec{v}_A = 0\hat{i} - v_a\hat{j}$</li>
+  <li>$\vec{a}_A = 0\hat{i} + a_A\hat{j}$</li>
+  <p>Breaking down particles B velocity and acceleration into x,y its vector components. </p>
+  <li>$\vec{v}_B = v_B cos(\theta)\hat{i} + v_B sin(\theta)\hat{j}$</li>
+  <li>$\vec{a}_B = -a_Bcos(\theta)+\frac{v_B^2}{r}sin(\theta)\hat{i} -a_Bsin(\theta)-\frac{v_B^2}{r}cos(\theta)\hat{j}$</li>
+
+
+    Now that everything is broken up it makes it easier to find A relative to B.
+
+
+  </pl-hint>
+  <pl-hint level="3" data-type="text">
+      <ul>
+     
+        To find the direction of relative velocity and acceleration we can put ourselves in the perspective of particle B. If we were particle B, particle A's velocity would appear to be moving to the left and down and the acceleration would appear to be moving up and right.
+
+
+
+
+        <p>Relative velocity ($\hat{i})$ : $v_A\hat{i}+v_B\hat{i}$ = $- [0 + v_Bcos(\theta)] \hat{i}$ = {{correct_answers.vx}} {{params.unitsSpeed}}</p>
+        <p>Relative velocity ($\hat{j})$ : $v_A\hat{j}+v_B\hat{j}$ = $-[v_A+v_Bsin(\theta)]\hat{j}$ = {{correct_answers.vy}} {{params.unitsSpeed}}</p>
+        <p>Relative acceleration ($\hat{i})$ : $a_A\hat{i}+a_B\hat{i}$ = $-[-a_Bcos(\theta)+\frac{v_b^2}{r}sin(\theta)]\hat{i}$ = {{correct_answers.ax}} {{params.unitsAcc}}</p>
+        <p>Relative acceleration ($\hat{j})$ : $a_A\hat{j}+a_B\hat{j}$ = $[a_A+a_Bsin(\theta)+\frac{v_b^2}{r}cos(\theta)]\hat{j}$ = {{correct_answers.ay}} {{params.unitsAcc}}</p>
+
+
+
+
+      </ul>
+  </pl-hint>
+
+

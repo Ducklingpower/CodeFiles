@@ -1,0 +1,17 @@
+
+
+
+
+   
+<pl-question-panel>
+    <pl-figure file-name="torsion1.png"></pl-figure>
+     
+    <p> Determine the shear stress in the cross-section AA given the torques $ \mathbf{\tau}_1 = {{params.t1}} ~ {{params.unitsMoment}} $, $ \mathbf{\tau}_2 = {{params.t2}} ~ {{params.unitsMoment}} $, and $ \mathbf{\tau}_3 = {{params.t3}} ~ {{params.unitsMoment}} $.  </p>
+    <p> The diameter of the shaft is $ \mathbf{D} = {{params.d}}~ {{params.unitsDistt}}$</p>
+    <p> Also determine the shear stress at a point that is ${{params.r}} ~{{params.unitsDistt}}$ away from the axis of rotation in the cross-section of AA. </p>
+    </pl-question-panel>
+    
+    
+    <p>Solutions are in (Pa)</p>
+    <pl-number-input answers-name="shear1" comparison="sigfig" digits="3" label="Surface shear stress ="></pl-number-input>
+    <pl-number-input answers-name="shear2" comparison="sigfig" digits="3" label="Shear stress ${{params.r}} ~{{params.unitsDistt}}$ way from the axis ="></pl-number-input>

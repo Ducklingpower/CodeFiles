@@ -1,0 +1,57 @@
+<pl-solution-panel>
+    <pl-figure file-name="Equilibrium2.png"></pl-figure>
+    <pl-hint level="1" data-type="text">First you have to compute the vector expressions for the tensions $T_B$ , $T_C$ and $T_D$. This can be done by multiplying the tension magnitude by the unit vector that follows the path of the tension.</pl-hint>
+    <pl-hint level="2" data-type="text">To compute the unit vector all you have to due is divide the length of the vector by its self.</pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul>
+                    Computing the tension vectors:
+                    <li>$\vec{T}_B = (T_B)(\vec{U}_B)$. let the unit vector $\vec{U}_B = \frac{0\hat{i}-L_3\hat{j}+L_2\hat{k}}{\sqrt{(L_3)^2+(L_2)^2}}$ </li>
+                    <p>So the tension vector $\vec{T}_B = (T_B)\frac{0\hat{i}-L_3\hat{j}+L_2\hat{k}}{\sqrt{(L_3)^2+(L_2)^2}}$</p>
+
+                    <li>$\vec{T}_C = (T_C)(\vec{U}_C)$. let the unit vector $\vec{U}_C = \frac{\frac{L_1}{2}\hat{i}+L_1\hat{j}+0\hat{k}}{\sqrt{(\frac{L_1}{2})^2+(L_1)^2}}$ </li>
+                    <p>So the tension vector $\vec{T}_C = (T_C)\frac{\frac{L_1}{2}\hat{i}+L_1\hat{j}+0\hat{k}}{\sqrt{(\frac{L_1}{2})^2+(L_1)^2}}$</p>
+                  
+                       
+                    <li>$\vec{T}_D = (T_D)(\vec{U}_D)$. let the unit vector $\vec{U}_D = \frac{-\frac{L_1}{2}\hat{i}+L_1\hat{j}+0\hat{k}}{\sqrt{(\frac{L_1}{2})^2+(L_1)^2}}$ </li>
+                    <p>So the tension vector $\vec{T}_D = (T_D)\frac{-\frac{L_1}{2}\hat{i}+L_1\hat{j}+0\hat{k}}{\sqrt{(\frac{L_1}{2})^2+(L_1)^2}}$</p>
+                  
+                       
+    
+                    <li>Now that you have all of the force vectors, set up the static equilibrium force equations.</li>
+                    
+
+
+
+                </ul>
+            </pl-hint>
+        
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+            Setting up static equilibrium force equations:
+            <Li>$\Sigma{F}_x= 0 \implies  \vec{T}_D\hat{i}-\vec{T}_C\hat{i}=0$</Li>
+            <Li>$\Sigma{F}_y= 0 \implies  \vec{T}_D\hat{j}+\vec{T}_C\hat{j}+\vec{T}_B\hat{j}=0$</Li>
+            <Li>$\Sigma{F}_z= 0 \implies  \vec{T}_B\hat{k} - W=0$</Li>
+
+            <p>Now you can solve for the tension in each cable. </p>
+
+    
+        
+        
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+            <p>Solving each equation for $T_B$,$T_C$, and $T_D$ you should get: </p>
+              <li>${T}_B = {{correct_answers.TAB}} {{params.unitsForce}}$</li>
+              <li>${T}_C = {{correct_answers.TAC}} {{params.unitsForce}}$</li>
+              <li>${T}_D = {{correct_answers.TAD}} {{params.unitsForce}tension$</li>
+        
+        
+        </ul>
+    </pl-hint>
+

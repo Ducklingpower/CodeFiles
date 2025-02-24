@@ -1,0 +1,25 @@
+{
+  "uuid": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p",
+  "title": "Weight of a Truck Calculation",
+  "stem": "Engineering",
+  "topic": "Physics",
+  "tags": [
+    "weight calculation",
+    "braking distance",
+    "tire count",
+    "brake drum",
+    "temperature increase",
+    "specific heat"
+  ],
+  "prereqs": [
+    "Basic understanding of physics",
+    "Knowledge of specific heat and temperature increase"
+  ],
+  "isAdaptive": true,
+  "createdBy": "",
+  "qType": "num",
+  "nSteps": 1,
+  "updatedBy": "epere194",
+  "dificulty": 1,
+  "codelang": "javascript"
+}

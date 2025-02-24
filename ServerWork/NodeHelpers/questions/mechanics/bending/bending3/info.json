@@ -1,0 +1,16 @@
+{
+    "uuid": "1f435c36-1126-43b0-aba5-627eeb2e10f9",
+    "title": "Shear force In Bending Beam ",
+    "stem" : "mechanics of materials ",
+    "topic": "statics",
+    "tags": ["torque", "bending", "force", "moment"],
+    "prereqs": "",
+    "isAdaptive": "true",
+    "createdBy": "epere194@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy":"",
+    "difficulty": 1,
+    "codelang": "javascript"
+    }
+   

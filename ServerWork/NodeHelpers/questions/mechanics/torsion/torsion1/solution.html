@@ -1,0 +1,59 @@
+<pl-solution-panel>
+    <pl-figure file-name="torsion1.png"></pl-figure>
+    <pl-hint level="1" data-type="text">Compute the net torque that will be acting on the cross-section of AA.</pl-hint>
+    <pl-hint level="2" data-type="text">The torque acting on the cross-section of AA is simply $ \tau_1$ or $ \tau_2 - \tau_3$ = ${{params.t1}}$. Now you can use this value to calculate the shear stress.</pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+           <p>The equation to calculate the shear stress is $ shear stress = \frac{\tau ~ C}{J}$</p>
+           <p>Where J = $\frac{\pi}{2} ~ R^4$</p>
+           <p>In solving for the shear stress on the surface of the beam C is equal to the radius of the beam.</p>
+
+
+            So solution for the first question becomes: $ \frac{\tau_1 ~ 2}{\pi ~ R^3}$
+            <p>Be sure to convert to SI before calculating.</p>
+
+
+
+
+       
+        </ul>
+    </pl-hint>
+
+
+
+
+
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+            <p>For the second part, since we are no longer solving for shear stress at the surface of the beam C does not equal the radius </p>
+            <p>C = ${{params.r}}$. So our solution now becomes: $ \frac{\tau_1 ~ 2 ~ C}{\pi R^4} $</p>
+           
+       
+
+
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="5" data-type="text">
+        <ul>
+            <p>Solutions:
+
+
+            </p>
+            <li>Surface shear stress = ${{correct_answers.shear1}}$ Pa</li>
+            <li> Shear stress ${{params.r}} ~{{params.unitsDistt}}$ way from the axis= ${{correct_answers.shear2}}$ Pa</li>
+
+
+        </ul>
+    </pl-hint>
+
+
+
+
+
+
+
+
+

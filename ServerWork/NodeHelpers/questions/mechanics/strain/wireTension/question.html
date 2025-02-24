@@ -1,0 +1,13 @@
+<pl-question-panel>
+<p>
+  A wire of diameter {{params.dd}} {{params.unitsDiameter}} and length {{params.Ld}} {{params.unitsDist}} is used to hang a {{params.masslabel}} of {{params.mass}} {{params.unitsMass}}. 
+</p>
+<p> The wire is made of material with yield strength {{params.smaxd}} {{params.unitsStress}}, modulus of elasticity {{params.Ed}} {{params.unitsModulusElasticity}} and Poisson's ratio {{params.nud}}</p>
+</pl-question-panel>
+
+What is the stress (in {{params.unitsStress}}) in the wire?
+<pl-number-input answers-name="sigma" comparison="sigfig" digits="3" label="$\sigma $ (in {{params.unitsStress}})"></pl-number-input>
+What is the change in length (in {{params.unitsDLength}}) of the wire?
+<pl-number-input answers-name="dL" comparison="sigfig" digits="3" label="Change in length (in {{params.unitsDLength}})"></pl-number-input>
+What is the change in the diameter (in {{params.unitsDDiameter}}) of the wire?
+<pl-number-input answers-name="deltaD" comparison="sigfig" digits="3" label="Change in diameter (in {{params.unitsDDiameter}})"></pl-number-input>

@@ -1,0 +1,19 @@
+<pl-question-panel>
+    <pl-figure file-name="Rankine.png"></pl-figure>
+    <p>Steam is the working fluid in an ideal Rankine cycle. Saturated vapor enters the turbine at a pressure of $\mathbf{P_{turbine\_in} } = {{params.P_turbine_in}}~MPa$ and saturated liquid exits the condenser at a pressure of $\mathbf{P_{condenser\_out} } = {{params.P_condenser_out}}~MPa$. </p>
+    <p>Consider the vapor power cycle with the turbine and pump having an isentropic efficiency of $\mathbf{n} = {{params.efficiency}}$%. A net power output of $\mathbf{W_{net} } = {{params.netpower}}~MW$ is given. The cooling water enters the condenser at $\mathbf{T_{in} } = {{params.cooling_water_in}}~^{\circ}C$ and exits at $\mathbf{T_{out} } = {{params.cooling_water_out}}~^{\circ}C$. Steam enters the boiler and undergoes the Rankine Cycle.</p>
+    <p>Determine the following:</p>
+    <ul>
+        <li>(a) The thermal efficiency of the cycle, $\eta$</li>
+        <li>(b) The mass flow rate of steam, $\mathbf{\dot{m}_{steam} }~(kg/h)$</li>
+        <li>(c) The rate of heat transfer into the working fluid, $\mathbf{\dot{Q}_{in} }~(MW)$</li>
+        <li>(d) The rate of heat transfer out from the condenser, $\mathbf{\dot{Q}_{out} }~(MW)$</li>
+        <li>(e) The mass flow rate of the condenser cooling water, $\mathbf{\dot{m}_{cooling~water} }~(kg/h)$</li>
+    </ul>
+</pl-question-panel>
+
+<pl-number-input answers-name="thermal_efficiency" comparison="sigfig" digits="3" label="Thermal efficiency (η) (%)="></pl-number-input>
+<pl-number-input answers-name="mass_flow_steam" comparison="sigfig" digits="3" label="Mass flow rate of steam (kg/h) ="></pl-number-input>
+<pl-number-input answers-name="heat_transfer_in" comparison="sigfig" digits="3" label="Rate of heat transfer into working fluid (MW) ="></pl-number-input>
+<pl-number-input answers-name="heat_transfer_out" comparison="sigfig" digits="3" label="Rate of heat transfer from condenser (MW) ="></pl-number-input>
+<pl-number-input answers-name="mass_flow_cooling_water" comparison="sigfig" digits="3" label="Mass flow rate of cooling water (kg/h) ="></pl-number-input>

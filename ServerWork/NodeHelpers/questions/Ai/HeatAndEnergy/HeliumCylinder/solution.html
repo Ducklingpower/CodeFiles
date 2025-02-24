@@ -1,0 +1,28 @@
+```html
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text"> Start by applying the ideal gas law for this problem, which states that $PV = nRT$, where:</pl-hint>
+    <pl-hint level="2" data-type="text"> - $P$ is the pressure of the gas,
+    <br>- $V$ is the volume of the gas,
+    <br>- $n$ is the number of moles of the gas,
+    <br>- $R$ is the ideal gas constant,
+    <br>- $T$ is the temperature of the gas in Kelvin.</pl-hint>
+    <pl-hint level="3" data-type="text"> First, we need to calculate the number of moles ($n$) of helium using the formula:
+        <ul>
+            <li>$n = \frac{m}{M}$, where $m$ is the mass of helium and $M$ is the molar mass of helium (approximately 4 g/mol).</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text"> Now, substitute $n$ into the ideal gas law:
+        <ul>
+            <li> Rearranging the equation gives us: $P = \frac{nRT}{V}$.</li>
+            <li> Substitute $n = \frac{m}{M}$ into the equation:
+            <br>$P = \frac{(\frac{m}{M})RT}{V}$.</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="5" data-type="text"> Finally, we can express the pressure in terms of the known variables:
+        <ul>
+            <li> Thus, the pressure of helium in the cylinder can be calculated as:
+            <br>$P = \frac{mRT}{MV}$ = {{correct_answers.Pressure}} {{params.unitsPressure}}.</li>
+        </ul>
+    </pl-hint>
+</pl-solution-panel>
+```

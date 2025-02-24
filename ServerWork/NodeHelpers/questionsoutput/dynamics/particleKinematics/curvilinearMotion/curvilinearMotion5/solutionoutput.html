@@ -1,0 +1,37 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p> The first step is to identify that there are two components to the acceleration. The first is a tangential acceleration and the second is a normal acceleration.</p><h2> Level 1 </h2><p>
+        <p>Solving for tangential acceleration:</p>
+        <p>Acceleration tangent to the surface the ball is sliding on is defined as \( g~sin(\theta) \)</p>
+        <p>Computing theta: By definition, the derivative of (y) gives us the tangential slope. We can use this slope to find theta.</p>
+        <li>\( \frac{dy}{dx} =2 c_1 x \). Plugging in \( L_1 \) for x we get a slope of \( \frac{1}{c_1} L_1 \). </li>
+        <li>So, \( \theta = tan^{-1}(\frac{1}{c_1} L_1)  \)</li>
+       
+        <p>So now plugging in theta we have tangential acceleration, \( a_t = g~sin(\theta) \)</p>
+     
+        <p>Now we must solve for normal acceleration.</p>
+       
+   </p><h2> Level 2 </h2><p>
+        <ul>
+   
+           <p> The normal acceleration is defined to be : \( \frac{v^2}{r} \)</p>
+           <p>Solving for r:</p>
+           <li>\( r = \frac{(1 + (\frac{dy}{dx})^2)^{\frac{3}{2} } } { \frac{d^2y}{dx^2} } \) \( ~\implies~ \) \( r =\frac{(1+(\frac{2 L_1}{c_1})^2 )^{\frac{3}{2} } }{\frac{2}{c_1} } \) </li>
+           <p>Now we have normal acceleration: \( a_n = \frac{v^2}{r} \)</p>
+
+
+            <p>Now all that's left to do is take the magnitude of the two accelerations.</p>
+        </ul>
+    </p><h2> Level 3 </h2><p>
+      <ul>
+ 
+        <p>Magnitude of acceloration  = \( \sqrt{(a_n)^2 + (a_t)^2} \)</p>
+        <li>\( a_{net} = \sqrt{(\frac{v^2}{r})^ + (g~sin(\theta))^2} \) = 10.891510102262783 \( m/s^2 \) </li>
+   
+      </ul>
+  </p></html>

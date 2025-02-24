@@ -1,0 +1,34 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p> To find the velocity of point B, we have to use this equation of motion: \( v = v_o + \omega  \) x \(  r + v_{rel} \). Using this equation we can plug in what is given and solve for the velocity.</p><h2> Level 1 </h2><p>
+   <p>Solving for the velocity using the equation: \( v_b = v_o + \omega  \) x \(  r + v_{rel} \).</p>
+<p>For this question its easier to put our axis along the rod as shown in the image. We can also calculate the total  from point A to point B to be: \( L = 2rcvos(\theta) \)</p>
+<p>Its also impotant to note that the angle of the velocity vector to the rod can be calculated as : \( \phi = 90 - \theta \)</p>
+
+   <li>\( v_b = 0 + \omega  \) x \(  [L\hat{i}+ 0\hat{j}]+ -v \hat{i}  \) \( \implies \) \( v_b =- v_r \hat{i}+ \omega L \hat{j}   \)</li>
+
+breaking up the equation into its x and y componets we can solve for the velocity.
+<li>y: \( v_bsin(\phi) = wL~ \implies ~ v = \frac{wL}{sin(\phi)} \) = 31.200000000000003 \( m/s \)</li>
+<li>x: \( -vcos(\phi) = -v_r ~\implies~ v_r = (\frac{wL}{sin(\phi)}) cos(\phi) \). We will need the relitve velocity for solving the acceloration.</li>
+
+
+
+   <p>We can now solve for the acceleration. It is the same approach just with a different equation.</p>
+    </p><h2> Level 2 </h2><p>
+        <ul>
+         
+       
+        <p>To solve for the acceleration we can use the equation: \( A_b = A_o + \alpha  \) x \(  r-\omega^2r+2\omega \) x \(  v_{rel} + A_{rel} \)</p>
+        <li>\( A_b = 0 + 0  \)x \( [L \hat{i}+ 0\hat{j}]-\omega^2[L\hat{i}] + 2\omega \) x \(  [V_r + 0\hat{j}] - A_r \hat{i}  \)</li>
+        <p>re-organizing and taking some cross products</p>
+        <li>\( A_b = [-\omega^2L-A_r ] \hat{i} + [2\omega v_r]\hat{j} \)</li>
+          <p>Now we can break up the acceleration into its x and y componets to solve for the magitude.</p>
+
+        <li>y: \( A_b sin(\phi) = 2\omega v_r ~\implies~ \frac{2\omega v_r}{sin(\phi)} ~\implies ~ \frac{2\omega \omega L cos(\phi)}{sin(\phi) sin(\phi)} \) = \( 149.97481050927914 m/s^2 \)  </li>
+        </ul>
+    </p></html>

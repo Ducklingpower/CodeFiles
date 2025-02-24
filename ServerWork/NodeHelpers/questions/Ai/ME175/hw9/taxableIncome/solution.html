@@ -1,0 +1,41 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To calculate the taxable income for ACME Inc., we start with the Before-Tax-and-Loan Cash Flow and deduct the payments made on loan principal, loan interest, and the MACRS depreciation deduction.
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        The formula for taxable income can be expressed as:
+        \[
+        \text{Taxable Income} = \text{Before-Tax-and-Loan Cash Flow} - \text{Loan Interest Payment} - \text{MACRS Depreciation Deduction}
+        \]
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        Substituting the known values:
+        \[
+        \text{Taxable Income} = {{params.before_tax_and_loan_cash_flow}} - {{params.loan_interest_payment}} - {{params.macrs_depreciation_deduction}}
+        \]
+    </pl-hint>
+ 
+    <pl-hint level="4" data-type="text">
+        The final taxable income for ACME Inc. is thus calculated as follows:
+        \[
+        \text{Taxable Income} = {{params.before_tax_and_loan_cash_flow}} - {{params.loan_interest_payment}} - {{params.macrs_depreciation_deduction}} = {{correct_answers.taxable}}
+        \]
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+
+        <p>The tax payed is the taxable income multiplied by the tax rate.</p>
+        <p>Tax Payed = {{correct_answers.taxable}} $\times$ {{params.tax}}%= {{correct_answers.taxPayed}}</p>
+       
+    </pl-hint>
+
+    
+    <pl-hint level="6" data-type="text">
+
+        The after tax cash flow (ATCF) can be found as: ATCF =  BTLCF - Tax Payed - Expenses
+
+    <p>In our case the expenses is just the principle payed.</p>
+    <p>AFTC = {{params.before_tax_and_loan_cash_flow}} - {{correct_answers.taxPayed}} - {{params.loan_principal_payment}} = {{correct_answers.ATCF}}</p>
+
+    </pl-hint>
+</pl-solution-panel>

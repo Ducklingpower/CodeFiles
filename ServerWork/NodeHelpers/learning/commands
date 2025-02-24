@@ -1,0 +1,13 @@
+npm init
+npm install parcel
+
+
+-Does not run on live server must run on local host server
+-reason:unkown
+-solution:run the command in terminal "parcel index.html"
+
+
+if local host doesnt run do this in terminal,(in order)
+set-ExecutionPolicy RemoteSigned -Scope CurrentUser 
+Get-ExecutionPolicy
+Get-ExecutionPolicy -list

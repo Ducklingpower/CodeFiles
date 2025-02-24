@@ -1,0 +1,36 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">The problem involves finding the minimum theoretical work input required for a heat pump to maintain a dwelling's temperature. Begin by identifying the relevant thermodynamic principles.</pl-hint>
+
+    <pl-hint level="2" data-type="text">Using the coefficient of performance (COP) for a reversible heat pump, determine the relationship between the heat supplied to the dwelling and the work input.</pl-hint>
+
+    <pl-hint level="3" data-type="text">
+        <ul>
+            <li>The heat pump maintains the dwelling temperature at $\mathbf{T_{in} } = {{params.temp_in}}~^\circ C$.</li>
+            <li>The outside temperature is $\mathbf{T_{out} } = {{params.temp_out}}~^\circ C$.</li>
+            <li>The energy required to maintain the dwelling temperature is $\mathbf{Q_H} = {{params.energy}}~kJ$.</li>
+        </ul>
+        The relationship for the work input is derived from the COP equation: 
+        \[ COP_{max} = \frac{T_H}{T_H - T_C} \] 
+        where $T_H$ and $T_C$ are the indoor and outdoor temperatures in Kelvin, respectively.
+    </pl-hint>
+
+    <pl-hint level="4" data-type="text">
+        <ul>
+            <li>Rearranging the COP formula, the work input can be expressed as:</li>
+            \[ W_{cycle} = \frac{Q_H}{COP_{max} } \]
+            <li>Substitute $COP_{max}$ into the equation:</li>
+            \[ W_{cycle} = Q_H \left( 1 - \frac{T_C}{T_H} \right) \]
+            <li>Convert the temperatures to Kelvin:</li>
+            \[ T_H = {{params.temp_in}} + 273.15 \quad \text{and} \quad T_C = {{params.temp_out}} + 273.15 \]
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text">
+        <ul>
+            <li>Plug in the values for $Q_H$, $T_H$, and $T_C$:</li>
+            \[ W_{cycle} = {{params.energy}} \left( 1 - \frac{T_C}{T_H} \right) \]
+            <li>After performing the calculations, the minimum theoretical work input is:</li>
+            \[ W_{cycle} = {{correct_answers.work_input}}~kJ \]
+        </ul>
+    </pl-hint>
+</pl-solution-panel>

@@ -1,0 +1,46 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>
+        To calculate the monthly payment, we will use the following formula:
+        \[ A = \frac{P \cdot i \cdot (1 + i)^n} {(1 + i)^n - 1} \]
+    </p><h2> Level 1 </h2><p>
+        Here, the variables are defined as follows:
+        <ul>
+            <li>\( A \): Monthly payment</li>
+            <li>\( P \): Loan principal</li>
+            <li>\( i \): Monthly interest rate, calculated as \( i = \frac{r}{12} \)</li>
+            <li>\( n \): Total number of payments, calculated as \( n = \text{loanTerm} \times 12 \)</li>
+        </ul>
+    </p><h2> Level 2 </h2><p>
+        First, calculate the monthly interest rate:
+        \[ i = \frac{\frac{\text{annualInterestRate} }{100} }{12} \]
+    </p><h2> Level 3 </h2><p>
+        Next, calculate the total number of payment periods:
+        \[ n = \text{loanTerm} \times 12 \]
+    </p><h2> Level 4 </h2><p>
+        Substitute the values of \( P \), \( i \), and \( n \) into the formula to calculate the monthly payment:
+        \[ A = \frac{P \cdot i \cdot (1 + i)^n}{(1 + i)^n - 1} = \frac{ 300000 \cdot 0.003333 \cdot (1 + 0.003333)^{360} }{(1 + 0.003333)^{360} - 1}  = 1432.25\]
+    </p><h2> Level 5 </h2><p>
+        To calculate the remaining balance after \( k \) payments, we use the following formula:
+        \[ B_k = A \cdot \frac{(1 + i)^{360-t} } {(1 + i)^{360-t} - 1}  = 1432.25 \cdot \frac{(1 + 0.003333)^{360-60 } } {(1 + 0.003333)^{360-60 } - 1} = 271342.539 \]
+    </p><h2> Level 6 </h2><p>
+        Here, the variables are defined as follows:
+        <ul>
+            <li>\( B_k \): Remaining balance after \( k \) payments</li>
+            <li>\( t \): Number of payments made</li>
+        </ul>
+    </p><h2> Level 7 </h2><p>
+        To find the total amount paid by the lender, use the formula:
+        \[ \text{Total Paid} = A \cdot t  = 1432.25 \cdot 60 = 85935\]
+    </p><h2> Level 8 </h2><p>
+        To find the principal paid, subtract the remaining balance from the loan amount:
+        \[ \text{Principal Paid} = P - B_k = 300000 - 271342.539  = 28657.46\]
+    </p><h2> Level 9 </h2><p>
+        Finally, to calculate the interest paid, subtract the principal paid from the total amount paid:
+        \[ \text{Interest Paid} = \text{Total Paid} - \text{Principal Paid} = 85935 - 28657.46 = 57277.29 \]
+    </p></html>

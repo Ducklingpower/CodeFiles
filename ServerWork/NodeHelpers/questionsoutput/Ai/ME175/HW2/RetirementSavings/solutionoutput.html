@@ -1,0 +1,24 @@
+<html> <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="/styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      </head><h2> Level 0 </h2><p>
+        To calculate the monthly withdrawal amount during retirement, we need to first determine the future value of the deposits made into the account and then calculate the annuity from this amount for the withdrawal phase.
+    </p><h2> Level 1 </h2><p>
+        The future value of the deposits after 28 years can be calculated using the formula for the future value of an annuity:  
+        \[ FV = P \times \frac{(1 + r)^n - 1}{r} \]  
+        where \( P \) is the monthly deposit, \( r \) is the monthly interest rate, and \( n \) is the total number of deposits.
+    </p><h2> Level 2 </h2><p>
+        The monthly interest rate \( r \) is given by \( r = \frac{\frac{ 3 }{100} }{12} \) and the total number of deposits \( n \) is \( n = 28 \times 12 \).
+    </p><h2> Level 3 </h2><p>
+        After calculating the future value \( FV \), we then determine the monthly withdrawals using the formula for an annuity:  
+        \[ W = FV \times \frac{r}{(1 - (1 + r)^{-n})} \]  
+        where \( W \) is the monthly withdrawal, \( r \) is the new monthly interest rate after the last deposit, and \( n \) is the total number of withdrawals, given by \( n = 13 \times 12 \).
+    </p><h2> Level 4 </h2><p>
+        The new monthly interest rate after the last deposit is calculated as \( r = \frac{\frac{ 5 } {100} }{12} \).
+    </p><h2> Level 5 </h2><p>
+        Substituting \( P = 1702 USD \), \( n = 28 \times 12 \), and the calculated rates into the formulas will yield the monthly withdrawal amount as \( 7829.31 USD \).
+    </p></html>

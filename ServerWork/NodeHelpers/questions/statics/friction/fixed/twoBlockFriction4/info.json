@@ -1,0 +1,15 @@
+{
+    "uuid": "5c4rtac5-1031-45ed-a573-feb64c25wngf",
+    "title": "Two Block Friction FBD",
+	"stem": "Test your understanding of vectors and FBD",
+    "topic": "statics",
+    "tags": ["v2", "for2"],
+    "prereqs":"",
+	"isAdaptive": "false",
+	"createdBy": "jlam154@ucr.edu",
+	"qType":"mc",
+	"nSteps": 1,
+	"updatedBy":"", 
+    "difficulty": 1,
+	"codelang": "javascript"
+}

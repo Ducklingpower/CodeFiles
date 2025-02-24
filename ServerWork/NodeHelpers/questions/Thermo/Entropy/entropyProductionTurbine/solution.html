@@ -1,0 +1,53 @@
+<pl-solution-panel>
+    <pl-figure file-name="PowerTurbine.png"></pl-figure>
+    <pl-hint level="1" data-type="text">Start by identifying the given values and the assumptions provided in the problem statement.</pl-hint>
+    <pl-hint level="2" data-type="text">List the given data:
+        <ul>
+            <li>Inlet Pressure: $P_{\text{in} } = {{params.P_in}}~\text{bar}$</li>
+            <li>Inlet Temperature: $T_{\text{in} } = {{params.T_in}}~^\circ C$</li>
+            <li>Inlet Velocity: $v_{\text{in} } = {{params.v_in}}~\text{m/s}$</li>
+            <li>Outlet Temperature: $T_{\text{out} } = {{params.T_out}}~^\circ C$</li>
+            <li>Outlet Velocity: $v_{\text{out} } = {{params.v_out}}~\text{m/s}$</li>
+            <li>Work Done by Turbine: $W_{\text{turbine} } = {{params.W_turbine}}~\text{kJ/kg}$</li>
+            <li>Surface Temperature: $T_{\text{surf} } = {{params.T_surf}}~\text{K}$</li>
+        </ul>
+    </pl-hint>
+    <pl-hint level="3" data-type="text">Next, recall the entropy rate balance equation for a steady-state system:
+        \[
+        0 = \frac{\dot{Q} } {T_{\text{surf} }  } + \dot{m}(s_1 - s_2) + \sigma_{\text{cv} }
+        \]
+        Solving for the rate of entropy production per unit mass:
+        \[
+        \frac{\sigma_{\text{cv} } }{\dot{m} } = \frac{\dot{Q}/\dot{m} } {T_{\text{surf} } }  + (s_2 - s_1)
+        \]
+    </pl-hint>
+    <pl-hint level="4" data-type="text">To calculate $\dot{Q}/\dot{m}$ (heat transfer rate per unit mass), use the energy balance equation:
+        \[
+        \frac{\dot{Q} } {\dot{m} } = W_{\text{turbine} }   + (h_2 - h_1) + \frac{v_2^2 - v_1^2}{2 \cdot 1000}
+        \]
+        Substitute the given values:
+        <ul>
+            <li>Enthalpy at inlet: $h_1 = 3230.9~\text{kJ/kg}$</li>
+            <li>Enthalpy at outlet: $h_2 = 2676.1~\text{kJ/kg}$</li>
+            <li>Specific entropy at inlet: $s_1 = 6.9212~\text{kJ/(kg·K)}$</li>
+            <li>Specific entropy at outlet: $s_2 = 7.3549~\text{kJ/(kg·K)}$</li>
+        </ul>
+        Calculate:
+        \[
+        \frac{\dot{Q} } {\dot{m} } = {{params.W_turbine}} + (2676.1 - 3230.9) + \frac{ {{params.v_out}}^2 - {{params.v_in}} ^2}{2 \cdot 1000}
+        \]
+    </pl-hint>
+    <pl-hint level="5" data-type="text">Now calculate the rate of entropy production per unit mass:
+        \[
+        \frac{\sigma_{\text{cv} } }{\dot{m} } = \frac{\frac{\dot{Q } } {\dot{m} } }{T_{\text{surf} } } + (s_2 - s_1)
+        \]
+        Substitute:
+        \[
+        \frac{\sigma_{\text{cv} } }{\dot{m } } = \frac{\left( {{params.W_turbine}} + (2676.1 - 3230.9) + \frac{ {{params.v_out}}^2 - {{params.v_in}}^2}{2 \cdot 1000} \right)}{ {{params.T_surf}} }  + (7.3549 - 6.9212)
+        \]
+        Final result:
+        \[
+        \frac{\sigma_{\text{cv} } }{\dot{m} } = {{correct_answers.entropy_production_rate}}~\text{kJ/(kg·K)}
+        \]
+    </pl-hint>
+</pl-solution-panel>

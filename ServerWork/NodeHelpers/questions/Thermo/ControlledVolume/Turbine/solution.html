@@ -1,0 +1,39 @@
+<pl-solution-panel>
+    <pl-figure file-name="Turbine.png"></pl-figure>
+
+    <pl-hint level="1" data-type="text">The turbine operates at steady state with known inlet and exit conditions.</pl-hint>
+
+    <pl-hint level="2" data-type="text">Apply the energy balance for a control volume at steady state:
+    <p>$0 = \dot{Q} - \dot{W} + \dot{m} \left( h_1 + \frac{V_1^2}{2} \right) - \dot{m} \left( h_2 + \frac{V_2^2}{2} \right)$</p>
+</pl-hint>
+
+    <pl-hint level="3" data-type="text">Rearrange to solve for the heat transfer rate $\dot{Q}$:
+    <p>$\dot{Q} = \dot{W} - \dot{m} \left[ h_2 - h_1 + \frac{1}{2} \left( V_2^2 - V_1^2 \right) \right]$</p>
+</pl-hint>
+
+    <pl-hint level="4" data-type="text">Substitute the given parameters and solve step-by-step:
+    <ul>
+        <li>Mass flow rate: $\dot{m} = {{params.m_dot}}~\mathrm{kg/h}$</li>
+        <li>Convert to $\mathrm{kg/s}$: $\dot{m} = \frac{ {{params.m_dot}} }{3600}$</li>
+        <li>Specific enthalpy at the inlet: $h_1 = 3177.2~\mathrm{kJ/kg}$ (From Table A-4)</li>
+        <li>Specific enthalpy at the exit: $h_2 = h_{2f} + x \cdot h_{2fg} = (191.83) + {{params.x}} \cdot (2392.8)$ (Refer to Table A-3)</li>
+        <li>Velocity at the inlet: $V_1 = {{params.v1}}~\mathrm{m/s}$</li>
+        <li>Velocity at the exit: $V_2 = {{params.v2}}~\mathrm{m/s}$</li>
+    </ul>
+</pl-hint>
+
+    <pl-hint level="5" data-type="text">Calculate the changes in enthalpy and kinetic energy:
+    <ul>
+        <li>$\Delta h = h_2 - h_1$</li>
+        <li>$\Delta KE = \frac{1}{2} \left( V_2^2 - V_1^2 \right) \cdot \frac{1}{1000}$ (convert to $\mathrm{kJ/kg}$)</li>
+    </ul>
+</pl-hint>
+
+    <pl-hint level="6" data-type="text">Substitute all values into the energy balance equation:
+    <p>$\dot{Q} = {{params.Q_out}} + \dot{m} \left( \Delta h + \Delta KE \right)$</p>
+</pl-hint>
+
+    <pl-hint level="7" data-type="text">Final calculation:
+    <p>Heat transfer rate: $\dot{Q} = {{correct_answers.heatTransfer}}~\mathrm{kW}$</p>
+</pl-hint>
+</pl-solution-panel>

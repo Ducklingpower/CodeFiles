@@ -1,0 +1,20 @@
+<pl-question-panel>
+    <p>Given the following cash flow details for the year 2018:</p>
+    <ul>
+      <li>Before-Tax-and-Loan-Cash-Flow = {{params.before_tax_and_loan_cash_flow}}</li>
+      <li>Payment on loan principal = {{params.loan_principal_payment}}</li>
+      <li>Payment on loan interest = {{params.loan_interest_payment}}</li>
+      <li>MACRS Depreciation Deduction = {{params.macrs_depreciation_deduction}}</li>
+      <li>Taxrate = {{params.tax}}%</li>
+
+      <p>What is the taxable income for ACME Inc?  </p>
+      <p>What is the Tax Payed?</p>
+      <p>What is the after tax cash flow, (ATCF)?</p>
+
+    </ul>
+  </pl-question-panel>
+  
+<pl-number-input answers-name="taxable" comparison="sigfig" digits="3" label="Taxable Income = "></pl-number-input>
+<pl-number-input answers-name="taxPayed" comparison="sigfig" digits="3" label="Tax Payed = "></pl-number-input>
+<pl-number-input answers-name="ATCF" comparison="sigfig" digits="3" label="ATCF = "></pl-number-input>
+

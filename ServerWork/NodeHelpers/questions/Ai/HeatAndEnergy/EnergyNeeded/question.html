@@ -1,0 +1,15 @@
+<pl-question-panel>
+    <p>
+      A {{params.materialNameCopper}} container of mass {{params.massCopper}} {{params.unitsMass}} contains {{params.volumeWater}} {{params.unitsVolume}} of {{params.materialNameWater}} at {{params.initialTemperature}} {{params.unitsTemperature}}. 
+      Calculate the quantity of heat required to raise the temperature of the water and container to the boiling point, assuming there are no heat losses.
+    </p>
+    <p>
+      Specific heat capacities: {{params.materialNameCopper}} = {{params.specificHeatCopper}} {{params.unitsSpecificHeatCopper}},
+      {{params.materialNameWater}} = {{params.specificHeatWater}} {{params.unitsSpecificHeatWater}}
+    </p>
+  </pl-question-panel>
+  
+  <p> How much heat (in {{params.unitsHeat}} or {{params.unitsHeatAlternate}}) is required to heat the container and water? </p>
+  <pl-number-input answers-name="Q" comparison="sigfig" digits="3" label="Q  in {{params.unitsHeat}}"></pl-number-input>
+  
+  <p> Units: {{params.unitsMass}}, {{params.unitsVolume}}, {{params.unitsTemperature}}, {{params.unitsHeat}}, {{params.unitsHeatAlternate}}.</p>

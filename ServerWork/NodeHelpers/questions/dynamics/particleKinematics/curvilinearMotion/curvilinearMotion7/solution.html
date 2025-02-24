@@ -1,0 +1,48 @@
+
+
+
+
+<pl-solution-panel>
+    <pl-figure file-name="curvilinearMotion7.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> This is a curvilinear problem, we can take the derivatives of the theta and r equation to obtain the acceleration and velocity in the theta and r direction.</pl-hint>
+                       
+  
+ 
+    <pl-hint level="2" data-type="text">
+ 
+  <p>Talking derivatives of r:</p>
+  <li>$r = c_1 t^2$</li>
+  <li>$\dot{r} = 2c_1 t$</li>
+  <li>$\dot{\dot{r} } = 2c_1$</li>
+
+
+  <p>Taking derivatives of $\theta$</p>
+  <li>$\theta = c_2 t^3$</li>
+  <li>$\dot{\theta}  =  3c_2 t^2$</li>
+  <li>$\dot{\dot{\theta} } = 6c_2t$</li>
+ 
+<p>Now we can solve for velocity and acceleration.</p>
+      </pl-hint>
+ 
+ 
+ 
+ 
+    <pl-hint level="3" data-type="text">
+        <ul>
+ 
+ 
+<p>Solving for Velocity:</p>
+<li>$v = \sqrt{ (\dot{r})^2 + (r \dot{\theta})^2   }$</li>
+<li>$v = \sqrt{ (2c_1 t)^2 + ((c_1 t^2) ~ 3c_2 t^2)^2   }$ = {{correct_answers.v}} m/s</li>
+
+
+<p>Solving for acceleration:</p>
+<li> a =$ \sqrt{(\dot{\dot{r} } - r\dot{\theta}^2)^2 + (r \dot{\dot{\theta} } + 2 \dot{r} \dot{\theta})^2}$</li>
+<li>a =$ \sqrt{(2c_1 - c_1t^2 (c_2 3 t^2)^2 )^2   +   (c_1 t^2 (6c_2 t ) +  2 (2c_1t) c_2 3 t^2)^2}$ = {{correct_answers.a}} $m/s^2$</li>
+
+
+
+
+ 
+     </ul>
+    </pl-hint>

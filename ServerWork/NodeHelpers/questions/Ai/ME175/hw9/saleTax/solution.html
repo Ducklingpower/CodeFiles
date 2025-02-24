@@ -1,0 +1,82 @@
+<pl-solution-panel>
+    <pl-hint level="1" data-type="text">
+        To calculate the depreciation expense and the book value of the tape-drive system using the MACRS method, we first need to understand the depreciation rates associated with the property class.
+    </pl-hint>
+    <pl-hint level="2" data-type="text">
+        The MACRS depreciation method allows for accelerated depreciation, which means that more depreciation expense is recognized in the early years of the asset's life. The property class determines the applicable depreciation rates.
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        For a {{params.propertyClass}}-year property, the MACRS rates can be found in the IRS guidelines. Typically, the rates for a 7-year property are approximately: 14.29%, 24.49%, 17.49%, 12.49%, 8.93%, 8.92%, 8.93%, and 4.46%.
+    </pl-hint>
+    
+
+    <pl-hint level="4" data-type="text">
+
+    $\textbf{Depreciation Calculation and Book Values}$
+
+<p>The large tape-drive system for backing up computer servers is purchased for \( \text{Cost} = \text{{params.cost}} \). The MACRS depreciation percentages for a 7-year property are applied as follows:</p>
+
+\[
+\begin{array}{|c|c|c|c|}
+\hline
+\textbf{Year} & \textbf{Depreciation Expense} & \textbf{Book Value at End of Year}  \\
+\hline
+\text{1} & {{params.dp1}} & {{correct_answers.bookValueEndYear1}}  \\
+\hline
+\text{2} & {{params.dp2}} & {{correct_answers.bookValueEndYear2}}  \\
+\hline
+\text{3} &{{params.dp3}} & {{correct_answers.bookValueEndYear3}}  \\
+\hline
+\text{4} & {{params.dp4}}& {{correct_answers.bookValueEndYear4}}  \\
+\hline
+\text{5} & {{params.dp5}} & {{correct_answers.bookValueEndYear5}}  \\
+\hline
+\text{6} & {{params.dp6}} & {{correct_answers.bookValueEndYear6}}  \\
+\hline
+\text{7} &{{params.dp7}} & {{correct_answers.bookValueEndYear7}}  \\
+\hline
+\text{8} & {{params.dp8}} & {{correct_answers.bookValueEndYear8}}  \\
+\hline
+\end{array}
+\]
+
+
+
+
+</pl-hint>
+
+
+<pl-hint level="5" data-type="text">
+   
+    The tax payed for selling the autoclave for a salvage value of {{params.salvage}} at EOY 10 can be found as: 
+    <p>Tax Payed = ({{params.salavge}} - Book Value at EOY 10) $\times$ {{params.tax}}%</p>
+    <p>In our case, selling the autoclave at EOY 10 will provide a book value of zero.</p>
+    <p>Tax Payed = ({{params.salvage}} - 0) $\times$ {{params.tax}}% = {{correct_answers.taxLiability}}</p>
+   
+
+
+</pl-hint>
+
+<pl-hint level="6" data-type="text">
+   
+    The tax payed for selling the autoclave for a salvage value of {{params.salvage}} at EOY {{params.year}} can be found as: 
+    <p>Tax Payed = ({{params.salvage}} - Book Value at EOY {{params.year}}) $\times$ {{params.tax}}%</p>
+    <p>In our case, selling the autoclave at EOY {{params.year}} will provide a book value of {{params.bvyear}}.</p>
+    <p>Tax Payed = ({{params.salvage}} - {{params.bvyear}}) $\times$ {{params.tax}}% = {{correct_answers.taxpayed}}</p>
+   
+
+
+</pl-hint>
+
+<pl-hint level="7" data-type="text">
+   
+    The tax payed for selling the autoclave for a salvage value of {{params.salvage}} at EOY {{params.year}} can be found as: 
+    <p>Tax Payed = ({{params.salvageLow}} - Book Value at EOY {{params.year}}) $\times$ {{params.tax}}%</p>
+    <p>In our case, selling the autoclave at EOY {{params.year}} will provide a book value of {{params.bvyear}}.</p>
+    <p>Tax Payed = ({{params.salvageLow}} - {{params.bvyear}}) $\times$ {{params.tax}}% = {{correct_answers.taxpayedLow}}</p>
+   
+
+
+</pl-hint>
+
+</pl-solution-panel>

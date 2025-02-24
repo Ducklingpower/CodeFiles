@@ -1,0 +1,65 @@
+<pl-solution-panel>
+    <pl-figure file-name="frame6.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> The first step is to break up the system into parts. Break off member CB and AB and draw free body diagrams for each member.</pl-hint>
+    <pl-hint level="2" data-type="text"> Secondly we must solve for the force of the spring. Spring force is equal to $F_s = k(\Delta{x})$. In this case $\Delta{x}$ can by comparing the length of the spring we have now, and the unstretched length of the spring . </pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul>
+
+                  <p>Free body diagram for member CB:</p>
+                    <li>At pin C we can write Cx and Cy reaction forces as up and left, and at point B we can do the same for Bx and By.</li>
+                    <li>We also have to draw the spring force pointing down from point C and we need to draw the weight force point down starting at the middle of the member.</li>
+                  <p>Free body diagram for member AB:</p>
+                    <li>At pin A we can write the reaction force Ax pointing left. There is no need for Ay since this is a rollar joint.</li>
+                    <li>At pin B we have to write the reaction forces opposit to what we did last time so Bx and By are pointing down and right on member AB.</li>
+                    <li>We also have to draw the spring force pointing up from pin A and we need to draw the weight force point down starting at the middle of the member.</li>
+                    <p>Solving for spring force:</p>
+                    <li>Using the equation $F_s = k(\Delta {x})$ we can simply just solve for $\Delta{x}$ since we are given k = {{params.k}}</li>
+                    <li>Using trig we can find that the length of the spring is $2Lsin(\theta)$ and we are given the unstretched length of the spring so, $F_s = k(2Lsin(\theta)-{{params.ls}})$. </li>
+
+                    Now you can use the free body diagrams to create three equations to solve for your three unknowns. ($\theta$ , $B_x$, $B_y$)
+                </ul>
+            </pl-hint>
+        
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+          <p>Creating three equations with out free body diagrams:</p>
+          <li>Using member CB we can write a moment equation about point C.</li>
+
+          <li>$\Sigma{M}_C = 0$ $\implies$ $-Wcos(\theta)\frac{L}{2}-Lsin(\theta)B_x+Lcos(\theta)B_y=0$</li>
+             <p></p>
+          <li>Using member AB we can write a moment equation about point A.</li>
+          <li>$\Sigma{M}_A = 0$ $\implies$ $-Wcos(\theta)\frac{L}{2}-Lsin(\theta)B_x-Lcos(\theta)B_y=0$</li>
+         <p></p>
+        <li>Using member AB to write a force equation in the y direction:</li>
+          <li>$\Sigma{F}_y = 0$ $\implies$ $F_s-W-B_y=0$</li>
+        <p>Now you have three equations and three unkowns. You can solve for each varible.</p>
+
+
+
+
+        </ul>
+    </pl-hint>
+
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+            If you are having trouble solving here is a hint: ($B_y$ = 0)
+        
+        
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text"> 
+        <ul>
+           Solutions:
+           <li>$B_y$ = 0</li>
+           <li>$B_x$ = ${{correct_answers.Bx}} {{params.unitsForce}}$</li>
+           <li>$\theta$ = ${{correct_answers.theta}}$ deg</li>
+        
+        </ul>
+    </pl-hint>
+
+

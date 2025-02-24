@@ -1,0 +1,10 @@
+<pl-question-panel>
+    <pl-figure file-name="PowerTurbine.png"></pl-figure>
+    
+    <p>Steam enters a turbine with a pressure of $\mathbf{P_{\text{in} } } = {{params.P_in}}~bar$, a temperature of $\mathbf{T_{\text{in} } }  = {{params.T_in}}~^\circ C$, and a velocity of $\mathbf{v_{\text{in} } } = {{params.v_in}}~m/s$.</p> 
+    <p>Saturated vapor at $\mathbf{T_{\text{out} } } = {{params.T_out}} ~^\circ C$ exits with a velocity of $\mathbf{v_{\text{out} } } = {{params.v_out}}~m/s$.</p>
+    <p>At steady state, the turbine develops work equal to $\mathbf{W_{\text{turbine} } } = {{params.W_turbine}}~\text{kJ/kg}$ of steam flowing through the turbine. Heat transfer between the turbine and its surroundings occurs at an average outer surface temperature of $\mathbf{T_{\text{surf} } } = {{params.T_surf}}~K$.</p>
+    <p>Determine the rate at which entropy is produced within the turbine per kg of steam flowing, in $\mathbf{kJ/(kg \cdot K)}$. Neglect the change in potential energy between inlet and exit.</p>
+</pl-question-panel>
+
+<pl-number-input answers-name="entropy_production_rate" comparison="sigfig" digits="3" label="Rate of entropy production per kg of steam in ($kJ/(kg·K)$) ="></pl-number-input>

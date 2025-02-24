@@ -1,0 +1,58 @@
+<pl-solution-panel>
+    <pl-figure file-name="3dRigidBodies1.png"></pl-figure>
+    <pl-hint level="1" data-type="text">First, define the tension in cable BD and BC as a vector expression. You can do this by multiplying the tension in the cables by the according unit vector of the cable, starting from point B.  </pl-hint>
+    <pl-hint level="2" data-type="text">At this point, we don't know the tension in the cable so we can just call the tension in cable BD $\mathbf{T}_1$ and the tension in the cable BC $\mathbf{T}_2$.</p>
+        <p>Let the unit vector for cable BD be $\frac{-2L_1 \hat{i}-2L_1\hat{j}+L_1\hat{z}}{\sqrt{2L_1^2+2L_1^2+L_1^2}}$ and the unit vector for BC be
+        $\frac{L_1\hat{i}-2L_1\hat{j}+2L_1\hat{z}}{\sqrt{L_1^2+2L_1^2+2L_1^2}}$.</p>
+        <p>So that the vector expression for $ T_1$ is $\vec{T}_1  = (T_1) \frac{-2L_1 \hat{i}-2L_1\hat{j}+L_1\hat{z}}{\sqrt{2L_1^2+2L_1^2+L_1^2}}$ and the vector expression for $T_2$ is $ \vec{T}_2  = (T_1) \frac{L_1\hat{i}-2L_1\hat{j}+2L_1\hat{z}}{\sqrt{L_1^2+2L_1^2+2L_1^2}}$.</p>
+        </pl-hint>
+   
+   
+            <pl-hint level="3" data-type="text">
+                <ul>
+                    Now that we set up our tensions in terms of vectors we can start solving.
+                    <p>Let's start with summing up the forces in all directions.</p>
+                    <li> $\Sigma{F}_x = 0 \implies Ax+\vec{T}_1\hat{i}+\vec{T}_2\hat{i}=0 $</li>
+                    <li> $\Sigma{F}_y = 0 \implies Ay+\vec{T}_1\hat{j}+\vec{T}_2\hat{j}=0 $</li>
+                    <li> $\Sigma{F}_z = 0 \implies Az+\vec{T}_1\hat{k}+\vec{T}_2\hat{k}-W = 0$  </li>
+                    Where Ax, Ay, and Az are the reaction forces at point A.
+                    <p>We also need to take the moment about point A to acquire 4 equations to solve for all the unknowns. </p>
+                    <p> let the vector $\vec{d}_a$ be the vector that describes the distance from point A to point B. ie $\vec{d}_a = 0\hat{i}+2L_1\hat{j}+0\hat{k}$</p>
+                    <p>And let the vector $\vec{d}_w$ be the vector from point A to halfway to point B where the weight vector lies. ie $\vec{d}_w = 0\hat{i}+L_1\hat{j}+0\hat{k}$</p>
+                    <li> $\Sigma{M}_A = 0 \implies   \vec{d}_a $ X $ \vec{T}_1+ \vec{d}_a $ X $ \vec{T}_2 + \vec{d}_w $ X $ \vec{W} = 0$ </li>
+                    Now you can solve all of the cross-products to acquire $T_1$ and $T_2$.
+                    And use the tension to solve for Ax, Ay, and Az. 
+                    
+                    
+                </ul>
+            </pl-hint>
+        
+
+    <pl-hint level="4" data-type="text"> 
+        <ul>
+            When solving all of the cross-products we get:
+            <li> $\vec{d}_a X \vec{T}_1 = (2L_1)(\vec{T}_1\hat{k}) \hat{i} - (0)\hat{j} + (-2L_1)(\vec{T}_1\hat{i})\hat{k}$</li>
+            <li>$\vec{d}_a X \vec{T}_2 = (2L_1)(\vec{T}_2\hat{k}) \hat{i} - (0)\hat{j} + (-2L_1)(\vec{T}_2\hat{i})\hat{k}$</li>
+            <li> $\vec{d}_w X \vec{W}  =  (-W)(L_1)\hat{i} + 0 \hat{j} + 0 \hat{k}$</li>
+            <p>We can set all of the $\hat{i}$'s = 0,  $\hat{j}$'s = 0 ,and  $\hat{k}$'s = 0 to solve for tension.</p>
+            <li> $\hat{i}$ : $(2L_1)(\vec{T}_1\hat{k}) + (2L_1)(\vec{T}_2\hat{k}) - (W)(L_1) = 0$  </li>
+            <li> $\hat{j}$ : 0 = 0</li>
+            <li> $\hat{k}$ : $(-2L_1)(T_1\hat{i})+(-2L_1)(T_2\hat{i})$ = 0  </li>
+            <p>Solving the system of equations we get: $\mathbf{T}_1 = {{corect_answers.T1}} {{params.unitsForce}}$ and $\mathbf{T}_2 = {{corect_answers.T2}} {{params.unitsForce}}$.</P>
+            <P> Now that we have our tensions, we can solve for Ax, Ay, and Az using the force equations from earlier.</P>  
+            
+        </ul>
+    </pl-hint>
+
+    <pl-hint level="5" data-type="text"> 
+        <ul>
+           Using the force equations and our tensions we are able to solve the reaction forces at point A.
+           <p>$A_x = {{correct_answers.Ax}}{{params.unitsForce}}</p>
+           <p>$A_y = {{correct_answers.Ay}}{{params.unitsForce}}</p>
+           <p>$A_z = {{correct_answers.Az}}{{params.unitsForce}}</p>
+
+
+        </ul>
+    </pl-hint>
+
+

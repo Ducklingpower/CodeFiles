@@ -1,0 +1,32 @@
+<pl-solution-panel>
+    <pl-figure file-name="curvilinearMotion1.png"></pl-figure>
+    <pl-hint level="1" data-type="text"> At this instant in time the ball has two acceleration components, A tangential and a normal component. The tangential is given, the normal component is just the centripetal acceleration. </pl-hint>
+
+
+    <pl-hint level="2" data-type="text">
+   
+   <p>Centripetal acceleration is defined by $A_c = \frac{v^2}{r}$.</p>
+   <p>we have the velocity which is just $v_o   = {{params.v}}$ m/s, all we need is the radius. (r) is the radius of curvature of y(x) at x = {{params.D}} meters.</p>
+   Try to compute the radius in order to find $A_c$
+   
+   
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+           
+        Computing radius at x = {{params.D}}:
+        <p>In order to compute the radius of y(x) at any x we can just use |r| = $\frac{(1+(\frac{dy}{dx})^2)^{3/2} }{\frac{d^2y}{dx^2} }$</p>
+        <p>Plugging in our equation we get $|r| = \frac{(1+(\frac{12}{x})^2)^{3/2} }{- \frac{12}{x^2} }$ $\implies$ $\frac{(1+(\frac{12} { {{params.D}} })^2)^{3/2} }{- \frac{12}{ {{params.D}} ^2} } = {{params.r}}$ meters</p>
+        <p>Now that we have r we can compute the $A_c$.</p>
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+       Computing net acceleration:
+       <p>$A_c = \frac{v^2}{r}$ $\implies$ $\frac{ {{params.v}}^2 }{ {{params.r}} }$</p>
+       <p> A = $\sqrt{A_t^2+A_c^2}$ $\implies $ $\sqrt{ {{params.a}}^2 +  (\frac{ {{params.v}}^2 }{ {{params.r}} })^2} = {{correct_answers.acceloration}}$</p>
+       
+        </ul>
+    </pl-hint>
+
+

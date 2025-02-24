@@ -1,0 +1,22 @@
+<pl-question-panel>
+{{params.svgString}}
+
+<p> The figure shows a boom OB of length {{params.L}} {{params.unitsDist}} and {{params.masslabel}} {{params.mass}} {{params.unitsMass}}  hinged at point O. The other end of the boom B is attached by means of a cable to point A located at a vertical distance of {{params.H}} {{params.unitsDist}} above point O. The angle $ \angle AOB $ made by the boom with the vertical is {{params.phi}} degrees.
+</p>
+
+
+<p> The cables are made of {{params.materialName}}.</p>
+<p> The wire is made of material with yield strength {{params.sult}} {{params.unitsStress}}, modulus of elasticity {{params.E}} {{params.unitsModulusElasticity}} and Poisson's ratio {{params.nud}}</p>
+
+</pl-question-panel>
+
+<p> 
+What are the tensions (in {{params.unitsForce}}) and the reactions (in {{params.unitsForce}} ) at the hinges? 
+</p>
+<pl-number-input answers-name="tension" comparison="sigfig" digits="3" label="Tension in cable"></pl-number-input>
+<pl-number-input answers-name="Ox" comparison="sigfig" digits="3" label="$ O_x $"></pl-number-input>
+<pl-number-input answers-name="Oy" comparison="sigfig" digits="3" label="$ O_y $"></pl-number-input>
+What is the minimum diameter (in {{params.unitsDiameter}}) required for the cable for a factor of safety of {{params.fs}}? </p>
+<pl-number-input answers-name="d" comparison="sigfig" digits="3" label="Minimum cable diameter (in {{params.unitsDiameter}})"></pl-number-input>
+<p> What is the elongation (in {{params.unitsDLength}}) in the cable?</p>
+<pl-number-input answers-name="dLs" comparison="sigfig" digits="3" label="Elongation (in {{params.unitsDLength}})"></pl-number-input>

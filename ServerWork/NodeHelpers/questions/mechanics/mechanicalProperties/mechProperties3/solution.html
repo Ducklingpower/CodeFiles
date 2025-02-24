@@ -1,0 +1,35 @@
+<pl-solution-panel>
+    <pl-figure file-name="mechProperties3.png"></pl-figure>
+    <pl-hint level="1" data-type="text">First, try and establish the modulus of elasticity (E) using the given data.</pl-hint>
+    <pl-hint level="2" data-type="text">Solving for E:
+
+
+
+
+<li>stress: $\sigma = \frac{F}{A}$</li>
+<li>strain: $\epsilon_{Long} = \frac{\delta L}{L_o}$</li>
+<p>Solving for stress and strain we can now find the modulus of elasticity: E =$\frac{\sigma}{\epsilon}$</p>
+
+
+
+
+        Now that we have young's modulus of elasticity and we are given Shears modulus of elasticity (G), We can find the poisons ratio.
+    </pl-hint>
+    <pl-hint level="3" data-type="text">
+        <ul>
+         Finding poisons ratio:
+         <p>Using $G = \frac{E}{2(1+\upsilon)}$ we can solve for $\upsilon$</p>
+         <li>$\upsilon = \frac{E}{2G}-1$</li>
+         Now that we have the Poisson's ratio, try to compute the lateral strain.
+       
+        </ul>
+    </pl-hint>
+    <pl-hint level="4" data-type="text">
+        <ul>
+          Since we have previously found the longitudinal strain and the poisson's ratio, we can easily find the lateral strain.
+          <li>lateral strain $\epsilon_{Lat} = \upsilon ~ \epsilon_{Long}$</li>
+          <p>Now we can compute the change in diameter to be</p>
+          <li>$\delta D = \epsilon_{Lat} ~D = {{correct_answers.change}} $ mm</li>
+       
+        </ul>
+    </pl-hint>

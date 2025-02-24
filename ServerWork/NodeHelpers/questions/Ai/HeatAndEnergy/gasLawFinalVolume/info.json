@@ -1,0 +1,24 @@
+{
+    "title": "CombinedGasLawCalculation",
+    "stem": "Calculating gas volume using the combined gas law under different conditions.",
+    "topic": "Gas Laws",
+    "tags": [
+        "Gas Law",
+        "Combined Gas Law",
+        "Volume Calculation",
+        "Pressure",
+        "Temperature"
+    ],
+    "prereqs": [
+        "Understanding of the Ideal Gas Law",
+        "Basic knowledge of pressure, volume, and temperature relationships"
+    ],
+    "isAdaptive": true,
+    "createdBy": "lberm007@ucr.edu",
+    "qType": "num",
+    "nSteps": 1,
+    "updatedBy": "",
+    "difficulty": 1,
+    "codelang": "javascript",
+    "reviewed": false
+}
