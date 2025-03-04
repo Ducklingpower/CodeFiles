@@ -7,10 +7,10 @@ m1 = 1; %kg
 m2 = 5; %kg
 
 k1 = 2000; %N/m
-k2 = 700; %N/m
+k2 = 500; %N/m
 
-c1 = 0; %Ns/m
-c2 = 100; %Ns/m
+c1 = 100; %Ns/m
+c2 = 20; %Ns/m
 
 %% Mass/Stiffness matrices
 
@@ -116,7 +116,7 @@ noise =rand(100000,1)*noiseLevel;
     dy_input_dt = timeseries(dy_input(position'),t_span); % dY(t)/dt
 
 % Sky hook control damping vals
-Cmax = 2000;
+Cmax = 100;
 Cmin = 20;
 
 C_vect = ones(length(t_span),2);
