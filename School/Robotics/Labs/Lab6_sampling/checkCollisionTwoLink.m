@@ -1,4 +1,4 @@
-function TF = checkCollisionTwoLink(L1,L2,W,alpha,beta,xo,yo,r)
+function [one two] = checkCollisionTwoLink(L1,L2,W,alpha,beta,xo,yo,r)
 
 %% Position
 x1 = L1 * cos(alpha);
@@ -76,10 +76,16 @@ TF4 = doTwoConvexPolygonsIntersect(obsticle,Link2_start);
 TF5 = doTwoConvexPolygonsIntersect(obsticle,Link2_end);
 
 
-if  (TF1 ==1) || (TF2 == 1) || (TF3 ==1) || (TF4 ==1) || (TF5 == 1)
-    TF = 1;
+if  (TF1 ==1) || (TF3 ==1)
+    one = 1;
 else 
-    TF = 0;
+    one = 0;
+end
+
+if  (TF2 ==1) || (TF4 ==1) || (TF5 ==1)
+    two = 1;
+else 
+    two = 0;
 end
 
 end

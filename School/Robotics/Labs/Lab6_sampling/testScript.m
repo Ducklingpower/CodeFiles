@@ -42,3 +42,15 @@ r  = 2;
 
 TF = checkCollisionTwoLink(L1,L2,W,alpha,beta,xo,yo,r);
 
+%% Sampling
+L1 = 4;
+L2 = 4;
+W  = 0.2; %  width
+alpha = 0;
+beta =  0;
+xo = 0;
+yo = 3;
+r  = 2;
+n = 900;
+sampling_method = "Sukharev";
+grid = plotSampleConfigurationSpaceTwoLink(L1,L2,W,xo,yo,r,sampling_method,n);
