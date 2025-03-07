@@ -54,3 +54,16 @@ r  = 2;
 n = 30^2;
 sampling_method = "Sukharev";
 grid = plotSampleConfigurationSpaceTwoLink(L1,L2,W,xo,yo,r,sampling_method,n);
+
+%% Running interactive animatioon
+L1 = 4;
+L2 = 10;
+W  = 0.2; %  width
+alpha = 0;
+beta =  0;
+xo = 0;
+yo = 7;
+r  = 2;
+n = 100^2;
+sampling_method = "Sukharev";
+LiveHoverPlot(L1,L2,W,xo,yo,r,n,sampling_method)
