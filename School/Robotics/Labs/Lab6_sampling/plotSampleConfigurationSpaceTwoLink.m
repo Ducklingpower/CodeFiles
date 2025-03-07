@@ -7,7 +7,7 @@ elseif strcmp(sampling_method, 'Random')
     Grid = computeGridRandom(n);
 
 elseif strcmp(sampling_method, 'Halton')
-    Grid = computeGridHalton(n);
+    Grid = computeGridHalton(n,2,3);
 
 else
     error("Unknown sampling method")
@@ -91,8 +91,8 @@ Link2_end = [[semi0x'] [semi0y']];
 [TF1 TF2] = checkCollisionTwoLink(L1,L2,W,alpha,beta,xo,yo,r);
 
 if TF1 ==1
-    black(i,1) = alpha*(180./pi);
-    black(i,2) = beta*(180./pi);
+    black(i,1) = alpha;
+    black(i,2) = beta;
     red(i,1) = 0;
     red(i,2) = 0;
     blue(i,2) = 0;
@@ -101,8 +101,8 @@ if TF1 ==1
 elseif TF2 ==1
     black(i,1) = 0;
     black(i,2) = 0;
-    red(i,1) = alpha*(180./pi);
-    red(i,2) = beta*(180./pi);
+    red(i,1) = alpha;
+    red(i,2) = beta;
     blue(i,1) = 0;
     blue(i,2) = 0;
 
@@ -111,8 +111,8 @@ else
     black(i,2) = 0;
     red(i,1) = 0;
     red(i,2) = 0;
-    blue(i,1) = alpha*(180./pi);
-    blue(i,2) = beta*(180./pi);
+    blue(i,1) = alpha;
+    blue(i,2) = beta;
 end
 
 end

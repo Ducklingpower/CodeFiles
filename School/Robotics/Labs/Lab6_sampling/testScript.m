@@ -51,6 +51,6 @@ beta =  0;
 xo = 0;
 yo = 3;
 r  = 2;
-n = 900;
+n = 30^2;
 sampling_method = "Sukharev";
 grid = plotSampleConfigurationSpaceTwoLink(L1,L2,W,xo,yo,r,sampling_method,n);
