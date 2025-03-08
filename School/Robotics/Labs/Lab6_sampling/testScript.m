@@ -2,32 +2,22 @@ clc
 close all
 clear 
 %% Part 1 plot enviroment
+% plotEnvironment(L1, L2, W, alpha, beta, xo, yo, r)
 
+figure
 L1 = 4;
 L2 = 4;
 W  = 0.2; %  width
-alpha = pi/4;
-beta = pi/4;
-xo = 0;
-yo = 8.2;
-r  = 0.1;
+xo = 2;
+yo = -1;
+r  = 2;
 
-% plotEnvironment(L1, L2, W, alpha, beta, xo, yo, r)
-% Animation
-figure
-frames = 300;
-alpha = linspace(0,pi,frames);
-beta  = linspace(0,4*pi,frames);
+alpha = pi/6;
+beta  = pi/2;
 
-for i = 1:frames
-plotEnvironment(L1, L2, W, alpha(i), beta(i), xo, yo, r)
-TF = checkCollisionTwoLink(L1,L2,W,alpha(i),beta(i),xo,yo,r);
-if TF ==1
-    break
-end
-pause(0.0001)
-clf
-end
+plotEnvironment(L1, L2, W, alpha, beta, xo, yo, r)
+[TF1,TF2] = checkCollisionTwoLink(L1,L2,W,alpha,beta,xo,yo,r)
+
 
 %% Obstcile detection
 
@@ -51,8 +41,10 @@ beta =  0;
 xo = 0;
 yo = 3;
 r  = 2;
-n = 30^2;
-sampling_method = "Sukharev";
+n = 20^2;
+ sampling_method = "Sukharev";
+%sampling_method = "Halton";
+% sampling_method = "Random";
 grid = plotSampleConfigurationSpaceTwoLink(L1,L2,W,xo,yo,r,sampling_method,n);
 
 %% Running interactive animatioon
@@ -61,9 +53,9 @@ L2 = 10;
 W  = 0.2; %  width
 alpha = 0;
 beta =  0;
-xo = 0;
-yo = 7;
+xo = 4;
+yo = 4;
 r  = 2;
 n = 100^2;
-sampling_method = "Sukharev";
+sampling_method = "Random";
 LiveHoverPlot(L1,L2,W,xo,yo,r,n,sampling_method)
