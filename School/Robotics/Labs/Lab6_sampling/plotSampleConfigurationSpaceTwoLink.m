@@ -1,4 +1,4 @@
-function Grid = plotSampleConfigurationSpaceTwoLink(L1,L2,W,xo,yo,r,sampling_method,n)
+function [Grid,blue] = plotSampleConfigurationSpaceTwoLink(L1,L2,W,xo,yo,r,sampling_method,n)
 %% Define method and obtaining grid
 if strcmp(sampling_method, 'Sukharev')
     Grid = computeGridSukharev(n);
