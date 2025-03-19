@@ -59,4 +59,68 @@ hold on
 plot(1:100,1./(A.^2))
 
 
+%% Crank Shaft
+clc;
+close all;
+clear;
 
+L1 = 2; 
+L2 = L1*2; 
+w =2;  % Angular velocity
+
+
+tiledlayout(2, 1);
+
+
+ax1 = nexttile;
+axis equal;
+axis([-15 15 -15 15]); 
+hold on;
+P3 = [0, 0]; % Origin
+
+
+ax2 = nexttile;
+hold on;
+title('Y-Coordinates of P2 and P1 Over Time');
+xlabel('Iteration');
+ylabel('Y-Coordinate');
+grid on;
+
+
+P2_y_vals = [];
+P1_y_vals = [];
+
+for i = 1:500
+    th1 = w * (i / 10); 
+    P2 = [L1 * cos(th1), L1 * sin(th1)];
+    
+    horizontal_dist = P2(1);     
+    if abs(horizontal_dist) > L2
+        continue; 
+    end  
+    
+    aph = acos(horizontal_dist / L2); 
+    P1 = [0, P2(2) + L2 * sin(aph)];  
+    
+    P2_y_vals = [P2_y_vals, P2(2)];
+    P1_y_vals = [P1_y_vals, P1(2)];
+
+    cla(ax1);  
+
+    
+    plot(ax1, [P3(1), P2(1)], [P3(2), P2(2)], 'o-', 'LineWidth', 2, 'Color', 'b');
+    hold(ax1, 'on');   
+    plot(ax1, [P2(1), P1(1)], [P2(2), P1(2)], 'o-', 'LineWidth', 2, 'Color', 'r'); 
+    plot(ax1, P1(1), P1(2), 'ro', 'MarkerFaceColor', 'r');
+    title(ax1, 'Slider Crank Mechanism');
+    axis(ax1, [-15 15 -15 15]); 
+    grid(ax1, 'on');
+    
+  
+    cla(ax2);
+    plot(ax2, 1:length(P2_y_vals), P2_y_vals, 'b', 'LineWidth', 1.5);
+    hold(ax2, 'on');
+    plot(ax2, 1:length(P1_y_vals), P1_y_vals, 'r', 'LineWidth', 1.5);
+    legend(ax2, 'P2 Y-Coord', 'P1 Y-Coord');
+    pause(0.01);
+end
