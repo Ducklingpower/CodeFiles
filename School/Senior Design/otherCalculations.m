@@ -124,3 +124,40 @@ for i = 1:500
     legend(ax2, 'P2 Y-Coord', 'P1 Y-Coord');
     pause(0.01);
 end
+
+
+%% Spring constant 
+
+inches_up1 = [0 1.5 2 2.4 2.6 3 3.5 3.75]./39.37;
+newtons_up1= [0 2 2.4 3.9 4.9 6.4 7.3 9.8];  
+
+inches_down1 = [3.5 3 2.7 2.5 2.25 2 1.75 1.5 1.25 1 0]./39.37;
+newtons_down1= [9.3 7.3 6.4 5.9 5.4 4.9 4.4 3.1 2.4 2 0];
+
+inches_up2 = [0 1.25 1.5 1.75 2 2.25 2.5 2.75 3 3.3 3.55 4 4.3]./39.37;
+newtons_up2= [0 2 2.9 3.4 3.9 4.4 4.9 5.9 6.4 7.3 8.3 9.3 10.3];  
+
+figure
+inches = [inches_up1 inches_down1 inches_up2];
+newtons = [newtons_up1 newtons_down1 newtons_up2];
+plot(inches,newtons,".-","Color","black")
+hold on
+plot(inches_up1,newtons_up1,"o--",LineWidth=2)
+hold on
+plot(inches_down1,newtons_down1,"o--",LineWidth=2)
+hold on
+plot(inches_up2,newtons_up2,"o--",LineWidth=2)
+hold on
+grid on
+
+p = polyfit(inches, newtons, 1);     
+slope = p(1)
+inches_fit = linspace(min(inches), max(inches), 100);
+newtons_fit = polyval(p, inches_fit);
+plot(inches_fit, newtons_fit, 'LineWidth', 2)
+
+grid on
+legend("Total test", "up 1", "down", "up 2", "Best fit line")
+xlabel('meters')
+ylabel('Newtons')
+title('Force vs. dist')
