@@ -1,0 +1,57 @@
+clc;
+close all;
+clear;
+
+% --- Setup Serial ---
+port = "COM3";                 % Your Arduino COM port
+baud = 9600;
+s = serialport(port, baud);
+configureTerminator(s, "LF");
+flush(s);
+pause(2);
+
+% --- Initialize Data ---
+angleHistory = [];
+timeHistory = [];
+Tstart = tic;
+
+% --- Plot Setup ---
+figure;
+xlabel("Time (s)");
+ylabel("Servo Angle (°)");
+title("Live Servo Motion (Intermediate Steps)");
+grid on;
+ylim([0 180]);
+hold on;
+
+% --- Main Loop ---
+numCommands = 10;
+
+theta = [100 10 100 10 100 10]
+for i = 1:numCommands
+    targetAngle = randi([30, 150]);
+    writeline(s, num2str(targetAngle));
+    disp("Target angle: " + targetAngle);
+
+    % Read all intermediate steps until pause timeout
+    t0 = tic;
+    timeout = 2.0; % seconds to listen for steps
+
+    while toc(t0) < timeout
+        if s.NumBytesAvailable > 0
+            response = readline(s);
+            angle = str2double(response);
+            if ~isnan(angle)
+                timeHistory(end+1) = toc(Tstart);
+                angleHistory(end+1) = angle;
+                plot(timeHistory, angleHistory, 'b.-');
+                drawnow;
+            end
+        end
+    end
+
+    pause(0.3);  % Optional wait before next command
+end
+
+% --- Cleanup ---
+clear s;
