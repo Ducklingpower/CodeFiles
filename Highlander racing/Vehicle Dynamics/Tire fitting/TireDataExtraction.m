@@ -50,6 +50,7 @@ Fz = TireData(set,5,test);
 
 C = -1.57;
 
+
 D = A(1,1)*TireData(set,5,test).^2 + A(1,2)*TireData(set,5,test);
 BCD = A(1,3).*sin(A(1,4).*atan(A(1,5).*Fz));
 B = BCD.*(C.*D);

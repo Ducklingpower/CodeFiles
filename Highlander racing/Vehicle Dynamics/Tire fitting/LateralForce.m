@@ -82,6 +82,10 @@ set1 = 1:1278;
 set2 = 1278+1:1278*2;
 set3 = 1278*2+1:1278*3;
 set4 = 1278*3+1:1278*4;
+% need to add more sets with data
+
+
+
 set = 1:1278*4 ;
 
 run_set = set;
@@ -220,6 +224,9 @@ for traing = 1:20
     fit_set2 = lsqcurvefit(MF,Coef_set2,TireData(set2,9,test),TireData(set2,4,test),lb,up); % Fitting set 2
     fit_set3 = lsqcurvefit(MF,Coef_set3,TireData(set3,9,test),TireData(set3,4,test),lb,up); % Fitting set 3
     fit_set4 = lsqcurvefit(MF,Coef_set4,TireData(set4,9,test),TireData(set4,4,test),lb,up); % Fitting set 4
+
+    % adding more sets: from mfeVal
+    fit_set5 = lsqcurvefit(MF,Coef_set4,TireData(set4,9,test),TireData(set4,4,test),lb,up); % Fitting set 4
 
 
     Fittedcoefs(:,:,test) = [fit_set1;fit_set2;fit_set3;fit_set4];

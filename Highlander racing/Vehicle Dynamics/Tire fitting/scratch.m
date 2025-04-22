@@ -68,3 +68,31 @@ figure
 plot(TireData(set,9,5),TireData(set,8,5),".")
 grid on
 
+
+
+
+
+%% working on adding data 
+
+%%
+clc
+close all
+clear
+
+Data = load("lateral_tire_test.mat");
+MaxSet = Data;
+Test = 1;
+for j = 0:4:36
+    x = j;
+    y = j+4;
+    Set = [MaxSet.AMBTMP(1278*x + 1:1278*y) MaxSet.ET(1278*x + 1:1278*y) MaxSet.FX(1278*x + 1:1278*y) MaxSet.FY(1278*x +1:1278*y) MaxSet.FZ(1278*x + 1:1278*y) MaxSet.IA(1278*x + 1:1278*y) MaxSet.MX(1278*x + 1:1278*y) MaxSet.MZ(1278*x + 1:1278*y) MaxSet.SA(1278*x + 1:1278*y) MaxSet.SL(1278*x + 1:1278*y) MaxSet.SR(1278*x + 1:1278*y) MaxSet.V(1278*x + 1:1278*y)];
+    TireData(:,:,Test) = Set(:,:);
+    Test = Test+1;
+end
+
+
+% concade data
+
+
+
+

@@ -4,7 +4,7 @@ clear all
 %%
 Nsteps = 100;
 
-Fzs = linspace(250, 1200, Nsteps);
+Fzs = linspace(100, 1000, 10);
 SAs = linspace(0, 15, Nsteps);
 
 for i=1:length(Fzs)
