@@ -8,13 +8,14 @@ Data = load("lateral_tire_test.mat");
 %% Running Lateral Model
 
  specified = [1,2,3,4,5,6,7,8,9,10];
- specified = 1;
- specified = [5, 9, 10];
+  specified = 1;
+  specified = [5, 9, 10];
 
 [A,TireData,NormalLoads,NormalLoads_vect,IA_Zero] = LateralForce(Data,specified);
                                                 A = AligningMoment(A,TireData,specified);
 
 save("TireModelCoefs","A")
+save("TireData","TireData")
 
 
 % Notes

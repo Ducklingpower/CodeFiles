@@ -76,17 +76,91 @@ for j = 0:4:36
     Test = Test+1;
 end
 
+TireData(:,4,:) = TireData(:,4,:)*0.7;
+
 clear vars Test x y j set
 
+
+%% Concatinate data
+
+NewDataFY = load("FyDataMFEVAL.mat") % loading FY data
+NewDataFY = NewDataFY.Fy_LUT(:).*-1;
+NewDataSA = transpose(linspace(-15,15,1278));
+NewDataSA = [NewDataSA NewDataSA NewDataSA NewDataSA NewDataSA NewDataSA NewDataSA];
+NewDataSA = NewDataSA(:);
+
+
+extraSet = 7; % seven new FY sets
+extraSet = 2; % seven new FY sets
+
+ZeroM = zeros(1278*extraSet,12,10);
+
+TireData = cat(1,TireData,ZeroM); % increse sets ure test by + (extra sets)
+
+% adding new FY and SA
+
+for i = 1:10
+    for j = 1:1278*extraSet
+        TireData((1278*4)+j,4,i) = NewDataFY(j);
+    end
+
+end
+
+for i = 1:10
+    for j = 1:1278*extraSet
+        TireData((1278*4)+j,4,i) = NewDataFY(j);
+    end
+
+end
+
+for i = 1:10
+    for j = 1:1278*extraSet
+        TireData((1278*4)+j,9,i) = NewDataSA(j);
+    end
+
+end
+
+% adding loads FZ to data
+fz25 = ones(1278,1)*-25;
+fz50 = ones(1278,1)*-50;
+fz75 = ones(1278,1)*-75;
+fz100 = ones(1278,1)*-100;
+fz125 = ones(1278,1)*-125;
+fz150 = ones(1278,1)*-150;
+fz175 = ones(1278,1)*-175;
+
+NewDataFZ = [fz25 fz50 fz75 fz100 fz125 fz150 fz175];
+NewDataFZ = NewDataFZ(:);
+
+
+for i = 1:10
+    for j = 1:1278*extraSet
+        TireData((1278*4)+j,5,i) = NewDataFZ(j);
+    end
+
+end
+
+
+
+
+%%
 set1 = 1:1278;
 set2 = 1278+1:1278*2;
 set3 = 1278*2+1:1278*3;
 set4 = 1278*3+1:1278*4;
+set5 = 1278*4+1:1278*5;
+set6 = 1278*5+1:1278*6;
+set7 = 1278*6+1:1278*7;
+set8 = 1278*7+1:1278*8;
+set9 = 1278*8+1:1278*9;
+set10 = 1278*9+1:1278*10;
+set11= 1278*10+1:1278*11;
+
 % need to add more sets with data
 
 
 
-set = 1:1278*4 ;
+set = 1:1278*(extraSet+4) ;
 
 run_set = set;
 
@@ -114,35 +188,69 @@ NormalLoads = zeros(length(specified),4);
 NormalLoads_vect = zeros(length(specified)*4,1);
 
 
-i = [1 2 3 4];
+% i = [1 2 3 4 5 6 7 8 9 10 11];
+i = [1 2 3 4 5 6];
 for test = 1:10 
 avg1 = mean(TireData(set1,5,test));
 avg2 = mean(TireData(set2,5,test));
 avg3 = mean(TireData(set3,5,test));
 avg4 = mean(TireData(set4,5,test));
+avg5 = mean(TireData(set5,5,test));
+avg6 = mean(TireData(set6,5,test));
+% avg7 = mean(TireData(set7,5,test));
+% avg8 = mean(TireData(set8,5,test));
+% avg9 = mean(TireData(set9,5,test));
+% avg10 = mean(TireData(set10,5,test));
+% avg11 = mean(TireData(set11,5,test));
 
-NormalLoads(test,1) = avg1;
-NormalLoads(test,2) = avg2;
-NormalLoads(test,3) = avg3;
-NormalLoads(test,4) = avg4;
+
+NormalLoads(test,1)  = avg1;
+NormalLoads(test,2)  = avg2;
+NormalLoads(test,3)  = avg3;
+NormalLoads(test,4)  = avg4;
+NormalLoads(test,5)  = avg5;
+NormalLoads(test,6)  = avg6;
+% NormalLoads(test,7)  = avg7;
+% NormalLoads(test,8)  = avg8;
+% NormalLoads(test,9)  = avg9;
+% NormalLoads(test,10) = avg10;
+% NormalLoads(test,11) = avg11;
+
 
 NormalLoads_vect(i(1)) = avg1;
 NormalLoads_vect(i(2)) = avg2;
 NormalLoads_vect(i(3)) = avg3;
 NormalLoads_vect(i(4)) = avg4;
+NormalLoads_vect(i(5)) = avg5;
+NormalLoads_vect(i(6)) = avg6;
+% NormalLoads_vect(i(7)) = avg7;
+% NormalLoads_vect(i(8)) = avg8;
+% NormalLoads_vect(i(9)) = avg9;
+% NormalLoads_vect(i(10)) = avg10;
+% NormalLoads_vect(i(11)) = avg11;
 
-i = i + [4 4 4 4];
+
+% i = i + [11 11 11 11 11 11 11 11 11 11 11];
+i = i + [6 6 6 6 6 6];
 end
+
+
+
+
+
+
 
 n = 0;
 for j = 1:length(specified)
 test= specified(j);   
 
-    for i = 1:4
+    % for i = 1:11
+    for i = 1:6
     Load_vect(i+n,1) = NormalLoads(test,i);
     end
 
- n = n+4;
+ % n = n+11;
+ n = n+6;
  end
 
 %% Fitting Specified Data sets for D C B E Sy
@@ -156,11 +264,11 @@ test= specified(j);
 
 %Fitting bounds
 %    [D    C B E   Sy]   
-lb = [500 -3 0 0 -200];
+lb = [0 -3 0 0 -200];
 up = [3000 2 2 2 200];
 
 %training Data
-Fittedcoefs = zeros(4,5,length(specified));
+Fittedcoefs = zeros(4+extraSet,5,length(specified));
 
 
 for traing = 1:20
@@ -211,11 +319,34 @@ for traing = 1:20
          Sy = -20;
          Sh = 0;
          Coef_set4 = [D C B E Sy]; %starting coef for lsq for Fy = -200
+
+
+         D = 100;  %x1
+         C = -1.5; %x2
+         B = .5;  %x3
+         E = .4;%x4
+         Sy = -20;
+         Sh = 0;
+
+         Coef_set5 = [D C B E Sy];
+         Coef_set6 = [D C B E Sy];
+         % Coef_set7 = [D C B E Sy];
+         % Coef_set8 = [D C B E Sy];
+         % Coef_set9 = [D C B E Sy];
+         % Coef_set10 = [D C B E Sy];
+         % Coef_set11 = [D C B E Sy];
         else
          Coef_set1 = Fittedcoefs(1,:,test) ;
          Coef_set2 = Fittedcoefs(2,:,test) ;
          Coef_set3 = Fittedcoefs(3,:,test) ;
          Coef_set4 = Fittedcoefs(4,:,test) ;
+         Coef_set5 = Fittedcoefs(5,:,test) ;
+         Coef_set6 = Fittedcoefs(6,:,test) ;
+         % Coef_set7 = Fittedcoefs(7,:,test) ;
+         % Coef_set8 = Fittedcoefs(8,:,test) ;
+         % Coef_set9 = Fittedcoefs(9,:,test) ;
+         % Coef_set10 = Fittedcoefs(10,:,test) ;
+         % Coef_set11 = Fittedcoefs(11,:,test) ;
         end
 
     MF = @(x,SA)x(1).*sin(-1.55.*atan(x(3).*((1-x(4)).*(SA+Sh)+(x(4)/x(3)).*atan(x(3).*(SA+Sh))))) + x(5);
@@ -226,10 +357,17 @@ for traing = 1:20
     fit_set4 = lsqcurvefit(MF,Coef_set4,TireData(set4,9,test),TireData(set4,4,test),lb,up); % Fitting set 4
 
     % adding more sets: from mfeVal
-    fit_set5 = lsqcurvefit(MF,Coef_set4,TireData(set4,9,test),TireData(set4,4,test),lb,up); % Fitting set 4
+    fit_set5 = lsqcurvefit(MF,Coef_set5,TireData(set5,9,test),TireData(set5,4,test),lb,up); % Fitting set 4
+    fit_set6 = lsqcurvefit(MF,Coef_set6,TireData(set6,9,test),TireData(set6,4,test),lb,up); % Fitting set 4
+    % fit_set7 = lsqcurvefit(MF,Coef_set7,TireData(set7,9,test),TireData(set7,4,test),lb,up); % Fitting set 4
+    % fit_set8 = lsqcurvefit(MF,Coef_set8,TireData(set8,9,test),TireData(set8,4,test),lb,up); % Fitting set 4
+    % fit_set9 = lsqcurvefit(MF,Coef_set9,TireData(set9,9,test),TireData(set9,4,test),lb,up); % Fitting set 4
+    % fit_set10 = lsqcurvefit(MF,Coef_set10,TireData(set10,9,test),TireData(set10,4,test),lb,up); % Fitting set 4
+    % fit_set11 = lsqcurvefit(MF,Coef_set11,TireData(set11,9,test),TireData(set11,4,test),lb,up); % Fitting set 4
 
 
-    Fittedcoefs(:,:,test) = [fit_set1;fit_set2;fit_set3;fit_set4];
+    % Fittedcoefs(:,:,test) = [fit_set1;fit_set2;fit_set3;fit_set4;fit_set5;fit_set6;fit_set7;fit_set8;fit_set9;fit_set10;fit_set11];
+      Fittedcoefs(:,:,test) = [fit_set1;fit_set2;fit_set3;fit_set4;fit_set5;fit_set6];
 
 
 
@@ -241,49 +379,64 @@ end
 
 %% check fits with plots
 
-% D = 3000;  %x1
-% C = -1.7; %x2
-% B = .15;  %x3
-% E = .4;%x4
-% Sy = -20;
-% Sh = 0;
-% Coef_setx = [D C B E Sy];
-% 
-% for i = 1:length(specified)
-%     test = specified(i);
-% 
-%     figure(Name = "Fit check!")
-%     plot(TireData(set,9,test),TireData(set,4,test),".");%plotting raw data
-%     hold on
-%     plot(TireData(set1,9,1),MF(Fittedcoefs(1,:,test),TireData(set1,9,1)),linewidth=3)
-%     hold on
-%     plot(TireData(set2,9,1),MF(Fittedcoefs(2,:,test),TireData(set2,9,1)),linewidth=3)
-%     hold on
-%     plot(TireData(set3,9,1),MF(Fittedcoefs(3,:,test),TireData(set3,9,1)),linewidth=3)
-%     hold on
-%     plot(TireData(set4,9,1),MF(Fittedcoefs(4,:,test),TireData(set4,9,1)),linewidth=3)
-%     legend('Raw data',"fitted set 1","fitted set 2","fitted set 3","fitted set 4");
-% 
-%     hold on 
-%     plot(TireData(set3,9,1),MF(Coef_setx,TireData(set3,9,1)))
-%     pause(0.5)
-% 
-% end
+D = 500;  %x1
+C = -1.7; %x2
+B = .15;  %x3
+E = .4;%x4
+Sy = -20;
+Sh = 0;
+Coef_setx = [D C B E Sy];
+
+for i = 1:length(specified)
+    test = specified(i);
+
+    figure(Name = "Fit check!")
+    plot(TireData(set,9,test),TireData(set,4,test),".");%plotting raw data
+    hold on
+    plot(TireData(set1,9,1),MF(Fittedcoefs(1,:,test),TireData(set1,9,1)),linewidth=3)
+    hold on
+    plot(TireData(set2,9,1),MF(Fittedcoefs(2,:,test),TireData(set2,9,1)),linewidth=3)
+    hold on
+    plot(TireData(set3,9,1),MF(Fittedcoefs(3,:,test),TireData(set3,9,1)),linewidth=3)
+    hold on
+    plot(TireData(set4,9,1),MF(Fittedcoefs(4,:,test),TireData(set4,9,1)),linewidth=3)
+    hold on
+    plot(TireData(set5,9,1),MF(Fittedcoefs(5,:,test),TireData(set5,9,1)),'--',linewidth=3)
+    hold on
+    plot(TireData(set6,9,1),MF(Fittedcoefs(6,:,test),TireData(set6,9,1)),'--',linewidth=3)
+    % hold on
+    % plot(TireData(set7,9,1),MF(Fittedcoefs(7,:,test),TireData(set7,9,1)),'--',linewidth=3)
+    % hold on
+    % plot(TireData(set8,9,1),MF(Fittedcoefs(8,:,test),TireData(set8,9,1)),'--',linewidth=3)
+    % hold on
+    % plot(TireData(set9,9,1),MF(Fittedcoefs(9,:,test),TireData(set9,9,1)),'--',linewidth=3)
+    % hold on
+    % plot(TireData(set10,9,1),MF(Fittedcoefs(10,:,test),TireData(set10,9,1)),'--',linewidth=3)
+    % hold on
+    % plot(TireData(set11,9,1),MF(Fittedcoefs(11,:,test),TireData(set11,9,1)),'--',linewidth=3)
+    %legend('Raw data',"fitted set 1","fitted set 2","fitted set 3","fitted set 4","fitted set 5","fitted set 6","fitted set 7","fitted set 8","fitted set 9","fitted set 10","fitted set 11");
+     legend('Raw data',"fitted set 1","fitted set 2","fitted set 3","fitted set 4","fitted set 5","fitted set 6");
+
+    % hold on 
+    % plot(TireData(set3,9,1),MF(Coef_setx,TireData(set3,9,1)))
+    % pause(0.5)
+
+end
 
 
 %% Fitting equation for ay1 and ay2 (regression) 
 
 % Developing X matrix 
  polysize = 2;
- X = zeros(4*length(specified),polysize);
+ X = zeros((4+extraSet)*length(specified),polysize);
  
 
- n=-4;
+ n=-(4+extraSet);
  for j = 1:length(specified)
      test= specified(j);
-     n = n+4;
+     n = n+(4+extraSet);
 
-    for i = 1:4
+    for i = 1:(4+extraSet)
         X(i+n,1) = NormalLoads(test,i);
         X(i+n,2) = NormalLoads(test,i).^2;
 
@@ -292,12 +445,12 @@ end
 
 % filling in D: Creating a vector of all the fitted D coefs
 
-D_vect = zeros(4*length(specified),1);
+D_vect = zeros((4+extraSet)*length(specified),1);
 n=0;
 for j =1:length(specified)
 test = specified(j);
 
-    for i = 1:4
+    for i = 1:(4+extraSet)
     n = n+1;
     D_vect(n) =  Fittedcoefs(i,1,test);
     
@@ -346,13 +499,13 @@ BCE_eq = @(x,Fz) x(1)*sin(x(2)*atan(x(3)*Fz));
 
 
 % optain B coefs vect
-BCE_vect = zeros(4*length(specified),1);
+BCE_vect = zeros((4+extraSet)*length(specified),1);
 n=0;
 
 for j =1:length(specified)
     test = specified(j);
 
-    for i = 1:4
+    for i = 1:(4+extraSet)
         n = n+1;
         BCE_vect(n) =  Fittedcoefs(i,3,test);
     
@@ -393,15 +546,15 @@ A(1,5) = Ay5;
 
 % Developing M matrix 
 polysize = 3;
-M = zeros(4*length(specified),polysize);
+M = zeros((4+extraSet)*length(specified),polysize);
 
 test=1;
-n=-4;
+n=-(4+extraSet);
 for j = 1:length(specified)
      test= specified(j);
-     n = n+4;
+     n = n+(4+extraSet);
 
-    for i = 1:4
+    for i = 1:(4+extraSet)
      M(i+n,3) = 1;
      M(i+n,2) = NormalLoads(test,i);
      M(i+n,1) = NormalLoads(test,i).^2;
@@ -411,13 +564,13 @@ end
 
 
 % filling in E
-E_vect = zeros(4*length(specified),1);
+E_vect = zeros((4+extraSet)*length(specified),1);
 
 n=0;
 for j =1:length(specified)
     test = specified(j);
 
-    for i = 1:4
+    for i = 1:(4+extraSet)
         n = n+1;
         E_vect(n) =  Fittedcoefs(i,4,test);
     
@@ -441,36 +594,38 @@ A(1,8) = Ay8;
 
 
 %%%%% Validation 
-% 
-% figure
-% 
-% n=0;
-% for j =1:length(specified)
-%     for i = 1:4
-%         n = n+1;
-%         plot(NormalLoads(j,i),data(n),"*")
-%         hold on
-%         plot(NormalLoads(j,i),E_vect(n),"o")
-%     end
-% end
-% 
-% legend("Output from fitted coefs a1 a2", "Fitted D coefs")
 
-% 
-% figure 
-% l = [1 2 3 4];
-% for n = 1:length(specified)
-%     test = specified(n);
-%     plot(l,Fittedcoefs(:,4,test),"*",linewidth = 2)
-%     l = l + [4 4 4 4];
-%     hold on
-% end
-% hold on
-% x = 1:4*length(specified);
-% plot(x,data(:),"x",linewidth = 2)
-% grid on
-% 
-% legend("x = numerical ","* = raw data ")
+figure
+
+n=0;
+for j =1:length(specified)
+    for i = 1:(4+extraSet)
+        n = n+1;
+        plot(NormalLoads(j,i),data(n),"*")
+        hold on
+        plot(NormalLoads(j,i),E_vect(n),"o")
+    end
+end
+
+legend("Output from fitted coefs a1 a2", "Fitted D coefs")
+
+
+figure 
+% l = [1 2 3 4 5 6 7 8 9 10 11];
+l = [1 2 3 4 5 6];
+for n = 1:length(specified)
+    test = specified(n);
+    plot(l,Fittedcoefs(:,4,test),"*",linewidth = 2)
+    % l = l + [11 11 11 11 11 11 11 11 11 11 11];
+    l = l + [6 6 6 6 6 6];
+    hold on
+end
+hold on
+x = 1:(4+extraSet)*length(specified);
+plot(x,data(:),"x",linewidth = 2)
+grid on
+
+legend("x = numerical ","* = raw data ")
 
 
 %% futher data seperation Manual labor IA
