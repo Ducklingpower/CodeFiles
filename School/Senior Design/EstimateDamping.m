@@ -4,13 +4,14 @@ clear
 %% Params
 
 m1 = 1; %kg
-m2 = 5; %kg
+m2 = 0.338; %kg top plate
 
 k1 = 20000; %N/m
-k2 = 500; %N/m
+k2 = 450; %N/m
 
-c1 = 2; %Ns/m
-c2 = 20; %Ns/m the damper !!!
+c1 = 1; %Ns/m
+c2 = 2.1; %Ns/m the damper !!!
+
 
 %% Mass/Stiffness matrices
 
@@ -42,31 +43,81 @@ A = [      0             1            0         0   ;
 
 %% ODE solve
 
+% Opening data
+N = readmatrix('Testing1.txt')./100 - 0.123;
+
+M = N(499:end,:);
+
+delta = -0.0839;
+
+
+
 % signal one
-x_init = [0; 0; 1; 0]; %[x , x_dot]
+x_init = [0; 0; delta; 0]; %[x , x_dot]
 StateSpace = @(t, x1) A*x1;
 [tspan, x1] = ode45(StateSpace, 0:.01: 10, x_init);
 x1 = x1';
 
 
-% signal one
-
-c2 = 10;
-A = [      0             1            0         0   ;
-     (-k1-k2)/(m1) (-c1-c2)/(m1)    k2/m1     c2/m1 ;
-           0             0            0         1   ;
-         k2/m2         c2/m2       -k2/m2    -c2/m2];
-
-x_init = [0; 0; 1.2; 20]; %[x , x_dot]
-StateSpace = @(t, x2) A*x2;
-[tspan, x2] = ode45(StateSpace, 0:.01: 10, x_init);
-x2 = x2';
-
-
 figure(1)
 plot(tspan,x1(3,:),linewidth = 2)
-hold on
-plot(tspan,x2(3,:),linewidth = 2)
 grid on 
 legend("Top plate","Bottem plate")
+
+%%
+figure(2)
+plot((0:length(M)-1)./100,M(:,3),"-",LineWidth=1)
+hold on
+plot((0:length(M)-1)./100,M(:,2),LineWidth=1)
+hold on
+
+xT = (M(:,3)+M(:,2))/(2);
+plot((0:length(M)-1)./100,xT(:))
+grid on
+
+hold on
+plot(tspan,x1(3,:),linewidth = 2)
+legend("sensor 3", "Sensor 2", "Avereged","Numeric")
+
+
+
+%% Natral freq 
+
+N = readmatrix('NatralFreqTest.txt')./100 - 0.123;
+
+figure(3)
+
+plot((0:length(N)-1)./100,N(:,2))
+hold on
+plot((0:length(N)-1)./100,N(:,3))
+
+x = (0:length(N(:,1)))./100;
+y = 0.01*sin((2*pi*x)*5.41);
+
+hold on
+plot(x,y,LineWidth=3)
+
+
+% fft________________________________________________________
+
+x = N(:,2);      
+Fs = 100;              
+N = length(x);           % Number of samples
+t = (0:N-1)/Fs;          % Time vector (optional)
+
+% Compute FFT
+Y = fft(x);
+f = Fs*(0:(N/2))/N;
+P = abs(Y/N);            
+P1 = P(1:N/2+1);         
+P1(2:end-1) = 2*P1(2:end-1);  
+
+
+figure;
+plot(f, P1);
+xlabel('Frequency (Hz)');
+ylabel('|P(f)|');
+title('Single-Sided Amplitude Spectrum');
+grid on;
+
 
