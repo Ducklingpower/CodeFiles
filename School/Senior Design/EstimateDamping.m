@@ -114,7 +114,7 @@ P1(2:end-1) = 2*P1(2:end-1);
 
 % obatin natral freq of systsem
 figure;
-plot(f, P1);
+plot(f, P1,LineWidth=2);
 xlabel('Frequency (Hz)');
 ylabel('|P(f)|');
 title('FFT');
@@ -189,8 +189,7 @@ hold on
 end
 %% testing averging;
 
-clc
-clear
+
 
 % Opening data
 data = readmatrix('Testing1.txt')./100 - 0.123;
@@ -219,4 +218,111 @@ plot((0:length(M)-1)./100,avg3)
 hold on
 plot((0:length(M)-1)./100,avg4,"o")
 
+%% sweept sine 
 
+
+
+swept = readmatrix('sweep50_oz.txt') ./ 100 ; % x1 v1 x2 v2
+
+
+figure;
+hold on;
+plot(0:length(swept)-1, swept(:,1), 'DisplayName','x1');
+plot(0:length(swept)-1, swept(:,2), 'DisplayName','v1');
+plot(0:length(swept)-1, swept(:,3), 'DisplayName','x2');
+plot(0:length(swept)-1, swept(:,4), 'DisplayName','v2');
+plot(0:length(swept)-1, swept(:,1)+swept(:,3), 'DisplayName','x2')
+xlabel('Time (samples)');
+ylabel('Amplitude');
+title('Time-Domain Signals');
+legend;
+grid on;
+
+
+Fs = 100; 
+data = readmatrix('sweep50_oz.txt');  
+figure;
+hold on;
+for i = 1:2
+    x = data(:,i)+data(:,i*2);          
+    N = length(x);          
+    f = Fs*(0:(N/2))/N;     
+
+    Y = fft(x);
+    P2 = abs(Y/N);       
+    P1 = P2(1:N/2+1);       
+    P1(2:end-1) = 2*P1(2:end-1); 
+    semilogy(f, P1, 'DisplayName', sprintf('Signal %d', i));
+end
+xlabel('Frequency (Hz)');
+ylabel('Amplitude');
+title('Power Spectral Density (FFT)');
+legend;
+grid on;
+hold off
+
+Fs = 100; 
+data = readmatrix('sweep50_oz.txt');  
+
+figure;
+hold on;
+
+for i = 1:2
+    % Sum x and v signals (e.g., x1+v1 or x2+v2)
+    x = data(:,i) + data(:,i*2);          
+    N = length(x);          
+    f = Fs*(0:(N/2))/N;     
+
+    % FFT and power spectrum
+    Y = fft(x);
+    P2 = abs(Y/N).^2;            % Power = |FFT|^2 / N^2, but here we keep |FFT|^2 / N
+    P1 = P2(1:N/2+1);       
+    P1(2:end-1) = 2 * P1(2:end-1); 
+
+    % Plot in dB scale
+    semilogx(f, 10*log10(P1), 'DisplayName', sprintf('Signal %d', i));
+end
+
+xlabel('Frequency (Hz)');
+ylabel('Power (dB)');
+title('Power Spectrum (dB)');
+legend;
+grid on;
+hold off;
+
+
+
+
+%% bode
+m1 = 1; %kg
+m2 = 0.338; %kg top plate
+
+k1 = 20000; %N/m
+k2 = 450; %N/m
+
+c1 = 1; %Ns/m
+c2 = 2.1; %Ns/m the damper !!!
+
+A = [      0             1            0         0   ;
+     (-k1-k2)/(m1) (-c1-c2)/(m1)    k2/m1     c2/m1 ;
+           0             0            0         1   ;
+         k2/m2         c2/m2       -k2/m2    -c2/m2];
+
+B = [0; k1/m1; 0; 0];  
+
+C = [0, 0, 1, 0];      
+
+D = 0;
+
+sys = ss(A, B, C, D);
+
+% Bode plot
+
+f_Hz = logspace(-1, 2, 500);     
+w_rad = 2 * pi * f_Hz;            
+
+figure;
+bodeplot(sys, w_rad);
+grid on;
+setoptions(bodeplot(sys), 'FreqUnits', 'Hz');  % Optional: force Hz on axis label
+title('Bode Plot in Hz');

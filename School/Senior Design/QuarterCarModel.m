@@ -4,13 +4,13 @@ clear
 %% Params
 
 m1 = 1; %kg
-m2 = 5; %kg
+m2 = 0.338; %kg top plate
 
-k1 = 2000; %N/m
-k2 = 500; %N/m
+k1 = 20000; %N/m
+k2 = 450; %N/m
 
-c1 = 100; %Ns/m
-c2 = 20; %Ns/m
+c1 = 1; %Ns/m
+c2 = 2.1; %Ns/m the damper !!!
 
 %% Mass/Stiffness matrices
 
@@ -37,10 +37,6 @@ A = [      0             1            0         0   ;
          k2/m2         c2/m2       -k2/m2    -c2/m2];
 
 
-A_Nodamp = [      0             1            0         0   ;
-            (-k1-k2)/(m1) (-c1-0)/(m1)    k2/m1     0/m1 ;
-                  0             0            0         1   ;
-                k2/m2         0/m2       -k2/m2    -0/m2];
 
 B = [  0     0     0   ;
      -1/m1 k1/m1 c1/m1 ;
