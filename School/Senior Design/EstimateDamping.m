@@ -66,7 +66,7 @@ x1 = x1';
 
 %% Plotting real vs numeric
 figure(2)
-plot((0:length(M)-1)./100,M(:,3),"-",LineWidth=1)
+plot((0:length(M)-1)./100,M(:,3),LineWidth=1)
 hold on
 plot((0:length(M)-1)./100,M(:,2),LineWidth=1)
 hold on
@@ -78,7 +78,7 @@ hold on
 plot(tspan,x1(3,:),linewidth = 2)
 xlabel("seconds");
 ylabel("m");
-legend("sensor 3", "Sensor 2", "Avereged","Numeric")
+legend("Measured", "Measured", "Measured","Numeric")
 
 
 %% Natral freq 
@@ -219,10 +219,12 @@ hold on
 plot((0:length(M)-1)./100,avg4,"o")
 
 %% sweept sine 
+close all
 
 
-
-swept = readmatrix('sweep50_oz.txt') ./ 100 ; % x1 v1 x2 v2
+swept = readmatrix('sweepaAir.txt') ; % x1 v1 x2 v2
+swept = swept(1:1000,:)
+% swept = movmean(swept,3);
 
 
 figure;
@@ -240,8 +242,9 @@ grid on;
 
 
 Fs = 100; 
-data = readmatrix('sweep50_oz.txt');  
+data = swept;  
 figure;
+set(gca,"XScale","log")
 hold on;
 for i = 1:2
     x = data(:,i)+data(:,i*2);          
@@ -252,7 +255,10 @@ for i = 1:2
     P2 = abs(Y/N);       
     P1 = P2(1:N/2+1);       
     P1(2:end-1) = 2*P1(2:end-1); 
-    semilogy(f, P1, 'DisplayName', sprintf('Signal %d', i));
+    semilogy(f, P1);
+    hold on
+    XX = movmean(P1,5);
+    semilogx(f, XX, Linewidth = 2);
 end
 xlabel('Frequency (Hz)');
 ylabel('Amplitude');
@@ -262,14 +268,15 @@ grid on;
 hold off
 
 Fs = 100; 
-data = readmatrix('sweep50_oz.txt');  
+data = swept;  
 
 figure;
+set(gca,"XScale","log")
 hold on;
 
 for i = 1:2
     % Sum x and v signals (e.g., x1+v1 or x2+v2)
-    x = data(:,i) + data(:,i*2);          
+    x = data(:,i)+data(:,2*i);          
     N = length(x);          
     f = Fs*(0:(N/2))/N;     
 
@@ -280,7 +287,7 @@ for i = 1:2
     P1(2:end-1) = 2 * P1(2:end-1); 
 
     % Plot in dB scale
-    semilogx(f, 10*log10(P1), 'DisplayName', sprintf('Signal %d', i));
+    semilogx(f, 10*log10(P1));
 end
 
 xlabel('Frequency (Hz)');
@@ -326,3 +333,168 @@ bodeplot(sys, w_rad);
 grid on;
 setoptions(bodeplot(sys), 'FreqUnits', 'Hz');  % Optional: force Hz on axis label
 title('Bode Plot in Hz');
+
+
+%% FFT ploting
+close all
+figure;
+for k = 1:5
+    clearvars swept
+    if k ==1 
+swept = readmatrix('sweep0deg.txt') .*10; % x1 v1 x2 v2
+Fs = 100; 
+    elseif k == 2
+swept = readmatrix('sweep22deg.txt').*5 ; % x1 v1 x2 v2
+Fs = 100; 
+    elseif k ==3
+swept = readmatrix('sweep66deg.txt').*2 ; % x1 v1 x2 v2
+Fs = 100; 
+    elseif k == 4
+swept = readmatrix('sweep0deg2.txt').*10 ; % x1 v1 x2 v2
+Fs = 93; 
+    else
+swept = readmatrix('sweep90deg.txt') ; % x1 v1 x2 v2
+Fs = 108; 
+    end
+
+swept = swept(1:750,:)
+swept = [swept;ones(2000,4)]
+
+
+
+data = swept;  
+set(gca,"XScale","log")
+hold on;
+for i = 1:1
+    x = data(:,i)+data(:,i*2);          
+    N = length(x);          
+    f = Fs*(0:(N/2))/N;     
+
+    Y = fft(x);
+    P2 = abs(Y/N);       
+    P1 = P2(1:N/2+1);       
+    P1(2:end-1) = 2*P1(2:end-1); 
+    % semilogy(f, P1);
+    hold on
+    XX = movmean(P1,3);
+    semilogx(f, XX, Linewidth = 2);
+end
+xlabel('Frequency (Hz)');
+ylabel('Amplitude');
+title('Power Spectral Density (FFT)');
+legend("1","2");
+grid on;
+hold on
+end
+
+
+%% PSD plots
+
+figure;
+for k = 1:5
+    clearvars swept
+    if k ==1 
+swept = readmatrix('sweep0deg.txt') ; % x1 v1 x2 v2
+Fs = 100; 
+    elseif k == 2
+swept = readmatrix('sweep22deg.txt') ; % x1 v1 x2 v2
+Fs = 100; 
+    elseif k ==3
+swept = readmatrix('sweep66deg.txt') ; % x1 v1 x2 v2
+Fs = 100; 
+    elseif k == 4
+swept = readmatrix('sweep0deg2.txt') ; % x1 v1 x2 v2
+Fs = 93; 
+    else
+swept = readmatrix('sweep90deg.txt') ; % x1 v1 x2 v2
+Fs = 108; 
+    end
+
+swept = swept(1:750,:)
+swept = [swept;ones(2000,4)]
+swept = movmean(swept,1);
+data = swept;  
+
+set(gca,"XScale","log")
+hold on;
+
+for i = 1:1
+    % Sum x and v signals (e.g., x1+v1 or x2+v2)
+    x = data(:,i)+data(:,2*i);          
+    N = length(x);          
+    f = Fs*(0:(N/2))/N;     
+
+    % FFT and power spectrum
+    Y = fft(x);
+    P2 = abs(Y/N).^2;            % Power = |FFT|^2 / N^2, but here we keep |FFT|^2 / N
+    P1 = P2(1:N/2+1);       
+    P1(2:end-1) = 2 * P1(2:end-1); 
+
+    % Plot in dB scale
+    % semilogx(f, 10*log10(P1),Linewidth = 0.5);
+    hold on
+    XX = movmean(10*log10(P1),3);
+    semilogy(f, XX, Linewidth = 1);
+    
+end
+
+xlabel('Frequency (Hz)');
+ylabel('Power (dB)');
+title('Power Spectrum (dB)');
+legend;
+grid on;
+hold off;
+
+
+end
+%% final plot
+close all
+figure;
+
+colors = [
+    0.45, 0.30, 0.60;  % deeper purple
+    0.42, 0.40, 0.58;  % muted violet
+    0.38, 0.52, 0.54;  % smoky green-violet
+    0.34, 0.65, 0.49;  % mossy mint
+    0.30, 0.75, 0.44;  % soft forest green
+];
+
+
+for k = 1:5
+    % Load & scale
+    switch k
+        case 1
+            swept = readmatrix('sweep0deg.txt') * 10; Fs = 100;
+        case 2
+            swept = readmatrix('sweep0deg2.txt') * 10; Fs = 93;
+        case 3
+            swept = readmatrix('sweep22deg.txt') * 5; Fs = 98;
+        case 4
+            swept = readmatrix('sweep66deg.txt') * 2; Fs = 96;
+        case 5
+            swept = readmatrix('sweep90deg.txt'); Fs = 105;
+    end
+
+    swept = swept(1:750, :);
+    swept = [swept; ones(2000, 4)];
+
+    x = swept(:,1) + swept(:,2);
+    N = length(x);
+    f = Fs * (0:(N/2)) / N;
+    Y = fft(x);
+    P2 = abs(Y/N);
+    P1 = P2(1:N/2+1);
+    P1(2:end-1) = 2 * P1(2:end-1);
+    XX = movmean(P1, 8);
+
+    semilogx(f, XX, 'LineWidth', 2, 'Color', colors(k,:));
+    hold on;
+end
+
+xlabel('Frequency (Hz)', 'FontSize', 12);
+ylabel('Amplitude', 'FontSize', 12);
+title('Power Spectral Density (FFT)', 'FontSize', 14);
+legend({'0°','15°','33°','45°','88°'}, 'Location', 'northeast');
+grid on;
+set(gca, 'XScale', 'log');
+set(gca, 'FontSize', 11);

@@ -64,7 +64,7 @@ clc;
 close all;
 clear;
 
-L1 = 2; 
+L1 = 5; 
 L2 = L1*2; 
 w =2;  % Angular velocity
 
