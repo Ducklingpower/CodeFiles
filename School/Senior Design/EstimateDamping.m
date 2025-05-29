@@ -472,11 +472,11 @@ for k = 1:5
         case 4
             swept = readmatrix('sweep66deg.txt') * 2; Fs = 96;
         case 5
-            swept = readmatrix('sweep90deg.txt'); Fs = 105;
+            swept = readmatrix('sweep90deg.txt'); Fs = 103;
     end
 
     swept = swept(1:750, :);
-    swept = [swept; ones(2000, 4)];
+    swept = [swept; ones(2500, 4)];
 
     x = swept(:,1) + swept(:,2);
     N = length(x);
@@ -485,15 +485,15 @@ for k = 1:5
     P2 = abs(Y/N);
     P1 = P2(1:N/2+1);
     P1(2:end-1) = 2 * P1(2:end-1);
-    XX = movmean(P1, 8);
+    XX = movmean(P1, 5);
 
-    semilogx(f, XX, 'LineWidth', 2, 'Color', colors(k,:));
+    semilogx(f, XX, 'LineWidth', 4, 'Color', colors(k,:));
     hold on;
 end
 
 xlabel('Frequency (Hz)', 'FontSize', 12);
 ylabel('Amplitude', 'FontSize', 12);
-title('Power Spectral Density (FFT)', 'FontSize', 14);
+title('Fast Fourier Transform', 'FontSize', 14);
 legend({'0°','15°','33°','45°','88°'}, 'Location', 'northeast');
 grid on;
 set(gca, 'XScale', 'log');

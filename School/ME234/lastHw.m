@@ -1,0 +1,197 @@
+clc
+close all
+clear 
+%% 
+
+%system parameters
+mp = .21;
+mc = .455;
+lp = .31;
+Km = 0.00767;
+Kg = 3.7;
+r = 0.00635;
+R = 2.6;
+g = 9.8;
+
+
+
+%%%%% the goal of this part of the last assignment is to design a feedback
+%%%%% controller u based on state estimate
+%%%%% such that the cart position of an inverted pendulum y(t) will
+%%%%% follow the referece r(t)
+%%%%  x1: cart position, x2: pendulum angle, x3: cart velocity,
+%%%%  x4: pendulum angular velocity
+
+A = [0 0 1 0;
+0 0 0 1;
+0 (-mp*g/mc) (-Km^2*Kg^2/R/r^2/mc) 0;
+0 ((mp+mc)*g/mc/lp) (Km^2*Kg^2/R/r^2/mc/lp) 0];
+B = [0; 0; Km*Kg/R/r/mc; -Km*Kg/R/r/mc/lp];
+C = [1 0 0 0];
+D = 0;
+
+%%%%%closed loop poles
+clp_K = [-1+j;-1-j;-5+j*5;-5-j*5];
+% r(t) is a square wave with a magnitude of 0.05 meters
+% and frequency of 0.5 rad/sec
+
+% initial condition of the state x(0)
+x0 = zeros(4,1);
+
+%show plots of the reference versus output
+
+%% Tracking input r(t) using state feedback
+
+k = place(A,B,clp_K);
+AA = A-B*k;
+
+
+sys = ss(AA,B,C,D);
+[num,den] = ss2tf(AA,B,C,D);
+P = den(size(den))/num(size(num));
+P = den(end)/num(end);
+BB = B*P;
+
+% squar wave 
+t = 0:.01:20;
+r = 0.1*square(0.5*t);
+
+%simulating
+[y,x]=lsim(A-B*k,B*P,C,D,r,t);
+
+%% Plotting output from sim and input r(t)
+figure(Name = "Simulation output");
+hold on
+grid on
+plot(t,r,"--",LineWidth= 2)
+plot(t,y,LineWidth=2);
+hold off
+
+%% state estimation: closed loop observor
+
+%closed loop poles for observer
+clp_L = 5*clp_K;
+L = (place(AA',C',clp_L))';
+
+Abar = AA-L*C;
+Bbar = eye(4);
+Cbar = eye(4);
+Dbar = zeros(4);
+
+uBar = BB.*r+L.*y';
+xhat0 = [0.2, 0.1, 0.3, 0.4]'; % IC
+
+[yhat,xhat] = lsim(Abar,Bbar,Cbar,Dbar,uBar,t,xhat0);
+
+%% Plotting output from state estimation sim
+figure(Name = "Simulation output");
+tiledlayout(2,2)
+
+nexttile
+plot(t,x(:,1),Linewidth = 2);
+hold on
+plot(t,xhat(:,1),"--",Linewidth = 2)
+grid on
+xlim([0 10])
+legend("Cart Position","Cart Position Estimated")
+
+nexttile
+plot(t,x(:,2),Linewidth = 2);
+hold on
+plot(t,xhat(:,2),"-.",Linewidth = 2)
+grid on
+xlim([0 10])
+legend("Theta","Theta Estimated")
+
+nexttile
+plot(t,x(:,3),Linewidth = 2);
+hold on
+plot(t,xhat(:,3),"--",Linewidth = 2)
+grid on
+xlim([0 10])
+legend("Velocity","Velocity Estimated")
+
+nexttile
+plot(t,x(:,4),Linewidth = 2);
+hold on
+plot(t,xhat(:,4),"--",Linewidth = 2)
+grid on
+xlim([0 10])
+legend("Omega","Omega Estimated")
+
+%% for fun
+figure
+tiledlayout(2,2)
+grid on
+
+W = [1 1.3 1.5 1.7 2 3];
+int = [-5 -4 -3 -2 -1 1 2 3 4 5];
+
+for stateIdx = 1:4 % loop over x1 to x4
+    nexttile
+    hold on
+    title(['State x', num2str(stateIdx)])
+    xlabel('Time (s)')
+    ylabel(['x', num2str(stateIdx)])
+    grid on
+    xlim([0 7]) % <-- Set x-axis limit here
+
+    for j = 1:length(W)
+        clp_L = W(j)*clp_K;
+        L = place(AA',C',clp_L)';
+    
+        Abar = AA - L*C;
+        Bbar = eye(4);
+        Cbar = eye(4);
+        Dbar = zeros(4);
+    
+        uBar = BB.*r + L.*y';
+    
+        for i = 1:length(int)
+            xhat0 = [int(i), 0.1, 0.3, 0.4]'; % Varying x1 IC
+            [~, xhat] = lsim(Abar, Bbar, Cbar, Dbar, uBar, t, xhat0);
+    
+            if i == 1 && j == 1
+                % Plot true state once
+                plot(t, x(:, stateIdx), 'k', 'LineWidth', 3)
+            end
+    
+            plot(t, xhat(:, stateIdx), 'r', 'LineWidth', 0.5)
+        end
+    end
+end
+
+%% Control efforts plotting
+
+for i=1:length(t)
+u(i)=-k*(x(i,:))'+P*r(i);
+end
+
+for i=1:length(t)
+ubar(:,i) = B*u(i)+L*y(i);
+end
+
+figure(Name = "Controll efforts")
+title("Controll Efforts")
+hold on
+plot(t,u,Linewidth =2);
+% plot(t,ubar,"--")
+grid on
+
+%% running annimation of simulation
+animate_cart_pendulum(x(:,1), x(:,2), x(:,3), x(:,4))
+
+
+%%
+
+
+
+
+%show plot of the states, x = [x1,x2,x3,x4] versus their estimates, xhat --- Please
+% show the true states together with the estimated states, for example x1 versus
+% x1hat, x2 versus x2hat ...
+%so that is easy to see how the estimates compared with the true states
+%show plot of the control u
+
+
+%% work on the estimator, and plot x and xhat together 
