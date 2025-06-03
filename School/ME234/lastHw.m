@@ -14,6 +14,12 @@ R = 2.6;
 g = 9.8;
 
 
+%%
+%show plot of the states, x = [x1,x2,x3,x4] versus their estimates, xhat --- Please
+% show the true states together with the estimated states, for example x1 versus
+% x1hat, x2 versus x2hat ...
+%so that is easy to see how the estimates compared with the true states
+%show plot of the control u
 
 %%%%% the goal of this part of the last assignment is to design a feedback
 %%%%% controller u based on state estimate
@@ -27,18 +33,31 @@ A = [0 0 1 0;
 0 (-mp*g/mc) (-Km^2*Kg^2/R/r^2/mc) 0;
 0 ((mp+mc)*g/mc/lp) (Km^2*Kg^2/R/r^2/mc/lp) 0];
 B = [0; 0; Km*Kg/R/r/mc; -Km*Kg/R/r/mc/lp];
+
+
+
+m = 1; M = 5; L = 2; g = -10; d = 1;
+b = 1; % Pendulum up (b=1)
+A = [0 1 0 0;
+0 -d/M b*m*g/M 0;
+0 0 0 1;
+0 -b*d/(M*L) -b*(m+M)*g/(M*L) 0];
+B = [0; 1/M; 0; b*1/(M*L)];
+
+
+
 C = [1 0 0 0];
 D = 0;
 
+
+
+
 %%%%%closed loop poles
-clp_K = [-1+j;-1-j;-5+j*5;-5-j*5];
-% r(t) is a square wave with a magnitude of 0.05 meters
-% and frequency of 0.5 rad/sec
+clp_K = [-1+1j;-1-1j;-5+j*5;-5-j*5];
 
 % initial condition of the state x(0)
 x0 = zeros(4,1);
 
-%show plots of the reference versus output
 
 %% Tracking input r(t) using state feedback
 
@@ -53,11 +72,19 @@ P = den(end)/num(end);
 BB = B*P;
 
 % squar wave 
+% r(t) is a square wave with a magnitude of 0.05 meters
+% and frequency of 0.5 rad/sec
 t = 0:.01:20;
-r = 0.1*square(0.5*t);
+r = 3*square(0.5*t);
 
 %simulating
 [y,x]=lsim(A-B*k,B*P,C,D,r,t);
+
+theta_eq = pi;
+x_actual = x+ repmat([0, theta_eq, 0, 0], size(x,1), 1);
+
+
+
 
 %% Plotting output from sim and input r(t)
 figure(Name = "Simulation output");
@@ -179,19 +206,85 @@ plot(t,u,Linewidth =2);
 grid on
 
 %% running annimation of simulation
-animate_cart_pendulum(x(:,1), x(:,2), x(:,3), x(:,4))
+animate_cart_pendulum(x(:,1), x(:,3), x(:,2), x(:,4))
+
+%% Part B
+
+clc
+clear
+%%%%% the goal of this part of the last assignment is to design a reduced-order
+%estimator
+%%%%% for a robot modeled by double integrator dynamics
+%%%%% dynamics: \ddot{x}=u_x, \ddot{y}=u_y
+%%%% x1: x axis position, x2: y axis position,
+%%%% x3: x axis velocity, x4: y axis velocity
+A = [0 0 1 0;
+0 0 0 1;
+0 0 0 0;
+0 0 0 0]; %A is unstable
+B = [0 0; 0 0; 1 0; 0 1];
+C = [1 0 0 0; 0 1 0 0];
+D = 0;
 
 
-%%
+%%%%%closed loop poles for the reduced-order observer
+clp_L = [-1+j, -1-j];
+L = place([0 0;0 0]',[1 0; 0 1]',clp_L)';
 
+% give an input as follows
+t = 0:.1:20;
+u = 0.01*[cos(t); cos(t)];
 
-
-
-%show plot of the states, x = [x1,x2,x3,x4] versus their estimates, xhat --- Please
-% show the true states together with the estimated states, for example x1 versus
-% x1hat, x2 versus x2hat ...
+x0 = zeros(4,1);
+% assume artibrary initial conitions for z(0) in the reduced-order observer. Here
+%we choose
+z0 = [0.1, 0.2]';
+%plot the states, x = [x1,x2,x3,x4], and their estimates xhat, xhat
+%to see if your estimator works. --- Please show the true states together with the
+%estimated states, for example x1 versus x1hat, x2 versus x2hat ...
 %so that is easy to see how the estimates compared with the true states
-%show plot of the control u
+
+[y,x] = lsim(A,B,C,D,u,t,x0);
+
+for i = 1:length(t)
+ubar(:,i) = (-L*eye(2))*(L*y(i,:)')+eye(2)*u(:,i);
+end
+
+[zhat,xhat] = lsim(-[1 0; 0 1]*L,[1 0; 0 1],[1 0; 0 1],[0 0;0 0],ubar,t,z0);
 
 
-%% work on the estimator, and plot x and xhat together 
+what = zhat+y*L';
+
+figure
+plot(t,x(:,1),LineWidth=2);
+hold on
+plot(t,x(:,2),"--",LineWidth=2);
+grid on
+legend("x_1","x_2")
+
+figure
+plot(t,x(:,3),LineWidth=2);
+hold on
+plot(t,x(:,4),"--",LineWidth=2);
+hold on
+plot(t,what(:,1),LineWidth=2);
+hold on
+plot(t,what(:,2),LineWidth=2);
+grid on
+legend("x_3","x_4","xhat_3","xhat_4");
+
+figure
+tiledlayout(2,1)
+nexttile
+plot(t,x(:,3),"k","LineWidth",2);
+hold on
+plot(t, what(:,1), 'r--', 'LineWidth', 2);
+grid on
+legend("x_3","xhat_3");
+
+nexttile
+plot(t,x(:,4),"k","LineWidth",2);
+hold on
+plot(t, what(:,2), 'r--', 'LineWidth', 2);
+grid on
+legend("x_4","xhat_4")
