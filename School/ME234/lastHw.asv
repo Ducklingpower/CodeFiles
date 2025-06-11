@@ -36,13 +36,13 @@ B = [0; 0; Km*Kg/R/r/mc; -Km*Kg/R/r/mc/lp];
 
 
 
-m = 1; M = 5; L = 2; g = -10; d = 1;
-b = 1; % Pendulum up (b=1)
-A = [0 1 0 0;
-0 -d/M b*m*g/M 0;
-0 0 0 1;
-0 -b*d/(M*L) -b*(m+M)*g/(M*L) 0];
-B = [0; 1/M; 0; b*1/(M*L)];
+% m = 1; M = 5; L = 2; g = -10; d = 1;
+% b = 1; % Pendulum up (b=1)
+% A = [0 1 0 0;
+% 0 -d/M b*m*g/M 0;
+% 0 0 0 1;
+% 0 -b*d/(M*L) -b*(m+M)*g/(M*L) 0];
+% B = [0; 1/M; 0; b*1/(M*L)];
 
 
 
@@ -56,7 +56,7 @@ D = 0;
 clp_K = [-1+1j;-1-1j;-5+j*5;-5-j*5];
 
 % initial condition of the state x(0)
-x0 = [0;0;pi;0];
+x0 = zeros(4,1);
 
 
 %% Tracking input r(t) using state feedback
@@ -79,7 +79,7 @@ t = 0:.01:20;
 r = 3*square(0.5*t);
 
 %simulating
-[y,x]=lsim(A-B*k,B*P,C,D,r,t,x0);
+[y,x]=lsim(A-B*k,B*P,C,D,r,t);
 
 theta_eq = pi;
 x_actual = x+ repmat([0, theta_eq, 0, 0], size(x,1), 1);
@@ -200,26 +200,22 @@ for i=1:length(t)
 ubar(:,i) = B*u(i)+L*y(i);
 end
 
-figure(Name = "Control efforts")
+figure(Name = "Controll efforts")
 tiledlayout(2,1)
-sgtitle("Control Efforts Over Time") % <-- This sets the overall title above all tiles
-
 nexttile
-title("Control Efforts U(t) = P*r(t) - K*x(t)")
-plot(t, u, LineWidth = 2);
-xlabel('Time (s)')
-ylabel('u(t)')
-grid on
-
-nexttile
-title("Control Efforts U(t) = B*u(t) + L*y(t)")
-plot(t, ubar, LineWidth = 2)
-legend("control for x1","control for x2","control for x3","control for x4")
-xlabel("Time (s)")
+title("Controll Efforts U(t) = P*r(t)-k*x(t)")
+plot(t,u,Linewidth =2);
+xlable("Time(s)")
 ylabel("u(t)")
+
+nexttile
+title("Controll Efforts U(t) = P*r(t)-k*x(t)")
+plot(t,ubar,LineStyle=)
+xlable("Time(s)")
+ylabel("u(t)")
+
+
 grid on
-
-
 
 %% running annimation of simulation
 animate_cart_pendulum(x(:,1), x(:,3), x(:,2), x(:,4))
@@ -228,90 +224,79 @@ animate_cart_pendulum(x(:,1), x(:,3), x(:,2), x(:,4))
 
 clc
 clear
-
-% System: Reduced-order observer for double integrator dynamics
+%%%%% the goal of this part of the last assignment is to design a reduced-order
+%estimator
+%%%%% for a robot modeled by double integrator dynamics
+%%%%% dynamics: \ddot{x}=u_x, \ddot{y}=u_y
+%%%% x1: x axis position, x2: y axis position,
+%%%% x3: x axis velocity, x4: y axis velocity
 A = [0 0 1 0;
-     0 0 0 1;
-     0 0 0 0;
-     0 0 0 0]; % A is unstable
-
-B = [0 0;
-     0 0;
-     1 0;
-     0 1];
-
-C = [1 0 0 0;
-     0 1 0 0];
-
+0 0 0 1;
+0 0 0 0;
+0 0 0 0]; %A is unstable
+B = [0 0; 0 0; 1 0; 0 1];
+C = [1 0 0 0; 0 1 0 0];
 D = 0;
 
-% Reduced-order observer poles
-clp_L = [-1+1j, -1-1j];
-L = place([0 0; 0 0]', [1 0; 0 1]', clp_L)';
 
-% Input signal
-t = 0:0.1:20;
-u = 0.01 * [cos(t); cos(t)];
+%%%%%closed loop poles for the reduced-order observer
+clp_L = [-1+j, -1-j];
+L = place([0 0;0 0]',[1 0; 0 1]',clp_L)';
+
+% give an input as follows
+t = 0:.1:20;
+u = 0.01*[cos(t); cos(t)];
 
 x0 = zeros(4,1);
-z0 = [0.1; 0.2];
+% assume artibrary initial conitions for z(0) in the reduced-order observer. Here
+%we choose
+z0 = [0.1, 0.2]';
+%plot the states, x = [x1,x2,x3,x4], and their estimates xhat, xhat
+%to see if your estimator works. --- Please show the true states together with the
+%estimated states, for example x1 versus x1hat, x2 versus x2hat ...
+%so that is easy to see how the estimates compared with the true states
 
-% Simulate true system
-[y, x] = lsim(A, B, C, D, u, t, x0);
+[y,x] = lsim(A,B,C,D,u,t,x0);
 
-% Compute observer input
 for i = 1:length(t)
-    ubar(:,i) = -L * (L * y(i,:)') + u(:,i);
+ubar(:,i) = (-L*eye(2))*(L*y(i,:)')+eye(2)*u(:,i);
 end
 
-% Simulate reduced-order observer
-[zhat, xhat] = lsim(-eye(2) * L, eye(2), eye(2), zeros(2), ubar, t, z0);
-what = zhat + y * L'; % Final estimated states xhat_3 and xhat_4
+[zhat,xhat] = lsim(-[1 0; 0 1]*L,[1 0; 0 1],[1 0; 0 1],[0 0;0 0],ubar,t,z0);
 
-% Figure 1: Measured positions x1 and x2
+
+what = zhat+y*L';
+
 figure
-plot(t, x(:,1), 'k', 'LineWidth', 2);
+plot(t,x(:,1),LineWidth=2);
 hold on
-plot(t, x(:,2), 'g--', 'LineWidth', 2);
+plot(t,x(:,2),"--",LineWidth=2);
 grid on
-xlabel('Time (s)')
-ylabel('Position')
-title('Measured States x_1 and x_2 (Positions)')
-legend('x_1', 'x_2')
+legend("x_1","x_2")
 
-% Figure 2: Velocities and their Estimates
 figure
-plot(t, x(:,3), 'k', 'LineWidth', 2);
+plot(t,x(:,3),LineWidth=2);
 hold on
-plot(t, x(:,4), 'k--', 'LineWidth', 2);
-plot(t, what(:,1), 'r', 'LineWidth', 2);
-plot(t, what(:,2), 'r--', 'LineWidth', 2);
+plot(t,x(:,4),"--",LineWidth=2);
+hold on
+plot(t,what(:,1),LineWidth=2);
+hold on
+plot(t,what(:,2),LineWidth=2);
 grid on
-xlabel('Time (s)')
-ylabel('Velocity')
-title('True vs Estimated Velocities: x_3, x_4 vs hatx_3, hatx_4')
-legend('x_3','x_4','hatx_3','hatx_4')
+legend("x_3","x_4","xhat_3","xhat_4");
 
-% Figure 3: Individual Velocity Estimation Comparison
 figure
 tiledlayout(2,1)
-
 nexttile
-plot(t, x(:,3), 'k', 'LineWidth', 2);
+plot(t,x(:,3),"k","LineWidth",2);
 hold on
 plot(t, what(:,1), 'r--', 'LineWidth', 2);
 grid on
-xlabel('Time (s)')
-ylabel('x_3 and hatx_3')
-title('True vs Estimated: x_3 and hatx_3')
-legend('x_3', 'hatx_3')
+legend("x_3","xhat_3");
 
 nexttile
-plot(t, x(:,4), 'k', 'LineWidth', 2);
+plot(t,x(:,4),"k","LineWidth",2);
 hold on
 plot(t, what(:,2), 'r--', 'LineWidth', 2);
 grid on
-xlabel('Time (s)')
-ylabel('x_4 and hatx_4')
-title('True vs Estimated: x_4 and hatx_4')
-legend('x_4', 'hatx_4')
+legend("x_4","xhat_4")

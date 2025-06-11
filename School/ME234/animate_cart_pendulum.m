@@ -18,14 +18,14 @@ function animate_cart_pendulum(x1, x2, x3, x4)
     cart_width = 1.0;
     cart_height = 0.4;
     wheel_radius = 0.1;
-    ball_radius = 0.15;
+    ball_radius = 0.3;
 
     % Set up figure
     figure;
     axis equal;
     grid on;
-    xlim([-10 10]);
-    ylim([-1.5 3.5]);
+    xlim([-15 15]);
+    ylim([-5.5 5.5]);
     xlabel('x');
     ylabel('y');
     title('Inverted Pendulum on a Cart (Reversed X-Axis Swing)');
@@ -79,6 +79,6 @@ function animate_cart_pendulum(x1, x2, x3, x4)
                          2 * ball_radius, 2 * ball_radius];
 
         drawnow;
-        pause(0.001);  % adjust speed here
+        pause(0.01);  % adjust speed here
     end
 end
