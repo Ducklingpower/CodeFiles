@@ -7,7 +7,7 @@ from std_msgs.msg import Float64
 class ReceiverNode(Node):
 
     def __init__(self):
-        super().__init__("receiver")
+        super().__init__("listener")
         self.sub = self.create_subscription(Float64,"my_first_topic",self.message_callback,10)
     
     def message_callback(self, msg: Float64):

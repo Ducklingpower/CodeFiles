@@ -9,7 +9,7 @@ from geometry_msgs.msg import Point32
 class SubscriberNode(Node):
 
     def __init__(self):
-        super().__init__("SubscriberNode")
+        super().__init__("listener")
         self.sub = self.create_subscription(JointData,"joint_topic",self.CallBack,10)
 
     def CallBack(self,message: JointData):

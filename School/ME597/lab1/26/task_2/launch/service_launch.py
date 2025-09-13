@@ -6,6 +6,12 @@ from launch_ros.actions import Node
 def generate_launch_description():
     return LaunchDescription([
 
+          Node(
+            package = "task_2",
+            executable = "service",
+            name = "ServerNode",
+        ),
+
         Node(
             package = "task_2",
             executable= "talker",
@@ -18,16 +24,10 @@ def generate_launch_description():
             name = "SubscriberNode",
             ),
 
-        Node(
-            package = "task_2",
-            executable = "client",
-            name = "ClientNode",
-        ),
+    
 
-        Node(
-            package = "task_2",
-            executable = "service",
-            name = "ServerNode",
-        )
+      
 
     ])
+
+        
