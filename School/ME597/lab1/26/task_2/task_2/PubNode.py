@@ -9,7 +9,7 @@ from geometry_msgs.msg import Point32        # since Point32 tpye is used in the
 class MyNode(Node):
 
     def __init__(self):
-        super().__init__("PublisherNode")
+        super().__init__("talker")
         self.pub = self.create_publisher(JointData,"joint_topic",10)
         self.create_timer(1,self.timerCallback)
 

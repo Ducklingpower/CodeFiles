@@ -7,19 +7,26 @@ from task_2_interfaces.srv import JointState # importing Joint states file to us
 class ServerNode(Node):
 
     def __init__(self):
-        super().__init__("ServerNode")
-        self.serv = self.create_service(JointState,"joint_service",self.DataRequest)
+        super().__init__("service")
+      
+        self.serv = self.create_service(JointState, "joint_service", self.data_request)
 
-    def DataRequest(self, request, response): #ending off working on call back
+    def data_request(self, request, response):
 
-        total = request.x + request.y + request.z
+        total = float(request.x) + float(request.y) + float(request.z)
+
+
+
         
-        if total >= 0:
-            response.valid = True
-        else:
-            response.valid = False
+        response.valid = (total >= 0.0)
+        
+        #self.get_logger().info(
+        #    f"[ServerNode] request=({request.x:.3f}, {request.y:.3f}, {request.z:.3f}) "
+        #    f"total={total:.3f} -> valid={response.valid}"
+        #)
 
         return response
+    
 
 
 

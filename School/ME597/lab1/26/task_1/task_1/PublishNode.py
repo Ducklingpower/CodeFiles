@@ -6,7 +6,7 @@ from std_msgs.msg import Float64
 class MyNode(Node):   #I just defined a cass called MyNode that inherits ROS2 node funcinonalities
 
     def __init__(self):
-        super().__init__("my_first_node")
+        super().__init__("talker")
         self.freq = 10
         self.n = 0.0
         self.pub = self.create_publisher(Float64,"my_first_topic",10) # creating topic and publishing to my first topic

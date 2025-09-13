@@ -4,37 +4,51 @@ import rclpy
 from rclpy.node import Node
 
 from task_2_interfaces.srv import JointState
+import sys
 
 
 class ClientNode(Node):
     
     def __init__(self):
-        super().__init__("ClientNode")
-        self.client = self.create_client(JointState,"joint_service")
+        super().__init__("client")
+        self.client = self.create_client(JointState, "joint_service")
 
-        while not self.client.wait_for_service(timeout_sec=2.0):                # LOGGING WAITING FOR SERVICE SO i KNOW ITS NOT UP AND i WONT GET AN ERROR
+        while not self.client.wait_for_service(timeout_sec=2.0):
             self.get_logger().info("waiting for service to be active")
 
-        request = JointState.Request() ## filling in client request info 
-        request.x = 1.0
-        request.y = 2.0
-        request.z = -10.0
+        self.req = JointState.Request()
+        
+    def send_request(self,x,y,z):
+        self.req.x = x
+        self.req.y = y
+        self.req.z = z
 
-        self.future = self.client.call_async(request) # sending the request and using future as a place holder until my code arrives
-        self.get_logger().info(f"sent x = {request.x}, y = {request.y}, z = {request.z}")# logging request
+        self.future = self.client.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
+
+        
+
+        
+        
+
 
 
 def main(args=None):
     rclpy.init(args=args)
-
     node = ClientNode()
-    
-    rclpy.spin_until_future_complete(node, node.future) # keeps node spinning until future is filled with the requested data
-    response = node.future.result()
-    node.get_logger().info(f"service said: valid={response.valid}") ## output the results of future
 
+    response = node.send_request(float(sys.argv[1]),float(sys.argv[2]),float(sys.argv[3]))
 
+    node.get_logger().info(f"service said: valid={response.valid}")
+
+    node.destroy_node()
     rclpy.shutdown()
 
 
+if __name__ == "__main__":
+    main()
+
+
+################
 
