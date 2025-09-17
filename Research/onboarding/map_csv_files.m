@@ -1,0 +1,45 @@
+clc
+clear
+close all
+%%
+
+wgs84 = wgs84Ellipsoid;
+
+% ref
+lat0 = 46.017;
+lon0 = 7.750;
+h0 = 1673;
+
+map1 = 'lvms_center_min_curve.csv';
+map2 = 'monza_mincurv.csv';
+
+data1 = readmatrix(map1);
+lat1 = data1(:, 1);
+lon1 = data1(:, 2);
+
+data2 = readmatrix(map2);
+lat2 = data2(:, 1);
+lon2 = data2(:, 2);
+vel  = data2(:, 3);
+
+h1 = zeros(length(data1(:,1)),length(data1(:,1)));
+h2 = zeros(length(data2(:,1)),length(data2(:,1)));
+% x = zeros(length(data(:,1)),1);
+% y = zeros(length(data(:,1)),1);
+
+
+
+[x1,y1,z1] = geodetic2enu(lat1,lon1,h1,lat0,lon0,h0,wgs84);
+
+[x2,y2,z2] = geodetic2enu(lat2,lon2,h2,lat0,lon0,h0,wgs84);
+
+
+figure
+plot(x1(:,1),y1(:,1),"*")
+grid on
+
+
+figure
+plot(x2(:,1),y2(:,1),"*")
+grid on
+
