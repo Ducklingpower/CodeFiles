@@ -1,0 +1,46 @@
+clc 
+close all
+clear
+
+format longG
+%%
+
+w = 0:0.01:10;
+t = 0:0.05:0.2;
+
+for i = 1:length(t)
+y(:,i) = ((10)./(sqrt((10-w.^2).^2 + w.^2))) .* sqrt((cos(t(i).*w)-1).^2 + (sin(t(i).*w)).^2) ;
+end
+
+figure
+plot(w,y,'.',LineWidth=1)
+grid on
+
+legend('\tau = 0','\tau = 0.05','\tau = 0.1','\tau = 0.15','\tau = 0.2')
+
+max_tau = max(y(:,3));
+
+
+%% question 2
+
+% closed looped poles
+root = roots([1,220,484,1000,240]);
+
+% showig stability using stablitiyt using robust stabiltiy
+
+w = 0.1:0.01:10;
+
+N = sqrt((240-480*w.^2).^2 + (600.*w - 120.*w.^3).^2) .* w;
+D = sqrt((w.^4 - 484.*w.^2 + 240).^2 + (-220.*w.^3 + 1000.*w).^2) .* sqrt(w.^2 + 10);
+
+Robust = N./D;
+
+
+figure(Name="Cheching ofr stability")
+
+plot(w(:),Robust(1,:),"*")
+xlabel("frequency \omega")
+ylabel("Robust mag")
+grid on
+% system is stable
+
