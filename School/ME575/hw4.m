@@ -44,3 +44,38 @@ ylabel("Robust mag")
 grid on
 % system is stable
 
+%% Q3 
+% checking stabiltiy 
+tau = 0.01:0.01:2;
+
+% start color
+hex = '#FF0000';                         
+rgb = sscanf(hex(2:end),'%2x%2x%2x',[1 3])/255;   
+n  = numel(tau);
+t  = linspace(1,0,n).';                   
+% colors = t .* rgb;  
+colors = 1 - (1-rgb).*t;
+
+
+figure 
+hold on
+grid on 
+xlabel('Re\{s\}'); 
+ylabel('Im\{s\}'); 
+
+% color bar
+cmap = [linspace(rgb(1),1,n)',linspace(rgb(2),1,n)',linspace(rgb(3),1,n)'];
+colormap(cmap)
+clim([tau(1) tau(end)]);
+
+
+
+for i = 1:n
+    data = roots([tau(i), 12*tau(i)^2 + 2*tau(i), 24*tau(i)+1, 12, 100]);
+    scatter(real(data), imag(data), 36, colors(i,:), 'filled');  % color for this τ
+    if i==1
+        pause(3); 
+    else
+        pause(0.001); 
+    end
+end
