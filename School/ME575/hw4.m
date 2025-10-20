@@ -53,14 +53,22 @@ hex = '#FF0000';
 rgb = sscanf(hex(2:end),'%2x%2x%2x',[1 3])/255;   
 n  = numel(tau);
 t  = linspace(1,0,n).';                   
-colors = t .* rgb;                        
+% colors = t .* rgb;  
+colors = 1 - (1-rgb).*t;
 
 
 figure 
 hold on
 grid on 
-xlabel('Re\{s\}'); ylabel('Im\{s\}'); axis equal
-title('Roots colored from HEX to black')
+xlabel('Re\{s\}'); 
+ylabel('Im\{s\}'); 
+
+% color bar
+cmap = [linspace(rgb(1),1,n)',linspace(rgb(2),1,n)',linspace(rgb(3),1,n)'];
+colormap(cmap)
+clim([tau(1) tau(end)]);
+
+
 
 for i = 1:n
     data = roots([tau(i), 12*tau(i)^2 + 2*tau(i), 24*tau(i)+1, 12, 100]);
@@ -68,6 +76,6 @@ for i = 1:n
     if i==1
         pause(3); 
     else
-        pause(0.01); 
+        pause(0.001); 
     end
 end
