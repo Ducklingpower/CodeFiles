@@ -223,7 +223,7 @@ for i = 1:length(deltas)
 
      
 
-            [Fx_all,Fy_all,Fz_all,Mx_all,My_all,Mz_all] = TireModel(Fz_fl,Fz_rl,Fz_fr,Fz_rr,alpha_fl,alpha_rl,alpha_fr,alpha_rr,Vx);
+            [Fx_all,Fy_all,Fz_all,Mx_all,My_all,Mz_all] = TireModel(Fz_fl,Fz_rl,Fz_fr,Fz_rr,alpha_rl,Vx);
 
             
 
@@ -280,10 +280,10 @@ for i = 1:length(deltas)
             % Mz_rl = AligningTireModel(Fz_rl, rad2deg(alpha_rl));
             % Mz_rr = AligningTireModel(Fz_rr, rad2deg(alpha_rr));
 
-            Mz_fl = Mz_all.fl;
-            Mz_fr = Mz_all.fr;
-            Mz_rl = Mz_all.rl;
-            Mz_rr = Mz_all.rr;
+            Mz_fl = Mz_all.front;
+            Mz_fr = Mzfr.front;
+            Mz_rl = Mzrl.rear;
+            Mz_rr = Mzrr.rear;
 
 
 

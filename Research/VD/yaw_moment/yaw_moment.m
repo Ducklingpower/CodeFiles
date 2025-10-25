@@ -36,8 +36,8 @@ vehicleParams.m           = 630;        % vehicle mass (kg)  [base vehicle mass]
 vehicleParams.mech_trail_f = 0;         % mech trail front (m) TBD
 vehicleParams.mech_trail_r = 0;         % mech trail rear  (m) TBD
 
-vehicleParams.frontalArea = -1;          % frontal area (m^2) TBD
-vehicleParams.Cd          = -1;          % drag coeff (-)     TBD
+vehicleParams.frontalArea = 1.47 ;      % frontal area (m^2) TBD
+vehicleParams.Cd          = 0.7;         % drag coeff (-)     TBD
 vehicleParams.Cl          = 0;           % ift coeff (-)     TBD
 vehicleParams.aeroBalance = .33;         % frontal aero load (-) 33% avg
 vehicleParams.copShift    = -1;          % balance shift with Vx (%/(m/s))TBD
@@ -48,11 +48,11 @@ vehicleParams.copShift    = -1;          % balance shift with Vx (%/(m/s))TBD
 
 % sim paramters -----------------------------------------------------------
 
-simParams.deltaMax = 25;                % max and min delta values for YMD
+simParams.deltaMax = 10;                % max and min delta values for YMD
 simParams.deltaResolution = 1;          % resolution of delta values for YMD
-simParams.betaMax = 10;                 % max and min betas
+simParams.betaMax = 5;                 % max and min betas
 simParams.betaResolution = 0.5;         % betas resolution
-simParams.gravity = 9.81;               % gravity
+simParams.gravity = 9.81;                 % gravity
 simParams.Vx = 10;                      % forward velocity (assume const)
 simParams.plotGraphs = true;            % plot YMD graphs for each iteration
 simParams.YMDcount = 1;                 % number of YMDs being generated
@@ -60,7 +60,7 @@ simParams.airDensity = 1.225;           % (kg/m^3)
 
 %% running YMD func
 
-YMD_outc = YMD_calc(simParams,vehicleParams);
+YMD_out = YMD_calc(simParams,vehicleParams);
 
 
 
