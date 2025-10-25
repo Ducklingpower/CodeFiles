@@ -1,0 +1,52 @@
+function [Fx,Fy,Fz,Mx,My,Mz] = TireModel(fz_fl,fz_rl,fz_fr,fz_rr,alpha,Vx)
+
+addpath '/home/elijah/MATLAB Add-Ons/Toolboxes/MFeval/MFeval'
+
+% Load TIR files
+front_l_tir = '2024003_Firestone_Firehawk Left Front SC_RC__275_40R15_MF62_UM4.tir';
+rear_l_tir  = '2024003_Firestone_Firehawk Left Rear SC_RC__385_30R15_MF62_UM4.tir';
+
+front_r_tir = '2024003_Firestone_Firehawk Right Front SC_RC__275_40R15_MF62_UM4.tir';
+rear_r_tir  = '2024003_Firestone_Firehawk Right Rear SC_RC_385_30R15_MF62_UM4.tir';
+
+         
+ fl = mfeval(front_l_tir, [-fz_fl, 0, alpha, 0, 0, Vx], 211);
+ rl  = mfeval(rear_l_tir, [-fz_rl, 0, alpha, 0, 0, Vx], 211);
+ fr = mfeval(front_r_tir, [-fz_fr, 0, alpha, 0, 0, Vx], 211);
+ rr  = mfeval(rear_r_tir, [-fz_rr, 0, alpha, 0, 0, Vx], 211);
+
+
+ Fx.fl = fl(1,1);
+ Fy.fl = fl(1,2);
+ Fz.fl = fl(1,3);
+ Mx.fl = fl(1,4);
+ My.fl = fl(1,5);
+ Mz.fl = fl(1,6);
+
+ Fx.fr = fr(1,1);
+ Fy.fr = fr(1,2);
+ Fz.fr = fr(1,3);
+ Mx.fr = fr(1,4);
+ My.fr = fr(1,5);
+ Mz.fr = fr(1,6);
+
+ Fx.rl = rl(1,1);
+ Fy.rl = rl(1,2);
+ Fz.rl = rl(1,3);
+ Mx.rl = rl(1,4);
+ My.rl = rl(1,5);
+ Mz.rl = rl(1,6);
+
+ Fx.fl = rr(1,1);
+ Fy.fl = front(1,2);
+ Fz.fl = front(1,3);
+ Mx.fl = front(1,4);
+ My.fl = front(1,5);
+ Mz.fl = front(1,6);
+
+
+
+
+ 
+
+end
