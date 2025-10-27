@@ -93,7 +93,7 @@ for i = 1:length(deltas)
 
         % Before the loop starts, initialize with a better guess:
         if i == 1 && j == 1
-            Ay_it = 1;
+            Ay_it = 0;
         elseif j == 1
             % Using solution from previous delta at same beta
             Ay_it = output_Ay(i-1, j);
