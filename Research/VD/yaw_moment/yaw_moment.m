@@ -1,5 +1,5 @@
 clc 
-close all
+
 clear
 %% Yaw Moment Diagram
 
@@ -40,7 +40,7 @@ vehicleParams.frontalArea = 1.47 ;      % frontal area (m^2) TBD
 vehicleParams.Cd          = 0.7;         % drag coeff (-)     TBD
 vehicleParams.Cl          = 0;           % ift coeff (-)     TBD
 vehicleParams.aeroBalance = .33;         % frontal aero load (-) 33% avg
-vehicleParams.copShift    = -1;          % balance shift with Vx (%/(m/s))TBD
+vehicleParams.copShift    = 0;          % balance shift with Vx (%/(m/s))TBD
 
 
 
@@ -48,9 +48,9 @@ vehicleParams.copShift    = -1;          % balance shift with Vx (%/(m/s))TBD
 
 % sim paramters -----------------------------------------------------------
 
-simParams.deltaMax = 10;                % max and min delta values for YMD
+simParams.deltaMax = 25;                % max and min delta values for YMD
 simParams.deltaResolution = 1;          % resolution of delta values for YMD
-simParams.betaMax = 5;                 % max and min betas
+simParams.betaMax = 10;                 % max and min betas
 simParams.betaResolution = 0.5;         % betas resolution
 simParams.gravity = 9.81;                 % gravity
 simParams.Vx = 10;                      % forward velocity (assume const)

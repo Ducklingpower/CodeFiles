@@ -1,6 +1,6 @@
 function [Fx,Fy,Fz,Mx,My,Mz] = TireModel(fz_fl,fz_rl,fz_fr,fz_rr,alpha_fl,alpha_rl,alpha_fr,alpha_rr,Vx)
 
-addpath '/home/elijah/MATLAB Add-Ons/Toolboxes/MFeval/MFeval'
+%addpath '/home/elijah/MATLAB Add-Ons/Toolboxes/MFeval/MFeval'
 
 % Load TIR files
 front_l_tir = '2024003_Firestone_Firehawk Left Front SC_RC__275_40R15_MF62_UM4.tir';
