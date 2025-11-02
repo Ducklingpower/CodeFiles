@@ -530,6 +530,14 @@ if sim_parameters.plotGraphs == 1
     % figure
     % plot(iterations)
 end
+ outputStruct.Ay = output_Ay;
+ outputStruct.N = output_N;
+ outputStruct.neg_i = neg_i;
+ outputStruct.neg_j = neg_j;
+ outputStruct.pos_i = pos_i;
+ outputStruct.pos_j = pos_j;
+
+
 
 % interpolate max lat SS values
 

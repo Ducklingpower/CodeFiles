@@ -25,7 +25,7 @@ for j = 1:length(Fz_rear_sweep)
     Fz = Fz_rear_sweep(j);
     for i = 1:length(alpha)
         out = mfeval(rear_tir, [Fz, 0, alpha(i), 0, 0, 40], 211);
-        Fy_rear_all(j,i) = out(2);
+        Fy_rear_all(j,i) = out(6);
     end
 end
 
@@ -33,7 +33,7 @@ for j = 1:length(Fz_front_sweep)
     Fz = Fz_front_sweep(j);
     for i = 1:length(alpha)
         out = mfeval(front_tir, [Fz, 0, alpha(i), 0, 0, 40], 211);
-        Fy_front_all(j,i) = out(2);
+        Fy_front_all(j,i) = out(6);
     end
 end
 

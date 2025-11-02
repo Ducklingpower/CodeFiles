@@ -1,11 +1,11 @@
 clc
-close all
+
 clear
 %%
 addpath '/home/elijah/MATLAB Add-Ons/Toolboxes/MFeval/MFeval'
 
 % Load TIR files
-front_tir = '2024003_Firestone_Firehawk Right Front SC_RC__275_40R15_MF62_UM4.tir';
+front_tir = '2024003_Firestone_Firehawk Left Rear SC_RC__385_30R15_MF62_UM4.tir';
 rear_tir  = '2024003_Firestone_Firehawk Right Rear SC_RC_385_30R15_MF62_UM4.tir';
             
 % % Slip angle sweep
@@ -21,14 +21,6 @@ Fz_front_sweep = linspace(850, 4200, 10);
 Fy_front_all = zeros(length(Fz_front_sweep), length(alpha));
 Fy_rear_all  = zeros(length(Fz_rear_sweep),  length(alpha));
 
-for j = 1:length(Fz_front_sweep)
-    Fz = Fz_front_sweep(j);
-    for i = 1:length(alpha)
-        out = mfeval(front_tir, [Fz, 0, alpha(i), 0, 0, 40], 211);
-        Fy_front_all(j,i) = out(2);
-    end
-end
-
 for j = 1:length(Fz_rear_sweep)
     Fz = Fz_rear_sweep(j);
     for i = 1:length(alpha)
@@ -37,6 +29,16 @@ for j = 1:length(Fz_rear_sweep)
     end
 end
 
+for j = 1:length(Fz_front_sweep)
+    Fz = Fz_front_sweep(j);
+    for i = 1:length(alpha)
+        out = mfeval(front_tir, [Fz, 0, alpha(i), 0, 0, 40], 211);
+        Fy_front_all(j,i) = out(2);
+    end
+end
+
+
+
 %% plotting output
 figure
 for i = 1:10
@@ -44,7 +46,81 @@ plot(alpha(1,:),Fy_front_all(i,:),'r')
 hold on
 plot(alpha(1,:),Fy_rear_all(i,:),'g')
 hold on
+
+plot(alpha(1,:),Fy_rear_all(i,:)+Fy_front_all(i,:),'b')
+hold on
 grid on
 end
 legend("Fy_f","Fy_r")
+
+%% Interpulating tire model creating LUT
+addpath '/home/elijah/MATLAB Add-Ons/Toolboxes/MFeval/MFeval'
+clc
+close all
+clear
+% --- User choices ---
+alpha_breaks = linspace(-0.45, 0.45, 100); % radians % deg  (0.25° resolution)
+Fz_breaks    = linspace(1500, 5000, 36); % N
+gamma_fixed  = 0;                        % deg
+Vx_fixed     = 30;                       % m/s
+pi_fixed     = 220e3;                    % Pa (example)
+kappa_fixed  = 0;                        % pure lateral
+
+% Your tire data struct for MFeval:
+TIR = '2024003_Firestone_Firehawk Left Rear SC_RC__385_30R15_MF62_UM4.tir'; % or however you obtain TIR
+
+% --- Allocate tables ---
+nA  = numel(alpha_breaks);
+nFz = numel(Fz_breaks);
+
+Fy_table = zeros(nFz, nA);  % IMPORTANT: rows = Fz, cols = alpha
+Mz_table = zeros(nFz, nA);  % if you want Mz too (optional)
+
+% --- Sweep and fill ---
+for iF = 1:nFz
+    Fz = Fz_breaks(iF);
+    for iA = 1:nA
+        alpha = alpha_breaks(iA);
+
+        % ---- Call your slow tire model (adapt to your function) ----
+        % Common MFeval calling pattern (example):
+        % [Fx, Fy, Fz_out, Mx, My, Mz, ...] = mfeval(TIR, kappa, alpha, gamma, Fz, pi, Vx);
+        out = mfeval(TIR,[Fz, 0, alpha, 0, 0, 40], 211);
+
+        Fy_table(iF, iA) = out(2);
+        Mz_table(iF, iA) = out(6); % optional
+    end
+end
+
+% --- Save to a .mat for reuse ---
+LUT_Fy_alphaFz.alpha_breaks = alpha_breaks;
+LUT_Fy_alphaFz.Fz_breaks    = Fz_breaks;
+LUT_Fy_alphaFz.Fy_table     = Fy_table;   % size = [nFz x nA]
+LUT_Fy_alphaFz.Mz_table     = Mz_table;   % optional meta
+LUT_Fy_alphaFz.meta.gamma   = gamma_fixed;
+LUT_Fy_alphaFz.meta.Vx      = Vx_fixed;
+LUT_Fy_alphaFz.meta.pi      = pi_fixed;
+LUT_Fy_alphaFz.meta.kappa   = kappa_fixed;
+save('LUT_Fy_alphaFz.mat', 'LUT_Fy_alphaFz');
+
+
+% running LUT
+S = load('LUT_Fy_alphaFz.mat');
+A  = S.LUT_Fy_alphaFz.alpha_breaks;
+FZ = S.LUT_Fy_alphaFz.Fz_breaks;
+FY = S.LUT_Fy_alphaFz.Fy_table;
+
+% Create a 2-D interpolant: first dim = Fz, second = alpha
+FyLUT = griddedInterpolant({FZ, A}, FY, 'linear', 'nearest'); % linear interp, clamp outside
+%%
+% Example query:
+alpha_q = linspace(-0.45, 0.45, 300);
+Fz_q    = 3200;  % N
+for i  =length(alpha_q)
+Fy_q    = FyLUT(Fz_q, alpha_q(i));
+end
+%%
+figure
+
+
 
