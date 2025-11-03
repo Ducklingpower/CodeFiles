@@ -50,7 +50,7 @@ vehicleParams.copShift    = 0;          % balance shift with Vx (%/(m/s))TBD
 
 simParams.deltaMax = 25;                % max and min delta values for YMD
 simParams.deltaResolution = 1;          % resolution of delta values for YMD
-simParams.betaMax = 10;                 % max and min betas
+simParams.betaMax = 5;                 % max and min betas
 simParams.betaResolution = 0.5;         % betas resolution
 simParams.gravity = 9.81;                 % gravity
 simParams.Vx = 10;                      % forward velocity (assume const)

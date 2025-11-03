@@ -117,10 +117,10 @@ for i = 1:length(deltas)
         SA_sat = false;
 
         debug = 1;
-        maxIter = 1000;
+        maxIter = 10000;
         resultsNum = zeros(maxIter);
         iterCount = 0;
-        tolerance = 0.002;
+        tolerance = 0.02;
         damp = 0.35;
         oscillation = 0;
         Ay_tolerance = 0;

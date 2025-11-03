@@ -7,8 +7,8 @@ f = waitbar(0,'Please wait...');
 % creating look up tables
 addpath '/home/elijah/MATLAB Add-Ons/Toolboxes/MFeval/MFeval'
 
-alpha_breaks = linspace(-0.45, 0.45, 50); % radians % deg  (0.25° resolution)
-Fz_breaks    = linspace(0, 5000, 50); % N
+alpha_breaks = linspace(-0.45, 0.45, 500); % radians % deg  (0.25° resolution)
+Fz_breaks    = linspace(0, 5000, 500); % N
 
 front_l_tir = '2024003_Firestone_Firehawk Left Front SC_RC__275_40R15_MF62_UM4.tir';
 rear_l_tir  = '2024003_Firestone_Firehawk Left Rear SC_RC__385_30R15_MF62_UM4.tir';
@@ -122,5 +122,38 @@ hold on
 grid on
 end
 
+%% plotting
+
+% Load the LUT
+S = load('LUT_Fy_fl.mat');
+LUT = S.LUT_Fy_fl;
+
+% Extract data
+alpha = LUT.alpha;      % radians
+Fz    = LUT.Fz_breaks;  % N
+Fy    = LUT.Fy_table;   % N
+Mz    = LUT.Mz_table;   % N·m
+
+% Convert slip angle to degrees (optional, just for nicer axes)
+alpha_deg = rad2deg(alpha);
+
+% Plot lateral force surface
+figure;
+
+surf(alpha_deg, Fz, Fy, 'EdgeColor','none');
+xlabel('\alpha (deg)');
+ylabel('F_z (N)');
+zlabel('F_y (N)');
+title('Lateral Force Surface (Front Left)');
+colorbar; view(45,30); grid on;shading faceted
+
+% Plot aligning moment surface
+figure;
+surf(alpha_deg, Fz, Mz, 'EdgeColor','none');
+xlabel('\alpha (deg)');
+ylabel('F_z (N)');
+zlabel('M_z (N·m)');
+title('Aligning Moment Surface (Front Left)');
+colorbar; view(45,30); grid on;shading faceted
 
 
