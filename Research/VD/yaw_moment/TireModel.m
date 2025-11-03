@@ -92,8 +92,8 @@ rr_mz = MZLUT_rr(-fz_rr, alpha_rr);
  My.rl = 0;
  Mz.rl = rl_mz;
 
- Fx.rr = rr;
- Fy.rr = 0;
+ Fx.rr = 0;
+ Fy.rr = rr;
  Fz.rr = 0;
  Mx.rr = 0;
  My.rr = 0;
