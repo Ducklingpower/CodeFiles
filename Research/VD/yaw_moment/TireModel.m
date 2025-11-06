@@ -18,30 +18,56 @@ function [Fx,Fy,Fz,Mx,My,Mz] = TireModel(fz_fl,fz_rl,fz_fr,fz_rr,alpha_fl,alpha_
 
 
 
-S_fl = load('LUT_Fy_fl.mat');
-A_fl  = S_fl.LUT_Fy_fl.alpha;
-FZ_fl = S_fl.LUT_Fy_fl.Fz_breaks;
-FY_fl = S_fl.LUT_Fy_fl.Fy_table;
-MZ_fl = S_fl.LUT_Fy_fl.Mz_table;
 
-S_fr = load('LUT_Fy_fr.mat');
-A_fr  = S_fr.LUT_Fy_fr.alpha;
-FZ_fr = S_fr.LUT_Fy_fr.Fz_breaks;
-FY_fr = S_fr.LUT_Fy_fr.Fy_table;
-MZ_fr = S_fr.LUT_Fy_fr.Mz_table;
+% S_fl = load('LUT_Fy_fl.mat');
+% A_fl  = S_fl.LUT_Fy_fl.alpha;
+% FZ_fl = S_fl.LUT_Fy_fl.Fz_breaks;
+% FY_fl = S_fl.LUT_Fy_fl.Fy_table;
+% MZ_fl = S_fl.LUT_Fy_fl.Mz_table;
+% 
+% S_fr = load('LUT_Fy_fr.mat');
+% A_fr  = S_fr.LUT_Fy_fr.alpha;
+% FZ_fr = S_fr.LUT_Fy_fr.Fz_breaks;
+% FY_fr = S_fr.LUT_Fy_fr.Fy_table;
+% MZ_fr = S_fr.LUT_Fy_fr.Mz_table;
+% 
+% S_rl = load('LUT_Fy_rl.mat');
+% A_rl  = S_rl.LUT_Fy_rl.alpha;
+% FZ_rl = S_rl.LUT_Fy_rl.Fz_breaks;
+% FY_rl = S_rl.LUT_Fy_rl.Fy_table;
+% MZ_rl = S_rl.LUT_Fy_rl.Mz_table;
+% 
+% S_rr = load('LUT_Fy_rr.mat');
+% A_rr  = S_rr.LUT_Fy_rr.alpha;
+% FZ_rr = S_rr.LUT_Fy_rr.Fz_breaks;
+% FY_rr = S_rr.LUT_Fy_rr.Fy_table;
+% MZ_rr = S_rr.LUT_Fy_rr.Mz_table;
 
-S_rl = load('LUT_Fy_rl.mat');
-A_rl  = S_rl.LUT_Fy_rl.alpha;
-FZ_rl = S_rl.LUT_Fy_rl.Fz_breaks;
-FY_rl = S_rl.LUT_Fy_rl.Fy_table;
-MZ_rl = S_rl.LUT_Fy_rl.Mz_table;
+% combined front left and front right tire model
 
-S_rr = load('LUT_Fy_rr.mat');
-A_rr  = S_rr.LUT_Fy_rr.alpha;
-FZ_rr = S_rr.LUT_Fy_rr.Fz_breaks;
-FY_rr = S_rr.LUT_Fy_rr.Fy_table;
-MZ_rr = S_rr.LUT_Fy_rr.Mz_table;
+S_fl = load('LUT_Fy_front.mat');
+A_fl  = S_fl.LUT_Fy_front.alpha;
+FZ_fl = S_fl.LUT_Fy_front.Fz_breaks;
+FY_fl = S_fl.LUT_Fy_front.Fy_table;
+MZ_fl = S_fl.LUT_Fy_front.Mz_table;
 
+S_fr = load('LUT_Fy_front.mat');
+A_fr  = S_fr.LUT_Fy_front.alpha;
+FZ_fr = S_fr.LUT_Fy_front.Fz_breaks;
+FY_fr = S_fr.LUT_Fy_front.Fy_table;
+MZ_fr = S_fr.LUT_Fy_front.Mz_table;
+
+S_rl = load('LUT_Fy_rear.mat');
+A_rl  = S_rl.LUT_Fy_rear.alpha;
+FZ_rl = S_rl.LUT_Fy_rear.Fz_breaks;
+FY_rl = S_rl.LUT_Fy_rear.Fy_table;
+MZ_rl = S_rl.LUT_Fy_rear.Mz_table;
+
+S_rr = load('LUT_Fy_rear.mat');
+A_rr  = S_rr.LUT_Fy_rear.alpha;
+FZ_rr = S_rr.LUT_Fy_rear.Fz_breaks;
+FY_rr = S_rr.LUT_Fy_rear.Fy_table;
+MZ_rr = S_rr.LUT_Fy_rear.Mz_table;
 
 % Create a 2-D interpolant: first dim = Fz, second = alpha
 FyLUT_fl = griddedInterpolant({FZ_fl, A_fl}, FY_fl, 'linear', 'nearest'); % linear interp, clamp outside

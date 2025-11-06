@@ -38,7 +38,7 @@ vehicleParams.mech_trail_r = 0;         % mech trail rear  (m) TBD
 
 vehicleParams.frontalArea = 1.47 ;      % frontal area (m^2) TBD
 vehicleParams.Cd          = 0.7;         % drag coeff (-)     TBD
-vehicleParams.Cl          = 0.0;           % ift coeff (-)     TBD
+vehicleParams.Cl          = 0.7;           % ift coeff (-)     TBD
 vehicleParams.aeroBalance = .33;         % frontal aero load (-) 33% avg
 vehicleParams.copShift    = 0;          % balance shift with Vx (%/(m/s))TBD
 
@@ -53,7 +53,7 @@ simParams.deltaResolution = 1;          % resolution of delta values for YMD
 simParams.betaMax = 5;                 % max and min betas
 simParams.betaResolution = 0.5;           % betas resolution
 simParams.gravity = 9.81;               % gravity
-simParams.Vx = 10;                      % forward velocity (assume const)
+simParams.Vx = 100;                      % forward velocity (assume const)
 simParams.plotGraphs = true;            % plot YMD graphs for each iteration
 simParams.YMDcount = 1;                 % number of YMDs being generated
 simParams.airDensity = 1.225;           % (kg/m^3)

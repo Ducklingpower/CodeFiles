@@ -51,7 +51,7 @@ aeroLoad_R = Cl * Air_Density * ((Vx^2)/2) * frontalArea * (1 - aeroBalance);
 
 %% ackermann steering sweep
 
-ackerman_sweep = xlsread("ackerman_sweep.xlsx");
+ackerman_sweep = xlsread("ackerman_sweep_50.xlsx");
 
 
 %% variable initialization
@@ -189,11 +189,11 @@ for i = 1:length(deltas)
             weightTransfer_f = Ay_it/g * weightTransferGradient_f;
             weightTransfer_r = Ay_it/g * weightTransferGradient_r;
 
-            Fz_fr = -(((w * w_dist_f)/2) + weightTransfer_f) + aeroLoad_F;
-            Fz_fl = -(((w * w_dist_f)/2) - weightTransfer_f) + aeroLoad_F;
+            Fz_fr = -(((w * w_dist_f)/2) + weightTransfer_f) - aeroLoad_F;
+            Fz_fl = -(((w * w_dist_f)/2) - weightTransfer_f) - aeroLoad_F;
 
-            Fz_rr = -(((w * (1-w_dist_f))/2) + weightTransfer_r) + aeroLoad_R;
-            Fz_rl = -(((w * (1-w_dist_f))/2) - weightTransfer_r) + aeroLoad_R;
+            Fz_rr = -(((w * (1-w_dist_f))/2) + weightTransfer_r) - aeroLoad_R;
+            Fz_rl = -(((w * (1-w_dist_f))/2) - weightTransfer_r) - aeroLoad_R;
 
             if Fz_fr > 0
                 Fz_fr = -0.001;
