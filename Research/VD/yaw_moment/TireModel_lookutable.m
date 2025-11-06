@@ -7,8 +7,8 @@ f = waitbar(0,'Please wait...');
 % creating look up tables
 addpath '/home/elijah/MATLAB Add-Ons/Toolboxes/MFeval/MFeval'
 
-alpha_breaks = linspace(-0.45, 0.45, 500); % radians % deg  (0.25° resolution)
-Fz_breaks    = linspace(0, 5000, 500); % N
+alpha_breaks = linspace(-0.78, 0.78, 75); % radians % deg  (0.25° resolution)
+Fz_breaks    = linspace(0, 5000, 50); % N
 
 front_l_tir = '2024003_Firestone_Firehawk Left Front SC_RC__275_40R15_MF62_UM4.tir';
 rear_l_tir  = '2024003_Firestone_Firehawk Left Rear SC_RC__385_30R15_MF62_UM4.tir';
@@ -52,9 +52,16 @@ for iF = 1:nFz
 
         Fy_table_rr(iF, iA) = outrr(2);
         Mz_table_rr(iF, iA) = outrr(6); 
+
+        % combined tables
+        Fy_table_front(iF,iA) = (outfl(2) + outfr(2))*0.5;
+        Mz_table_front(iF,iA) = (outfl(6) + outfr(6))*0.5;
+
+        Fy_table_rear(iF,iA) = (outrl(2) + outrr(2))*0.5;
+        Mz_table_rear(iF,iA) = (outrl(6) + outrr(6))*0.5;
     end
 end
-
+%%
 % --- Save to a .mat for reuse ---
 
 LUT_Fy_fl.Fy_table     = Fy_table_fl;  
@@ -69,15 +76,27 @@ LUT_Fy_fr.Mz_table     = Mz_table_fr;
 LUT_Fy_rr.Fy_table     = Fy_table_rr;  
 LUT_Fy_rr.Mz_table     = Mz_table_rr;  
 
+% combined
+LUT_Fy_front.Fy_table = Fy_table_front;
+LUT_Fy_front.Mz_table = Mz_table_front;
+
+LUT_Fy_rear.Fy_table = Fy_table_rear;
+LUT_Fy_rear.Mz_table = Mz_table_rear;
+
+
 LUT_Fy_fl.alpha = alpha_breaks;
 LUT_Fy_rl.alpha = alpha_breaks;
 LUT_Fy_fr.alpha = alpha_breaks;
 LUT_Fy_rr.alpha = alpha_breaks;
+LUT_Fy_front.alpha = alpha_breaks;
+LUT_Fy_rear.alpha  = alpha_breaks;
 
 LUT_Fy_fl.Fz_breaks = Fz_breaks;
 LUT_Fy_rl.Fz_breaks = Fz_breaks;
 LUT_Fy_fr.Fz_breaks = Fz_breaks;
 LUT_Fy_rr.Fz_breaks = Fz_breaks;
+LUT_Fy_front.Fz_breaks = Fz_breaks;
+LUT_Fy_rear.Fz_breaks  = Fz_breaks;
 
 
 save('LUT_Fy_fl.mat', 'LUT_Fy_fl');
@@ -85,15 +104,19 @@ save('LUT_Fy_rl.mat', 'LUT_Fy_rl');
 save('LUT_Fy_fr.mat', 'LUT_Fy_fr');
 save('LUT_Fy_rr.mat', 'LUT_Fy_rr');
 
+save('LUT_Fy_front.mat','LUT_Fy_front')
+save('LUT_Fy_rear.mat','LUT_Fy_rear')
+
+
 
 %% testing
 
 % running LUT
-S = load('LUT_Fy_fl.mat');
-A  = S.LUT_Fy_fl.alpha;
-FZ = S.LUT_Fy_fl.Fz_breaks;
-FY = S.LUT_Fy_fl.Fy_table;
-MZ = S.LUT_Fy_fl.Mz_table;
+S = load('LUT_Fy_front.mat');
+A  = S.LUT_Fy_front.alpha;
+FZ = S.LUT_Fy_front.Fz_breaks;
+FY = S.LUT_Fy_front.Fy_table;
+MZ = S.LUT_Fy_front.Mz_table;
 
 % Create a 2-D interpolant: first dim = Fz, second = alpha
 FyLUT = griddedInterpolant({FZ, A}, FY, 'linear', 'nearest'); % linear interp, clamp outside
@@ -108,7 +131,7 @@ for i  =1:length(alpha_q)
 Fy_q(1,i)    = FyLUT(Fz_q, alpha_q(i));
 MZ_q(1,i)    = MZLUT(Fz_q, alpha_q(i));
 end
-%%
+%
 figure
 plot(alpha_q(:),Fy_q(:))
 hold on
@@ -117,7 +140,7 @@ hold on
 
 figure
 for i = 1:50
-plot(A(:),MZ(i,:))
+plot(A(:),FY(i,:))
 hold on
 grid on
 end
