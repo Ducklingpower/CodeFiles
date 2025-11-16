@@ -54,11 +54,11 @@ for iF = 1:nFz
         Mz_table_rr(iF, iA) = outrr(6); 
 
         % combined tables
-        Fy_table_front(iF,iA) = (outfl(2) + outfr(2))*0.5;
-        Mz_table_front(iF,iA) = (outfl(6) + outfr(6))*0.5;
+        Fy_table_front(iF,iA) = (outfl(2) + outfr(2))*0.3;
+        Mz_table_front(iF,iA) = (outfl(6) + outfr(6))*0.3;
 
-        Fy_table_rear(iF,iA) = (outrl(2) + outrr(2))*0.5;
-        Mz_table_rear(iF,iA) = (outrl(6) + outrr(6))*0.5;
+        Fy_table_rear(iF,iA) = (outrl(2) + outrr(2))*0.3;
+        Mz_table_rear(iF,iA) = (outrl(6) + outrr(6))*0.3;
     end
 end
 %%

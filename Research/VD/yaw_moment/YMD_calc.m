@@ -32,6 +32,7 @@ mech_trail_r = vehicleParams.mech_trail_r;  % mech trail rear       (m)
 frontalArea = vehicleParams.frontalArea;    % frontal area          (m^2)
 Cd = vehicleParams.Cd;                      % drag coef             (-)
 Cl = vehicleParams.Cl;                      % lift coef             (-)
+ACd= vehicleParams.ACd;                     % down force
 aeroBalance = vehicleParams.aeroBalance;    % frontal aero load     (-)
 
 
@@ -45,8 +46,8 @@ k_phi_f = ((wheelRate_f *(t_f^2))/2) + (ARB_f); % roll stiffness front (Nm/rad)
 k_phi_r = ((wheelRate_r *(t_r^2))/2) + (0); % roll stiffness rear (Nm/rad)
 weightTransferGradient_f = (w/t_f) * ((cg2rollAxis * k_phi_f)/(k_phi_f + k_phi_r) + (l_b * rc_f/wheelbase));
 weightTransferGradient_r = (w/t_r) * ((cg2rollAxis * k_phi_r)/(k_phi_f + k_phi_r) + (l_a * rc_r/wheelbase));
-aeroLoad_F = Cl * Air_Density * ((Vx^2)/2) * frontalArea * aeroBalance;
-aeroLoad_R = Cl * Air_Density * ((Vx^2)/2) * frontalArea * (1 - aeroBalance);
+aeroLoad_F = ACd * Air_Density * ((Vx^2)/2) * frontalArea * aeroBalance;
+aeroLoad_R = ACd * Air_Density * ((Vx^2)/2) * frontalArea * (1 - aeroBalance);
 
 
 %% ackermann steering sweep
