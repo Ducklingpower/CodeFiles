@@ -42,12 +42,12 @@ w = m*g;                                                      %Vehcile weight (N
 cg2rollAxis = cg_z -((1-w_dist_f)*(rc_r-rc_f) + rc_f);
 l_a = (1 - w_dist_f) * wheelbase;                             % cg to front axle      (m)
 l_b = wheelbase - l_a;                                        % cg to rear axle       (m)
-k_phi_f = ((wheelRate_f *(t_f^2))/2) + (ARB_f); % roll stiffness front (Nm/rad)
-k_phi_r = ((wheelRate_r *(t_r^2))/2) + (0); % roll stiffness rear (Nm/rad)
+k_phi_f = ((wheelRate_f *(t_f^2))/2) + (ARB_f);   % roll stiffness front (Nm/rad)
+k_phi_r = ((wheelRate_r *(t_r^2))/2) + (0);       % roll stiffness rear (Nm/rad)
 weightTransferGradient_f = (w/t_f) * ((cg2rollAxis * k_phi_f)/(k_phi_f + k_phi_r) + (l_b * rc_f/wheelbase));
 weightTransferGradient_r = (w/t_r) * ((cg2rollAxis * k_phi_r)/(k_phi_f + k_phi_r) + (l_a * rc_r/wheelbase));
-aeroLoad_F = ACd * Air_Density * ((Vx^2)/2) * frontalArea * aeroBalance;
-aeroLoad_R = ACd * Air_Density * ((Vx^2)/2) * frontalArea * (1 - aeroBalance);
+aeroLoad_F = ACd * Air_Density * ((Vx^2)/2) * aeroBalance;
+aeroLoad_R = ACd * Air_Density * ((Vx^2)/2) * (1 - aeroBalance);
 
 
 %% ackermann steering sweep
@@ -190,11 +190,11 @@ for i = 1:length(deltas)
             weightTransfer_f = Ay_it/g * weightTransferGradient_f;
             weightTransfer_r = Ay_it/g * weightTransferGradient_r;
 
-            Fz_fr = -(((w * w_dist_f)/2) + weightTransfer_f) - aeroLoad_F;
-            Fz_fl = -(((w * w_dist_f)/2) - weightTransfer_f) - aeroLoad_F;
+            Fz_fr = -(((w * w_dist_f)/2) + weightTransfer_f) - aeroLoad_F/2;
+            Fz_fl = -(((w * w_dist_f)/2) - weightTransfer_f) - aeroLoad_F/2;
 
-            Fz_rr = -(((w * (1-w_dist_f))/2) + weightTransfer_r) - aeroLoad_R;
-            Fz_rl = -(((w * (1-w_dist_f))/2) - weightTransfer_r) - aeroLoad_R;
+            Fz_rr = -(((w * (1-w_dist_f))/2) + weightTransfer_r) - aeroLoad_R/2;
+            Fz_rl = -(((w * (1-w_dist_f))/2) - weightTransfer_r) - aeroLoad_R/2;
 
             if Fz_fr > 0
                 Fz_fr = -0.001;

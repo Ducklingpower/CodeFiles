@@ -68,7 +68,7 @@ rank(Wo)
 rref(Wo)
 
 T = [[1;0;0;0] [0;1;0;0] Wo(:,3) Wo(:,4)];
-rank(T)
+rank(T);
 
 
 A_bar = (T^(-1))*A*T;

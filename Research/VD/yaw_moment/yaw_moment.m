@@ -39,7 +39,7 @@ vehicleParams.mech_trail_r = 0;             % mech trail rear  (m) TBD
 vehicleParams.frontalArea = 1 ;             % frontal area (m^2) TBD
 vehicleParams.Cd          = 0.0;            % drag coeff (-)     TBD
 vehicleParams.Cl          = 0.0;            % ift coeff (-)      TBD
-vehicleParams.ACd         = 0.95;           % Area*coef down force      TBD
+vehicleParams.ACd         = 0.58;           % Area*coef down force      TBD
 vehicleParams.aeroBalance = .33;            % frontal aero load (-) 33% avg
 vehicleParams.copShift    = 0;              % balance shift with Vx (%/(m/s))TBD
 
@@ -54,7 +54,7 @@ simParams.deltaResolution = 1;          % resolution of delta values for YMD
 simParams.betaMax = 4;                 % max and min betas
 simParams.betaResolution = 0.5;           % betas resolution
 simParams.gravity = 9.81;               % gravity
-simParams.Vx = 50;                      % forward velocity (assume const)
+simParams.Vx = 60;                      % forward velocity (assume const)
 simParams.plotGraphs = false;            % plot YMD graphs for each iteration
 simParams.YMDcount = 1;                 % number of YMDs being generated
 simParams.airDensity = 1.225;           % (kg/m^3)
@@ -143,7 +143,7 @@ end
 %% mutliple YMD
 
 
-vi = 10:10:60; 
+vi = 15:20:75; 
 
 figure; hold on; grid on; view(3)
 for k = 1:length(vi)
@@ -161,13 +161,17 @@ C1 = linspace(0.3,1,n);
 C2 = linspace(0.3,1,m);
 C3 = linspace(0.3,1,length(vi));
 
+Cr = [.5,1,.1,1];
+Cg = [1,.8,1,0.1];
+Cb = [1,.1,.2,0.1];
+
     for j = 1:length(output_N(1,:))
     hold on
-    plot3(output_Ay(:, j)./9.81, output_N(:, j),vx_b(:,j),"Color",[C3(k),0,0])
+    plot3(output_Ay(:, j)./9.81, output_N(:, j),vx_b(:,j),"Color",[Cr(k),Cg(k),Cb(k)])
     end
     grid on
     for i = 1:length(output_N(:,1))
-    plot3(output_Ay(i, :)./9.81, output_N(i, :),vx_d(i,:),"Color",[C3(k),0,0])
+    plot3(output_Ay(i, :)./9.81, output_N(i, :),vx_d(i,:),"Color",[Cr(k),Cg(k),Cb(k)])
     hold on
     end
 
@@ -178,4 +182,6 @@ xlabel("A_y g")
 ylabel('Yaw Moment (Nm)');
 zlabel("Vx m/s")
 title('Yaw Moment Diagram');
+
+
 
