@@ -71,7 +71,7 @@ if true
     grid on;
 
 end
-%%
+%
 % lap 1, 56500, +4000: 71000, +2600
 % lap 2, 85600, +2800: 98200, +1300
 % lap 3, 110250,+3200: 121700,+1300
@@ -221,7 +221,7 @@ figure
 for i = 1:length(areo_data_raw(1,1,:))
     plot(areo_data_raw(:,2,i),areo_data_raw(:,1,i),'o')
     hold on
-    grid on
+
     for j = 1:length(areo_data_raw(:,1,:))
         m = m+j;
         down_force_bin(m,1) = areo_data_raw(j,1,i);
@@ -234,16 +234,15 @@ end
 coef = vel_bin(:,1).^2 \ down_force_bin(:,1);   
 hold on
 plot(velocity_input(:),velocity_input(:).^2 * coef,"ro")
-grid on
-xlabel("vel m/s")
-ylabel("strain gauge output (N)")
+
+
 
 
 
 
 % plotting mean per lap
 figure
-plot(areo_data(:,2),areo_data(:,1),"*",'LineWidth',3)
+plot(areo_data(:,2),areo_data(:,1),".-")
 
 V2 = areo_data(:,2).^2;          
 c = V2 \ areo_data(:,1);   
@@ -252,33 +251,26 @@ hold on
 plot(velocity_input(:),velocity_input(:).^2 * c )
 ACdC = c*2/1.225;
 
-grid on
-xlabel("avg vel m/s")
-ylabel("avg strain gauge output (N)")
 hold off
 
 % plotting by axel
 figure
 tiledlayout(2,1)
 nexttile
-plot(Front_axel_data(:,2),Front_axel_data(:,1),"*",'LineWidth',3)
+plot(Front_axel_data(:,2),Front_axel_data(:,1))
 hold on
 V2 = Front_axel_data(:,2).^2;
 FA = V2\Front_axel_data(:,1);
 plot(velocity_input(:),velocity_input(:).^2 *FA)
-grid on
-xlabel("avg vel m/s")
-ylabel("avg strain gauge output (N)")
 
 nexttile
-plot(rear_axel_data(:,2),rear_axel_data(:,1),"*",'LineWidth',3)
+plot(rear_axel_data(:,2),rear_axel_data(:,1))
 hold on
 V2 = rear_axel_data(:,2).^2;
 RA = V2\rear_axel_data(:,1);
 plot(velocity_input(:),velocity_input(:).^2 *RA)
-grid on
-xlabel("avg vel m/s")
-ylabel("avg strain gauge output (N)")
+
+
 %% orrrr
 
 areo_data_new = areo_data;
@@ -291,32 +283,31 @@ rear_axel_data_new([5 7 9 11 12 13],:) = [];
 
 
 figure
-plot(areo_data_new(:,2),areo_data_new(:,1),"*",'LineWidth',3)
+plot(areo_data_new(:,2),areo_data_new(:,1),".-")
 V2 = areo_data_new(:,2).^2;             
 c2 = V2 \ areo_data_new(:,1);        
 hold on
 plot(velocity_input(:),velocity_input(:).^2 *c2 )
 ACdC2 = c*2/1.225;
-grid on
 
 % plotting by axel
 figure
 tiledlayout(2,1)
 nexttile
-plot(Front_axel_data_new(:,2),Front_axel_data_new(:,1),"*",'LineWidth',3)
+plot(Front_axel_data_new(:,2),Front_axel_data_new(:,1))
 hold on
 V2 = Front_axel_data_new(:,2).^2;
 FA2 = V2\Front_axel_data_new(:,1);
 plot(velocity_input(:),velocity_input(:).^2 *FA2)
-grid on
 
 nexttile
-plot(rear_axel_data_new(:,2),rear_axel_data_new(:,1),"*",'LineWidth',3)
+plot(rear_axel_data_new(:,2),rear_axel_data_new(:,1))
 hold on
 V2 = rear_axel_data_new(:,2).^2;
 RA2 = V2\rear_axel_data_new(:,1);
 plot(velocity_input(:),velocity_input(:).^2 *RA2)
-grid on
+
+
 
 
 %% plotting residuals 
@@ -337,7 +328,7 @@ tiledlayout(3,1)
 nexttile
 plot(areo_data(:,2),residual_c,"o")
 hold on
-plot(0:length(line)-1,line(:,1))
+plot(0:length(line),line(:,1))
 title("total down force")
 xlabel("vel")
 ylabel("residuals")
@@ -346,7 +337,7 @@ grid on
 nexttile
 plot(areo_data(:,2),residual_FA,"o")
 hold on
-plot(0:length(line)-1,line(:,1))
+plot(0:length(line),line(:,1))
 title("Front axel")
 xlabel("vel")
 ylabel("residuals")
@@ -354,8 +345,6 @@ grid on
 
 nexttile
 plot(areo_data(:,2),residual_RA,"o")
-hold on
-plot(0:length(line)-1,line(:,1))
 title("Rear axel")
 xlabel("vel")
 ylabel("residuals")
@@ -366,7 +355,7 @@ tiledlayout(3,1)
 nexttile
 plot(areo_data_new(:,2),residual_c2,"o")
 hold on
-plot(0:length(line)-1,line(:,1))
+plot(0:length(line),line(:,1))
 title("total down force")
 xlabel("vel")
 ylabel("residuals")
@@ -375,7 +364,7 @@ grid on
 nexttile
 plot(areo_data_new(:,2),residual_FA2,"o")
 hold on
-plot(0:length(line)-1,line(:,1))
+plot(0:length(line),line(:,1))
 title("Front axel")
 xlabel("vel")
 ylabel("residuals")
@@ -384,7 +373,7 @@ grid on
 nexttile
 plot(areo_data_new(:,2),residual_RA2,"o")
 hold on
-plot(0:length(line)-1,line(:,1))
+plot(0:length(line),line(:,1))
 title("Rear axel")
 xlabel("vel")
 ylabel("residuals")
@@ -397,7 +386,7 @@ error(:,1) = vel_bin(:,1).^2 * coef - down_force_bin(:,1);
 figure
 plot(vel_bin,error,"o")
 hold on
-plot(0:length(line)-1,line(:,1))
+plot(1:length(line),line(:,1))
 xlabel("vel")
 ylabel("residuals")
 grid on
