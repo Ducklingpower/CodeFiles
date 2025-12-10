@@ -417,16 +417,16 @@ class MapProcessor():
             path_array[tup] = 0.5
         return path_array
     
-# mp = MapProcessor('sync_classroom_map')
-# kr = mp.rect_kernel(9,1)
-# mp.inflate_map(kr,True)
+mp = MapProcessor('map')
+kr = mp.rect_kernel(9,1)
+mp.inflate_map(kr,True)
 
-# mp.get_graph_from_map()
+mp.get_graph_from_map()
 
-# fig, ax = plt.subplots(dpi=100)
-# plt.imshow(mp.inf_map_img_array)
-# plt.colorbar()
-# plt.show()
+fig, ax = plt.subplots(dpi=100)
+plt.imshow(mp.inf_map_img_array)
+plt.colorbar()
+plt.show()
 ## end of map generation class --------------------------------------------------------------------------------------------------------------
 
 
@@ -578,6 +578,7 @@ class tracker(Node):
         self.SpinMode = False
         self.AdjustMode = False
         self.first_iter=False
+        
 
         # gola poinst to search
         self.next_goal_pose = True
@@ -590,6 +591,7 @@ class tracker(Node):
                       (-4.3,-4.0)]
         self.theta_spin = 0
         self.go = 0
+        self.avoid = False
 
 
 
@@ -601,8 +603,8 @@ class tracker(Node):
         self.ttbot_pose = PoseStamped()
         self.start_time = 0.0
 
-        self.mp = MapProcessor('sync_classroom_map')# current map
-        kr = self.mp.rect_kernel(14, 1.0)      # tune size as needed
+        self.mp = MapProcessor('map')# current map
+        kr = self.mp.rect_kernel(1, 1.0)      # tune size as needed
         self.mp.inflate_map(kr, True)
         self.mp.get_graph_from_map()
 
@@ -637,6 +639,9 @@ class tracker(Node):
         # Node rate
         self.rate = self.create_rate(10)
 
+
+#### filling random wholes in map file just in  case
+
     def callback(self, Data: LaserScan): # call back to abtin the last scan 
         self.scan = Data
         self.Recived_data = True
@@ -644,6 +649,7 @@ class tracker(Node):
 
 
         # readin data from the scan
+        self.front_dist310 = self.scan.ranges[310]# most right
         self.front_dist320 = self.scan.ranges[320]# most right
         self.front_dist325 = self.scan.ranges[325]# most right
         self.front_dist330 = self.scan.ranges[330]# most right
@@ -661,6 +667,8 @@ class tracker(Node):
         self.front_dist30 = self.scan.ranges[30]# most left
         self.front_dist35 = self.scan.ranges[35]# most left
         self.front_dist40 = self.scan.ranges[40]# most left
+        self.front_dist50 = self.scan.ranges[50]# most left
+
 
 
         
@@ -686,12 +694,35 @@ class tracker(Node):
                             self.front_dist20,
                             self.front_dist25,
                             self.front_dist30,
-                            self.front_dist35]
+                            self.front_dist35,]
+        
+        self.front_matrix_wide =  [
+                            self.front_dist310,
+                            self.front_dist325,
+                            self.front_dist330,
+                            self.front_dist335,
+                            self.front_dist340,
+                            self.front_dist345,
+                            self.front_dist350,
+                            self.front_dist355,
+                            self.front_dist0,
+                            self.front_dist5,
+                            self.front_dist10,
+                            self.front_dist15,
+                            self.front_dist20,
+                            self.front_dist25,
+                            self.front_dist30,
+                            self.front_dist35,
+                            self.front_dist40,
+                            self.front_dist50]
+       # self.get_logger().info(f"drive = {self.drivemode},spin = {self.avoid},have goal = {self._have_goal}")
+        
+        
         
         if self._have_goal:
-            if np.min(self.front_matrix) < 0.35:
-                self.SpinMode = True
-                self.first_iter = True
+            if np.min(self.front_matrix) < 0.35 or np.min(self.front_matrix_wide) < 0.075:
+                self.avoid = True
+                self.SearchMode = False
                 
                 self.get_logger().info("Almost hit obsticle")
                             
@@ -706,14 +737,14 @@ class tracker(Node):
                 self.get_logger().info("pub 1")
                 self.pub_U.publish(msg)
 
-            if self.SpinMode and np.min(self.front_matrix) > 0.40:
-                self.SpinMode = False
+            if self.avoid and np.min(self.front_matrix) > 0.40:
+                self.avoid = False
                 self.omega_set = False
 
                 self.drivemode = True
 
 
-            if self.SpinMode:
+            if self.avoid:
 
 
                 if not self.omega_set:
@@ -747,13 +778,13 @@ class tracker(Node):
 
 
             if self.drivemode:
-                if  self.SpinMode:
+                if  self.avoid:
                     return
-
+                self.first_iter = True
                 dt = 1/5 # about 5 hz
                 self.go = dt*0.14 + self.go
                 
-                if self.go >1:
+                if self.go >.7:
                     self.go = 0
                     self.drivemode = False
 
@@ -781,15 +812,15 @@ class tracker(Node):
                 self.get_logger().info("pub 4")
                 self.pub_U.publish(msg)
 
-            if not self.drivemode and not self.SpinMode and self._have_goal:
+            if not self.drivemode and not self.avoid and self._have_goal:
                 
                 self.get_logger().info("searching")
                 self.searching()
                 self.first_iter = False
                 self.drivemode = False
-                self.SpinMode = False
+                self.avoid = False
 
-            self.get_logger().info(f"drive = {self.drivemode},spin = {self.SpinMode},have goal = {self._have_goal}")
+            self.get_logger().info(f"drive = {self.drivemode},spin = {self.avoid},have goal = {self._have_goal}")
 
             
             
@@ -1124,6 +1155,7 @@ def main(args=None):
 
 if __name__ == "__main__": # this will allow us to run the script from terminal
    main()
+
 
 
 

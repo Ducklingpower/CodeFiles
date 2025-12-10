@@ -30,6 +30,8 @@ import time
 
 
 from nav_msgs.msg import Path
+from geometry_msgs.msg import Point
+
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Pose, Twist
 from std_msgs.msg import Float32
 from nav_msgs.msg import Odometry
@@ -586,11 +588,13 @@ class tracker(Node):
         # gola poinst to search
         self.next_goal_pose = True
         self.goal_num = 0
-        self.goals = [(8.8, 0.0),
+        self.goals = [(-4.3,2.3),
+                      (-4.3,-4.0),
+                      (8.8, 0.0),
                       (8.2, -2.4),
                       (3.3,3.55),
                       (0.0, 3.0),
-                      (-4.3,2.0),
+                      (-4.3,2.3),
                       (-4.3,-4.0)]
         self.theta_spin = 0
         self.go = 0
@@ -605,7 +609,7 @@ class tracker(Node):
         self.ttbot_pose = PoseStamped()
         self.start_time = 0.0
 
-        self.mp = MapProcessor('sync_classroom_maps')# current map
+        self.mp = MapProcessor('sync_classroom_map')# current map
         kr = self.mp.rect_kernel(14, 1.0)      # tune size as needed
         self.mp.inflate_map(kr, True)
         self.mp.get_graph_from_map()
@@ -639,6 +643,9 @@ class tracker(Node):
         self.See_Red_log = False
         self.no_ball_found = False
 
+        self.found_all_balls = False
+
+
 
         # Subscribers
         self.create_subscription(PoseStamped, '/move_base_simple/goal', self.__goal_pose_cbk, 10)
@@ -648,6 +655,13 @@ class tracker(Node):
         self.path_pub = self.create_publisher(Path, 'global_plan', 10)
         self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel', 10)
         self.calc_time_pub = self.create_publisher(Float32, 'astar_time',10) #DO NOT MODIFY
+
+        # publishing ball pos
+
+        self.pos_pub_red = self.create_publisher(Point, 'red_pos', 10)
+        self.pos_pub_green = self.create_publisher(Point, 'green_pos', 10)
+        self.pos_pub_blue = self.create_publisher(Point, 'blue_pos', 10)
+
 
         # Node rate
         self.rate = self.create_rate(10)
@@ -794,7 +808,7 @@ class tracker(Node):
                 dt = 1/5 # about 5 hz
                 self.go = dt*0.14 + self.go
                 
-                if self.go >1:
+                if self.go >.7:
                     self.go = 0
                     self.drivemode = False
 
@@ -837,26 +851,73 @@ class tracker(Node):
     def detect(self,msg):   
 
 
-        if (self.See_Blue_log) and (self.See_Red_log) and (self.See_Green_log):
+        if (self.found_blue) and (self.found_green) and (self.found_red):
 
-            self.get_logger().info(f"green ball is at x = {x_green + 0.72* np.cos(self.theta_green)}, y = {y_green+ 0.72* np.sin(self.theta_green)} \n Red ball is at x = {x_red + 0.72* np.cos(self.theta_blue)}, y = {y_red+ 0.72* np.sin(self.theta_blue)}, \n Blue ball is at x = {x_blue + 0.72* np.cos(self.theta_blue)}, y = {y_blue+ 0.72* np.sin(self.theta_blue)}")
+            self.get_logger().info(f"\n green ball is at x = {self.x_green + 0.718* np.cos(self.theta_green)}, y = {self.y_green+ 0.718* np.sin(self.theta_green)} \n Red ball is at x = {self.x_red + 0.718* np.cos(self.theta_red)}, y = {self.y_red+ 0.718* np.sin(self.theta_red)}, \n Blue ball is at x = {self.x_blue + 0.718* np.cos(self.theta_blue)}, y = {self.y_blue+ 0.718* np.sin(self.theta_blue)}")
+            self.found_all_balls = True
+
+        if self.found_red:
+            msg_red = Point()
+            msg_red.x = self.x_red+ 0.718* np.cos(self.theta_red)
+            msg_red.y = self.y_red+ 0.718* np.sin(self.theta_red)
+            msg_red.z = 0.0 
+            self.pos_pub_red.publish(msg_red)
+        else:
+            msg_r = Point()
+            msg_r.x = 0.0
+            msg_r.y = 0.0
+            msg_r.z = 0.0
+            self.pos_pub_red.publish(msg_r)
+
+
+        if self.found_green:
+            msg_green = Point()
+            msg_green.x = self.x_green+ 0.718* np.cos(self.theta_green)
+            msg_green.y = self.y_green+ 0.718* np.sin(self.theta_green)
+            msg_green.z = 0.0 
+            self.pos_pub_green.publish(msg_green)
+        else:
+            msg_g = Point()
+            msg_g.x = 0.0
+            msg_g.y = 0.0
+            msg_g.z = 0.0
+            self.pos_pub_green.publish(msg_g)
+
+        if self.found_blue:
+            msg_blue = Point()
+            msg_blue.x = self.x_blue+ 0.718* np.cos(self.theta_blue)
+            msg_blue.y = self.y_blue+ 0.718* np.sin(self.theta_blue)
+            msg_blue.z = 0.0 
+            self.pos_pub_blue.publish(msg_blue)
+        else:
+            msg_b = Point()
+            msg_b.x = 0.0
+            msg_b.y = 0.0
+            msg_b.z = 0.0
+            self.pos_pub_blue.publish(msg_b)
+
+        
+
             
 
 
-        if (self.drivemode or self.avoid):
-            self.get_logger().info(f"DANGER DANGER DANGER")
-
-            return
 
        
         frame = self.bridge.imgmsg_to_cv2(msg)
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+        
+
+
+        
 
         #frame = self.bridge.imgmsg_to_cv2(msg,desired_encoding='bgr8') # coverting imafe back 
         height, width = frame.shape[:2]
 
 
         hsvColorFrame = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+
+
         # RED hvs limit---------------------------------------
 
         red_low1  = np.array([0, 100, 100])
@@ -917,59 +978,12 @@ class tracker(Node):
             area_blue,Cx1_blue = self.BlueBall(contours_blue,frame)
 
 
+        cv2.imshow('frame',frame) # showing frame 
 
 
         #init
         area = 1
         Cx1 = 0
-
-
-
-        # area = 1
-        # areas = [0.0]
-        # Cx1s = [0.0]
-        # for c in contours:
-        #     area = cv2.contourArea(c)
-        #     if area>5000:
-        
-        #         areas.append(area)
-        #         xs = c[:, 0, 0]  # x cords
-        #         ys = c[:, 0, 1]  # y
-
-        #         Cx = int(np.mean(xs))
-        #         Cy = int(np.mean(ys))
-
-
-        #         M = cv2.moments(c) # area weighted average
-        #         if M["m00"] > 0:
-        #             Cx1 = (M["m10"] / M["m00"]) #x/tot
-        #             Cy1 = (M["m01"] / M["m00"]) # y/tot
-        #         else:
-        #             Cx1 = 0
-        #             Cy1 = 0
-
-
-        #         Cx1s.append(Cx1)
-            
-        #         cv2.drawContours(frame, [c], -1, (255, 0, 0), 2)  # blue contour line
-        #         x, y, w, h = cv2.boundingRect(c)
-        #         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3)  # drawing green box onto frame
-        #         cv2.circle(frame, (int(Cx) ,int(Cy)), 5, (255, 0, 100), -1)
-        #         cv2.circle(frame, (int(Cx1) ,int(Cy1)), 5, (0, 200, 255), -1)
-
-            # # printing statments
-            # self.get_logger().info(f"Centroid pos, x = {Cx1}, y = {Cy1}")
-            # self.get_logger().info(f"Width & Height of obj. w = {w}, h = {h}")
-            #self.get_logger().info(f"area = {area}")
-
-        # area = max(areas)
-        # Cx1 = max(Cx1s)
- 
-
-
-
-       
-        
 
         if self.See_Blue:
             if not self.See_Blue_log:
@@ -1007,8 +1021,13 @@ class tracker(Node):
                 self.get_logger().info("No Ball found ... Searching")
             
             self.no_ball_found = True
+
+        
+        if (self.drivemode or self.avoid):
+            self.get_logger().info(f"DANGER DANGER DANGER")
+            area = 1
             
-        cv2.imshow('frame',frame) # showing frame 
+            
 
         # PID control + search algo ------------------------------------------------------------
 
@@ -1019,11 +1038,11 @@ class tracker(Node):
         area_want = 500000.0
         
         #self.get_logger().info(f"Area = {area}")
-        if area>3000:
+        if area>1000:
             #self.get_logger().info("control mode")
            
 
-            if area > 3000:
+            if area > 1000:
                 self.error1 = -(area*0.00001)+(area_want*0.00001)
                 # self.get_logger().info(f"error  = {self.error1}")
                 dt = 0.1 # for now 
@@ -1042,54 +1061,7 @@ class tracker(Node):
                 # reset
                 self.last_error1 = self.error1
 
-                
-                if np.abs(self.error1) <0.01: # Ball found
-
-                    # cords of ball, for now pos of (x,y) robot
-
-                    if self.See_Blue:
-                       
-                     
-                        self.theta_blue = self.robotthete
-                        x_blue = self.robotx
-                        y_blue = self.roboty
-
-                        self.found_blue = True
-                        self.get_logger().info(f"blue ball is at x = {x_blue + 0.72* np.cos(self.theta_blue)}, y = {y_blue + 0.72* np.sin(self.theta_blue)},theta = {self.robotthete}")
-
-                    elif self.See_Green:
-
-                 
-                        self.theta_green = self.robotthete
-                        x_green = self.robotx
-                        y_green = self.roboty
-
-                        self.found_green = True
-                        self.get_logger().info(f"green ball is at x = {x_green + 0.72* np.cos(self.theta_green)}, y = {y_green+ 0.72* np.sin(self.theta_green)}, theta = {self.robotthete}")
-
-
-
-                    elif self.See_Red:
-                       
-                        self.theta_red =self.robotthete
-                        x_red = self.robotx
-                        y_red = self.roboty
-
-                        self.found_red = True
-                        self.get_logger().info(f"Red ball is at x = {x_red + 0.72* np.cos(self.theta_red)}, y = {y_red + 0.72* np.sin(self.theta_red)}")
-
-                self.See_Blue = False
-                self.See_Green = False
-                self.See_Red =False
-
-            
-
-                    
-
-
-
-                
-
+        
 
             else:
                 V = 0
@@ -1099,7 +1071,7 @@ class tracker(Node):
             # desired cneter
             Center_x = width/2
 
-            if area > 3000:
+            if area > 1000:
                 self.error2 = -(Cx1*0.01)+(Center_x*0.01)
                 #self.get_logger().info(f"output of error = {self.error2}")
                 dt = 0.1 # for now 
@@ -1138,6 +1110,48 @@ class tracker(Node):
             self.pub_U.publish(msg)
             self.SearchMode = False
             self.SpinMode = False
+
+
+
+
+            if (np.abs(self.error1) <0.005) and (np.abs(self.error2) <0.005): # Ball found
+
+                    # cords of ball, for now pos of (x,y) robot
+
+                if self.See_Blue:
+                    
+                    
+                    self.theta_blue = self.robotthete
+                    self.x_blue = self.robotx
+                    self.y_blue = self.roboty
+
+                    self.found_blue = True
+                    self.get_logger().info(f"blue ball is at x = {self.x_blue + 0.71* np.cos(self.theta_blue)}, y = {self.y_blue + 0.71* np.sin(self.theta_blue)},theta = {self.robotthete}")
+
+                elif self.See_Green:
+
+                
+                    self.theta_green = self.robotthete
+                    self.x_green = self.robotx
+                    self.y_green = self.roboty
+
+                    self.found_green = True
+                    self.get_logger().info(f"green ball is at x = {self.x_green + 0.71* np.cos(self.theta_green)}, y = {self.y_green+ 0.71* np.sin(self.theta_green)}, theta = {self.robotthete}")
+
+
+
+                elif self.See_Red:
+                    
+                    self.theta_red =self.robotthete
+                    self.x_red = self.robotx
+                    self.y_red = self.roboty
+
+                    self.found_red = True
+                    self.get_logger().info(f"Red ball is at x = {self.x_red + 0.71* np.cos(self.theta_red)}, y = {self.y_red + 0.71* np.sin(self.theta_red)}")
+
+                self.See_Blue = False
+                self.See_Green = False
+                self.See_Red =False
             
     
         else: # entering search mode -----------------------------------------------------------------------------------------
@@ -1158,45 +1172,51 @@ class tracker(Node):
                 self.first_iter = False
                 
 
+            if (self.drivemode or self.avoid):
+                x = 1
+            else:
 
-            if not self.SpinMode:
-                if self.next_goal_pose:
-                    if len(self.goals) == (self.goal_num-1):
+                if not self.SpinMode:
+                    if self.next_goal_pose:
+                        if len(self.goals) == (self.goal_num-1):
+                            self.goal_num = 0
+
+                        goal_x,goal_y = self.goals[self.goal_num]
+                        self.goal_pose.pose.position.x = goal_x
+                        self.goal_pose.pose.position.y = goal_y
+                        self.goal_num = self.goal_num + 1
+                        self.next_goal_pose = False
+                        self._have_goal = True
+
+                    if self.found_all_balls:
                         self.goal_num = 0
 
-                    goal_x,goal_y = self.goals[self.goal_num]
-                    self.goal_pose.pose.position.x = goal_x
-                    self.goal_pose.pose.position.y = goal_y
-                    self.goal_num = self.goal_num + 1
-                    self.next_goal_pose = False
-                    self._have_goal = True
 
-
-                self.searching()
-            else:
-                
-                dt = 1/25.6 # about 25 hz
-                self.theta_spin = dt*0.4 + self.theta_spin
-                
-                if self.theta_spin >6.3:
-                    self.theta_spin = 0
-                    self.SearchMode = False
-                    self.SpinMode = False
-                
+                    self.searching()
+                else:
+                    
+                    dt = 1/25.6 # about 25 hz
+                    self.theta_spin = dt*0.4 + self.theta_spin
+                    
+                    if self.theta_spin >6.3:
+                        self.theta_spin = 0
+                        self.SearchMode = False
+                        self.SpinMode = False
+                    
 
 
 
-                msg = Twist()
-                msg.linear.x = float(0)
-                msg.linear.y = float(0.0)
-                msg.linear.z = float(0.0)
+                    msg = Twist()
+                    msg.linear.x = float(0)
+                    msg.linear.y = float(0.0)
+                    msg.linear.z = float(0.0)
 
-                msg.angular.x = float(0.0)
-                msg.angular.y = float(0.0)
-                msg.angular.z = float(0.4)
+                    msg.angular.x = float(0.0)
+                    msg.angular.y = float(0.0)
+                    msg.angular.z = float(0.4)
 
-                # print(f"position is:{self.scan.ranges[270]}")
-                self.pub_U.publish(msg)
+                    # print(f"position is:{self.scan.ranges[270]}")
+                    self.pub_U.publish(msg)
 
 
 
@@ -1218,7 +1238,7 @@ class tracker(Node):
         Cx1s = [0.0]
         for c in contours:
             area = cv2.contourArea(c)
-            if area>10000:
+            if area>5000:
 
                 self.See_Blue = True
                 areas.append(area)
@@ -1277,7 +1297,7 @@ class tracker(Node):
         Cx1s = [0.0]
         for c in contours:
             area = cv2.contourArea(c)
-            if area>10000:
+            if area>5000:
 
                 self.See_Green = True
         
@@ -1330,7 +1350,7 @@ class tracker(Node):
         Cx1s = [0.0]
         for c in contours:
             area = cv2.contourArea(c)
-            if area>10000:
+            if area>5000:
 
                 self.See_Red = True
         
@@ -1469,6 +1489,10 @@ class tracker(Node):
             ps.pose.orientation.w = 1.0
             poses.append(ps)
 
+        if ps is None:
+            self.get_logger().info("buggy ah code")
+            return None
+        
         ps.pose.position.x = end_pose.pose.position.x
         ps.pose.position.y = end_pose.pose.position.y
         ps.pose.orientation.w = 1.0
@@ -1497,14 +1521,14 @@ class tracker(Node):
         
 
 
-        k = 6 # look ahead 
+        k = 3 # look ahead 
 
-        wp = np.array([[p.pose.position.x+0.2, p.pose.position.y] for p in path.poses], dtype=float)
+        wp = np.array([[p.pose.position.x, p.pose.position.y] for p in path.poses], dtype=float)
         N = len(wp) 
 
         # tuerle bot crrent position x,y
-        px = vehicle_pose.pose.position.x
-        py = vehicle_pose.pose.position.y
+        px = vehicle_pose.pose.position.x 
+        py = vehicle_pose.pose.position.y 
 
         #print(f"reading x = {px} and y  = {py}")
 
@@ -1516,6 +1540,7 @@ class tracker(Node):
 
         # new goal pos
         idx = min(i_near + k, N - 1)
+        idx1 = min(i_near,N-1)
 
         #goal pos stamp creation
         goal = PoseStamped(); 
@@ -1523,14 +1548,18 @@ class tracker(Node):
         goal.pose.position.y = float(wp[idx,1])
 
         # headin driection t0 new point
-        if idx < N - 1:
-            dx, dy = wp[idx+1,0]-wp[idx,0], wp[idx+1,1]-wp[idx,1]
+        if idx1 < N - 1:
+            dx, dy = wp[idx1+1,0]-wp[idx1,0], wp[idx1+1,1]-wp[idx1,1]
         else:
-            dx, dy = wp[idx,0]-wp[idx-1,0], wp[idx,1]-wp[idx-1,1]
+            dx, dy = wp[idx1,0]-wp[idx1-1,0], wp[idx1,1]-wp[idx1-1,1]
 
         th = np.arctan2(dy, dx) # calculating heading angle
         goal.pose.orientation.z = np.sin(th/2.0)
         goal.pose.orientation.w = np.cos(th/2.0)
+
+        
+
+        
 
         self._last_idx = idx
         return idx, goal
@@ -1551,11 +1580,11 @@ class tracker(Node):
 
         v_ref = 0.15         # nominal speed
         v_max = 0.15          # max vel
-        w_max = 10           # max omega
+        w_max = 3             # max omega
 
         # state cost (Q) and input cost (R)
-        Q = np.array([[2,0,0],[0,2,0],[0,0,2]]) # states for x,y,theta
-        R = np.array([[10, 0],[0,1]]) # inputs for vel and omega
+        Q = np.array([[4,0,0],[0,4,0],[0,0,20]]) # states for x,y,theta
+        R = np.array([[1.5, 0],[0,8]]) # inputs for vel and omega
 
        # current states 
         px = vehicle_pose.pose.position.x
@@ -1570,7 +1599,7 @@ class tracker(Node):
 
         
         # ref path/ nominal states
-        x_r = current_goal_pose.pose.position.x
+        x_r = current_goal_pose.pose.position.x 
         y_r = current_goal_pose.pose.position.y
         qq = current_goal_pose.pose.orientation
         #yaw for quarternion
@@ -1607,7 +1636,7 @@ class tracker(Node):
        # error calc
         e = x - ref
 
-        #self.get_logger().info(f"error = {e}")
+        self.get_logger().info(f"error = {e}")
 
         # wrap angle to (-π, π]
         e[2] = (e[2] + np.pi) % (2.0 * np.pi) - np.pi
@@ -1616,9 +1645,24 @@ class tracker(Node):
         # system input
         u = u_r - K@e
 
+      
+        self.correction_error_I = self.correction_error_I + u[1]
+        self.currection_error_d = (self.error_last - u[1])/20
+        self.error_last = u[1]
+
+
+
+
+       
+
+
+        #self.get_logger().info(f"correction = {self.correction_error}, derivative = {self.currection_error_d}")
+
 
         speed = float(np.clip(u[0], -v_max, v_max))
         heading = float(np.clip(u[1], -w_max, w_max))
+
+       
         #print(f"{u[0]}")
 
         return speed, heading
@@ -1650,6 +1694,10 @@ class tracker(Node):
             self.first_iter = False
             self._current_path = path
             self._last_idx = 0
+            self.correction_error = 0
+            self.correction_error_I = 0
+            self.currection_error_d = 0
+            self.error_last =0
 
         self.idx, current_goal = self.get_path_idx(self._current_path, self.ttbot_pose)
         self._last_idx = self.idx

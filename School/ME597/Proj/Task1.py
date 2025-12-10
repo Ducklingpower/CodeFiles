@@ -97,6 +97,9 @@ class Map():
         w, h = info.width, info.height
 
         arr = np.asarray(msg.data).reshape(h, w)   # -1, 0, 100
+
+     
+
         gray = np.where(arr == 100,0,np.where(arr == 0,254, 205)).astype(np.uint8)
 
         # im = Image.fromarray(gray)
@@ -707,8 +710,11 @@ def find_nearest_frontier_by_distance(msg, robot_x, robot_y):
             origin_x = info.origin.position.x + uy * info.resolution
             origin_y = info.origin.position.y + ux * info.resolution
             return (origin_x, origin_y)
+        
+    
 
 # If no frontier found
+    print("NO FRONTER FOUND")
     return None
 
 
@@ -725,7 +731,7 @@ class SubscriberNode(Node):
         self.bridge = CvBridge()  
 
         #self.sub = self.create_subscription(ImageCV2,'/camera/image_raw',self.detect,10)
-        self.sub_scan = self.create_subscription(LaserScan,"/scan",self.callback,10) # subscribing to get latest scan info
+        #self.sub_scan = self.create_subscription(LaserScan,"/scan",self.callback,10) # subscribing to get latest scan info
         self.pub_U = self.create_publisher(Twist,"/cmd_vel",10)
         self.sub = self.create_subscription(OccupancyGrid,"/map",self.Grid_CallBack,10)
 
@@ -807,12 +813,14 @@ class SubscriberNode(Node):
         self.omega_spin = 0
         self.theta_spin = 0
         self.go = 0
+        self.avoid = False
+        self.remap = False
 
 
         # Subscribers
         self.create_subscription(PoseStamped, '/move_base_simple/goal', self.__goal_pose_cbk, 10)
         self.create_subscription(Odometry, '/odom', self.__ttbot_pose_cbk, 10)
-        self.sub_scan = self.create_subscription(LaserScan,"/scan",self.callback,10) # subscribing to get latest scan info
+        self.sub_scan = self.create_subscription(LaserScan,"/scan",self.safty_callback,10) # subscribing to get latest scan info
 
 
         # Publishers
@@ -823,173 +831,189 @@ class SubscriberNode(Node):
         # Node rate
         self.rate = self.create_rate(10)
 
-
-    # def callback(self, Data: LaserScan): # call back to abtin the last scan 
-    #     self.scan = Data
-    #     self.Recived_data = True
-        
-
-
-    #     # readin data from the scan
-    #     self.front_dist320 = self.scan.ranges[320]# most right
-    #     self.front_dist325 = self.scan.ranges[325]# most right
-    #     self.front_dist330 = self.scan.ranges[330]# most right
-    #     self.front_dist335 = self.scan.ranges[335]
-    #     self.front_dist340 = self.scan.ranges[340]
-    #     self.front_dist345 = self.scan.ranges[345]
-    #     self.front_dist350 = self.scan.ranges[350]
-    #     self.front_dist355 = self.scan.ranges[355]
-    #     self.front_dist0 = self.scan.ranges[0] # strait ahwad
-    #     self.front_dist5 = self.scan.ranges[5]
-    #     self.front_dist10 = self.scan.ranges[10]
-    #     self.front_dist15 = self.scan.ranges[15]
-    #     self.front_dist20 = self.scan.ranges[20]
-    #     self.front_dist25 = self.scan.ranges[25]
-    #     self.front_dist30 = self.scan.ranges[30]# most left
-    #     self.front_dist35 = self.scan.ranges[35]# most left
-    #     self.front_dist40 = self.scan.ranges[40]# most left
-
-
-        
-    #     self.front_dist270 = self.scan.ranges[270]# Pure right
-    #     self.front_dist90 = self.scan.ranges[90]# Pure Left
-
-
-
-
-
-    #     self.front_matrix = [
-    #                         self.front_dist325,
-    #                         self.front_dist330,
-    #                         self.front_dist335,
-    #                         self.front_dist340,
-    #                         self.front_dist345,
-    #                         self.front_dist350,
-    #                         self.front_dist355,
-    #                         self.front_dist0,
-    #                         self.front_dist5,
-    #                         self.front_dist10,
-    #                         self.front_dist15,
-    #                         self.front_dist20,
-    #                         self.front_dist25,
-    #                         self.front_dist30,
-    #                         self.front_dist35]
-        
-    #     if self._have_goal:
-    #         if np.min(self.front_matrix) < 0.35:
-    #             self.SpinMode = True
-    #             self.first_iter = True
-                
-    #             self.get_logger().info("Almost hit obsticle")
-                            
-    #             msg = Twist()
-    #             msg.linear.x = float(0.0)
-    #             msg.linear.y = float(0.0)
-    #             msg.linear.z = float(0.0)
-    #             msg.angular.x = float(0.0)
-    #             msg.angular.y = float(0.0)
-    #             msg.angular.z = float(0.0)
-                
-    #             self.get_logger().info("pub 1")
-    #             self.pub_U.publish(msg)
-
-    #         if self.SpinMode and np.min(self.front_matrix) > 0.40:
-    #             self.SpinMode = False
-    #             self.omega_set = False
-
-    #             self.drivemode = True
-
-
-    #         if self.SpinMode:
-
-
-    #             if not self.omega_set:
-
-    #                 self.get_logger().info("selecting spin mode")
-    #                 self.get_logger().info(f"90_dist = {self.front_dist90}, 270_dist = {self.front_dist270}")
-
-
-    #                 if self.front_dist90<self.front_dist270:
-    #                     self.omega_spin = -0.5
-    #                     self.omega_set = True
-    #                 else:
-    #                     self.omega_spin = 0.5
-    #                     self.omega_set = True
-
-
-
-    #             self.get_logger().info("spinning")
-    #             msg = Twist()
-    #             msg.linear.x = float(0.0)
-    #             msg.linear.y = float(0.0)
-    #             msg.linear.z = float(0.0)
-    #             msg.angular.x = float(0.0)
-    #             msg.angular.y = float(0.0)
-    #             msg.angular.z = float(self.omega_spin)
-
-    #             self.get_logger().info("pub 2")
-    #             self.pub_U.publish(msg)
-
-
-
-
-    #         if self.drivemode:
-    #             if  self.SpinMode:
-    #                 return
-
-    #             dt = 1/5 # about 5 hz
-    #             self.go = dt*0.14 + self.go
-                
-    #             if self.go >1:
-    #                 self.go = 0
-    #                 self.drivemode = False
-
-    #                 self.get_logger().info("stop driving")
-    #                 msg = Twist()
-    #                 msg.linear.x = float(0.0)
-    #                 msg.linear.y = float(0.0)
-    #                 msg.linear.z = float(0.0)
-    #                 msg.angular.x = float(0.0)
-    #                 msg.angular.y = float(0.0)
-    #                 msg.angular.z = float(0.0)
-
-    #                 self.get_logger().info("pub 3")
-    #                 self.pub_U.publish(msg)
-
-    #             self.get_logger().info("blind driving")
-    #             msg = Twist()
-    #             msg.linear.x = float(0.1)
-    #             msg.linear.y = float(0.0)
-    #             msg.linear.z = float(0.0)
-    #             msg.angular.x = float(0.0)
-    #             msg.angular.y = float(0.0)
-    #             msg.angular.z = float(0.0)
-
-    #             self.get_logger().info("pub 4")
-    #             self.pub_U.publish(msg)
-
-    #         if not self.drivemode and not self.SpinMode and self._have_goal:
-                
-    #             #self.get_logger().info("searching")
-    #             #self.searching()
-    #             self.first_iter = False
-    #             self.drivemode = False
-    #             self.SpinMode = False
-
-    #         self.get_logger().info(f"drive = {self.drivemode},spin = {self.SpinMode},have goal = {self._have_goal}")
-
-        
-            
-
-
-
-
-
-
-
-    def callback(self, Data: LaserScan): # call back to abtin the last scan 
+    def safty_callback(self, Data: LaserScan): # call back to abtin the last scan 
         self.scan = Data
         self.Recived_data = True
+      
+
+
+        # readin data from the scan
+        self.front_dist310 = self.scan.ranges[310]# most right
+        self.front_dist320 = self.scan.ranges[320]# most right
+        self.front_dist325 = self.scan.ranges[325]# most right
+        self.front_dist330 = self.scan.ranges[330]# most right
+        self.front_dist335 = self.scan.ranges[335]
+        self.front_dist340 = self.scan.ranges[340]
+        self.front_dist345 = self.scan.ranges[345]
+        self.front_dist350 = self.scan.ranges[350]
+        self.front_dist355 = self.scan.ranges[355]
+        self.front_dist0 = self.scan.ranges[0] # strait ahwad
+        self.front_dist5 = self.scan.ranges[5]
+        self.front_dist10 = self.scan.ranges[10]
+        self.front_dist15 = self.scan.ranges[15]
+        self.front_dist20 = self.scan.ranges[20]
+        self.front_dist25 = self.scan.ranges[25]
+        self.front_dist30 = self.scan.ranges[30]# most left
+        self.front_dist35 = self.scan.ranges[35]# most left
+        self.front_dist40 = self.scan.ranges[40]# most left
+        self.front_dist50 = self.scan.ranges[50]# most left
+
+
+
+        
+        self.front_dist270 = self.scan.ranges[270]# Pure right
+        self.front_dist90 = self.scan.ranges[90]# Pure Left
+
+
+
+
+
+        self.front_matrix = [
+                            self.front_dist325,
+                            self.front_dist330,
+                            self.front_dist335,
+                            self.front_dist340,
+                            self.front_dist345,
+                            self.front_dist350,
+                            self.front_dist355,
+                            self.front_dist0,
+                            self.front_dist5,
+                            self.front_dist10,
+                            self.front_dist15,
+                            self.front_dist20,
+                            self.front_dist25,
+                            self.front_dist30,
+                            self.front_dist35,]
+        
+        self.front_matrix_wide =  [
+                            self.front_dist310,
+                            self.front_dist325,
+                            self.front_dist330,
+                            self.front_dist335,
+                            self.front_dist340,
+                            self.front_dist345,
+                            self.front_dist350,
+                            self.front_dist355,
+                            self.front_dist0,
+                            self.front_dist5,
+                            self.front_dist10,
+                            self.front_dist15,
+                            self.front_dist20,
+                            self.front_dist25,
+                            self.front_dist30,
+                            self.front_dist35,
+                            self.front_dist40,
+                            self.front_dist50]
+       # self.get_logger().info(f"drive = {self.drivemode},spin = {self.avoid},have goal = {self._have_goal}")
+        
+        
+        
+        if self._have_goal:
+            if np.min(self.front_matrix) < 0.35 or np.min(self.front_matrix_wide) < 0.075:
+                self.avoid = True
+                self.remap = True
+                self.SearchMode = False
+                
+                self.get_logger().info("Almost hit obsticle")
+                            
+                msg = Twist()
+                msg.linear.x = float(0.0)
+                msg.linear.y = float(0.0)
+                msg.linear.z = float(0.0)
+                msg.angular.x = float(0.0)
+                msg.angular.y = float(0.0)
+                msg.angular.z = float(0.0)
+                
+                self.get_logger().info("pub 1")
+                self.pub_U.publish(msg)
+
+            if self.avoid and np.min(self.front_matrix) > 0.35:
+                self.avoid = False
+                self.omega_set = False
+
+                self.drivemode = True
+
+
+            if self.avoid:
+
+
+                if not self.omega_set:
+
+                    self.get_logger().info("selecting spin mode")
+                    self.get_logger().info(f"90_dist = {self.front_dist90}, 270_dist = {self.front_dist270}")
+
+
+                    if self.front_dist90<self.front_dist270:
+                        self.omega_spin = -0.5
+                        self.omega_set = True
+                    else:
+                        self.omega_spin = 0.5
+                        self.omega_set = True
+
+
+
+                self.get_logger().info("spinning")
+                msg = Twist()
+                msg.linear.x = float(0.0)
+                msg.linear.y = float(0.0)
+                msg.linear.z = float(0.0)
+                msg.angular.x = float(0.0)
+                msg.angular.y = float(0.0)
+                msg.angular.z = float(self.omega_spin)
+
+                self.get_logger().info("pub 2")
+                self.pub_U.publish(msg)
+
+
+
+
+            if self.drivemode:
+                if  self.avoid:
+                    return
+
+                dt = 1/5 # about 5 hz
+                self.go = dt*0.14 + self.go
+                
+                if self.go >.3:
+                    self.go = 0
+                    self.drivemode = False
+
+                    self.get_logger().info("stop driving")
+                    msg = Twist()
+                    msg.linear.x = float(0.0)
+                    msg.linear.y = float(0.0)
+                    msg.linear.z = float(0.0)
+                    msg.angular.x = float(0.0)
+                    msg.angular.y = float(0.0)
+                    msg.angular.z = float(0.0)
+
+                    self.get_logger().info("pub 3")
+                    self.pub_U.publish(msg)
+
+                self.get_logger().info("blind driving")
+                msg = Twist()
+                msg.linear.x = float(0.1)
+                msg.linear.y = float(0.0)
+                msg.linear.z = float(0.0)
+                msg.angular.x = float(0.0)
+                msg.angular.y = float(0.0)
+                msg.angular.z = float(0.0)
+
+                self.get_logger().info("pub 4")
+                self.pub_U.publish(msg)
+
+            if not self.drivemode and not self.avoid and self._have_goal:
+                
+                #self.get_logger().info("searching")
+                #self.searching()
+                self.drivemode = False
+                self.avoid = False
+
+            # self.get_logger().info(f"drive = {self.drivemode},spin = {self.avoid},have goal = {self._have_goal}")
+
+
+
+
         
     def timer_cb(self):
         self.waiting_pose = self.waiting_pose+1
@@ -999,9 +1023,14 @@ class SubscriberNode(Node):
         else:
             self.first_iter
             # self.get_logger().info("Have goal poses")
-            self.searching()
-            self.first_iter = False
-            self.waiting_pose =0
+
+            if not self.avoid and (not self.drivemode):
+                self.searching()
+                self.first_iter = False
+                self.waiting_pose =0
+                self.get_logger().info("Still searching")
+
+
 
 
 
@@ -1048,7 +1077,7 @@ class SubscriberNode(Node):
 
 
 
-            if self.point_count == 15:
+            if self.point_count == 3:
                 self.point_count = 0
                 self.get_logger().info(f"Turtle ot crash out, looking for new point")
         
@@ -1277,8 +1306,8 @@ class SubscriberNode(Node):
 
         # full state feedback implimatation-----------------------------------
 
-        v_ref = 0.15         # nominal speed
-        v_max = 0.15          # max vel
+        v_ref = 0.3         # nominal speed
+        v_max = 0.3          # max vel
         w_max = 10           # max omega
 
         # state cost (Q) and input cost (R)
@@ -1376,7 +1405,7 @@ class SubscriberNode(Node):
 
                 #self.get_logger().info("we just ran Astar planer")
                 if path is None:
-                    self.get_logger().error("****Please Wait, just let Path count get to 15!*****")
+                    self.get_logger().error("****Please Wait, just let Path count get to 3!*****")
                     self._have_goal = False
                     self.first_iter = False
                     return
@@ -1388,13 +1417,13 @@ class SubscriberNode(Node):
             self._last_idx = self.idx
 
             N = len(self._current_path.poses)
-           # self.get_logger().info(f"N = {N}, index = {self.idx}")
+            self.get_logger().info(f"N = {N}, index = {self.idx}")
 
             # Stop the robot when final waypoint reached
             speed, heading = self.path_follower(self.ttbot_pose, current_goal)
             self.move_ttbot(speed, heading)
             
-            if self.idx >= N-int(N*0.6):
+            if self.idx >= N-int(N*0.2)-3 or (self.remap):
                 self.get_logger().info("Goal reached :Activate spin mode")
                 self.move_ttbot(0.0, 0.0)
                 self._have_goal = False
@@ -1404,6 +1433,7 @@ class SubscriberNode(Node):
                 self.idx = 0
                 self.SpinMode = True
                 self.SearchMode =False
+                self.remap = False
 
                 # for goal poses
                 self.next_goal_pose = True
