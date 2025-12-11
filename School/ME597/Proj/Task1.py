@@ -36,10 +36,6 @@ import cv2
 
 #!/usr/bin/env python3
 
-import sys
-
-import time
-
 # ros2 node imports
 
 
@@ -52,7 +48,7 @@ from nav_msgs.msg import Odometry
 
 # controls impoers
 import control as ct
-from scipy.integrate import solve_ivp
+
 
 # ap processing iports
 import heapq
@@ -97,9 +93,6 @@ class Map():
         w, h = info.width, info.height
 
         arr = np.asarray(msg.data).reshape(h, w)   # -1, 0, 100
-
-     
-
         gray = np.where(arr == 100,0,np.where(arr == 0,254, 205)).astype(np.uint8)
 
         # im = Image.fromarray(gray)
@@ -733,7 +726,7 @@ class SubscriberNode(Node):
         #self.sub = self.create_subscription(ImageCV2,'/camera/image_raw',self.detect,10)
         #self.sub_scan = self.create_subscription(LaserScan,"/scan",self.callback,10) # subscribing to get latest scan info
         self.pub_U = self.create_publisher(Twist,"/cmd_vel",10)
-        self.sub = self.create_subscription(OccupancyGrid,"/map",self.Grid_CallBack,10)
+        self.sub = self.create_subscription(OccupancyGrid,"/map",self.Grid_CallBack,20)
 
 
         self.timer = self.create_timer(0.1, self.timer_cb)
@@ -1306,8 +1299,8 @@ class SubscriberNode(Node):
 
         # full state feedback implimatation-----------------------------------
 
-        v_ref = 0.3         # nominal speed
-        v_max = 0.3          # max vel
+        v_ref = 0.2         # nominal speed
+        v_max = 0.2          # max vel
         w_max = 10           # max omega
 
         # state cost (Q) and input cost (R)
