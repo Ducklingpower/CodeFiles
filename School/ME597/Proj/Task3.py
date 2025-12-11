@@ -40,7 +40,7 @@ from nav_msgs.msg import Odometry
 
 # controls impoers
 import control as ct
-from scipy.integrate import solve_ivp
+
 
 # ap processing iports
 import heapq

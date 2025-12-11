@@ -6,7 +6,7 @@ from sensor_msgs.msg import LaserScan
 from rclpy.time import Time
 
 # for the subscriber 
-import math
+
 
 
 from geometry_msgs.msg import Twist
@@ -17,11 +17,7 @@ from geometry_msgs.msg import Pose2D
 
 ## 
 
-
-import sys
 import os
-
-import time
 
 # ros2 node imports
 
@@ -35,7 +31,7 @@ from nav_msgs.msg import Odometry
 
 # controls impoers
 import control as ct
-from scipy.integrate import solve_ivp
+
 
 # ap processing iports
 import heapq
@@ -50,7 +46,7 @@ import matplotlib.cm as cm
 import yaml
 import pandas as pd
 from copy import copy, deepcopy
-import time
+
 import os
 from ament_index_python.packages import get_package_share_directory
 from graphviz import Graph
@@ -1155,6 +1151,9 @@ def main(args=None):
 
 if __name__ == "__main__": # this will allow us to run the script from terminal
    main()
+
+
+
 
 
 
