@@ -63,3 +63,26 @@ step(T_3,"o")
 hold off
 grid on
 legend("Full order observer","Pole pacment","RO observer")
+
+
+%% 
+clc
+close all
+clear
+
+U = [-1/sqrt(2) -1/sqrt(6) 1/sqrt(3);
+     1/sqrt(2) -1/sqrt(6) 1/sqrt(3);
+     0 2/sqrt(6) 1/sqrt(3)];
+E = zeros(3,3);
+E(1,1) = -2;E(2,2) = -2; E(3,3) = 4;
+A = U*E*U'
+A = [1 2 3; 4 5 6; 7 5 9]
+
+[eig_vect,eig_val] = eigs(A*A')
+[eig_vect1,eig_val1] = eigs(A'*A)
+
+B = -eig_vect*sqrt(eig_val1)
+[-eig_vect1(:,1) eig_vect1(:,2) eig_vect(:,3)]
+% Calculate the singular values and their corresponding vectors
+[U_svd, S_svd, V_svd] = svd(A);
+singularValues = diag(S_svd);
