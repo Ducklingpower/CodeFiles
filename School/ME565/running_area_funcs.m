@@ -6,12 +6,14 @@ dt = 0.001;
 t = 0:dt:pi;
 
 freq = 3;
-y_sin = 2*sin(freq*(2*pi)*t);
+y_sin = 2*sin(freq*(2*pi)*t + pi/2);
 
 
 w = 2 * pi * freq; %omega
 
 IC = -2/(6*pi);
+IC = 0
+
 y_true = -2/w * cos(w*t) + (IC + 2/w);
 
 % single integration func
@@ -19,7 +21,7 @@ y_sin_integral = Integrate(y_sin,dt,IC);
 
 
 figure
-plot(t,y_sin)
+plot(t,y_sin,"*")
 hold on
 plot(t,y_true,"*")
 hold on
@@ -42,13 +44,14 @@ y_sin = 2*sin(freq*(2*pi)*t);
 x_IC = 0;
 v_IC = -2/(6*pi);
 
+
 y2_true = -(2/(freq*(2*pi))^2) * sin((freq*(2*pi))*t);
 
 y_sin_2Integral = Double_Integrate(y_sin,dt,x_IC,v_IC);
 
 
 figure 
-plot(t,y_sin);
+plot(t,y_sin,"*");
 hold on
 plot(t,y2_true,"*")%% doule intral of sin;
 hold on

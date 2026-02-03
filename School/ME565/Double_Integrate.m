@@ -12,9 +12,7 @@ for i = 2:length(signal)
     else
         area = (x(i) + x(i+1))/2 * dt+ area; 
         y(i) =area;
-
     end
-
 end
 
 % integrate again --
@@ -29,8 +27,5 @@ for i = 1:length(signal)
     else
         area = (x(i) + x(i+1))/2 * dt+ area; 
         y(i) =area;
-
-    end
-
-   
+    end  
 end
