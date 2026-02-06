@@ -19,9 +19,9 @@ weight = N_f(1,1)+N_r(1,1);
 
 %% cal forces
 
-F_d = T_f+T_r;
-F_l = N_f+N_r-weight;
-M_cg = 2.*T_f - 2.*T_r + a.*N_f - b.*N_r;
+F_d = abs(T_f+T_r);
+F_l = abs(N_f+N_r-weight);
+M_cg = abs(2.*T_f - 2.*T_r + a.*N_f - b.*N_r);
 
 
 A_v = [V(:,1).^2];
@@ -106,7 +106,7 @@ figure
 tiledlayout(1,3);
 
 nexttile
-plot(V(:),C_d(:),LineWidth=2)
+plot(V(:),abs(C_d(:)),LineWidth=2)
 hold on
 plot(velocity(:),C_d_fit(:),LineWidth=2,LineStyle="-.")
 grid on
@@ -115,7 +115,7 @@ ylabel("C_{drag}")
 legend("C_{drag} dta","F_{drag}_fitted")
 
 nexttile
-plot(V(:),C_l(:),LineWidth=2)
+plot(V(:),abs(C_l(:)),LineWidth=2)
 hold on
 plot(velocity(:),C_l_fit(:),LineWidth=2,LineStyle="-.")
 grid on
@@ -124,7 +124,7 @@ ylabel("C_{lift}")
 legend("C_{lift} data","F_{lift}_fitted")
 
 nexttile
-plot(V(:),C_m(:),LineWidth=2)
+plot(V(:),abs(C_m(:)),LineWidth=2)
 hold on
 plot(velocity(:),C_m_fit(:),LineWidth=2,LineStyle="-.")
 grid on
