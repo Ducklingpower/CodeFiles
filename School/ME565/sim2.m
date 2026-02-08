@@ -18,7 +18,7 @@ figure(Name='PSD')
 sr= 0.001;
 tmax=100;
 t_span = 0:sr:tmax;
-cs_n = 1:1:30;    % lb/s/ft
+cs_n = 10:5:150;    % lb/s/ft
 for n = 1:length(cs_n)
     cs = cs_n(n);
     output = sim("quater_car.slx",[0 tmax]);
@@ -30,19 +30,19 @@ for n = 1:length(cs_n)
     %fft calcs
     
     Y =fft(xs);                  % two sided fft
-    samples = tmax/sr;                    % num of samples
-    Sfq = 1/sr;                           % Sampling frequency 
-    k = 0:samples/2;                      % contant for one sided fft
-    fequencyXs =k*Sfq/samples;             % Computing frequency x-axis, frequncy axis to plot fft on.
-    Y_Onesideds = abs(Y(1:samples/2+1));   % One sided fft, y-axis
+    samples = tmax/sr;                   
+    Sfq = 1/sr;                            
+    k = 0:samples/2;                     
+    fequencyXs =k*Sfq/samples;             
+    Y_Onesideds = abs(Y(1:samples/2+1));   
     Y_Onesideds(1)=0;
     
     Y =fft(xu);                  % two sided fft
-    samples = tmax/sr;                    % num of samples
-    Sfq = 1/sr;                           % Sampling frequency 
-    k = 0:samples/2;                      % contant for one sided fft
-    fequencyXu =k*Sfq/samples;             % Computing frequency x-axis, frequncy axis to plot fft on.
-    Y_Onesidedu = abs(Y(1:samples/2+1));   % One sided fft, y-axis
+    samples = tmax/sr;                   
+    Sfq = 1/sr;                          
+    k = 0:samples/2;                      
+    fequencyXu =k*Sfq/samples;            
+    Y_Onesidedu = abs(Y(1:samples/2+1));   
     Y_Onesidedu(1)=0;
     
     
@@ -79,7 +79,7 @@ for n = 1:length(cs_n)
 
     x_sprung_max(n) = max(psdxs);
 
-    % cut off psdxs literlly
+    % cut off psdxs literlly 
 
     freq_low = find(fequencyXs == 4);
     frq_high = find(fequencyXu == 8);
@@ -98,3 +98,6 @@ ylabel("Normalized amplitude")
 legend("Maxumum amplitude","minum amplitude in 4-8Hz riegon")
 
 grid on
+
+
+
