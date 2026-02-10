@@ -13,7 +13,7 @@ mu =100/32.17;  % slugs
 
 
 %% sim parameters
-Road_type = 1;
+Road_type = 6;
 
 cs_nolinear = 0; % adding nonlinear damping
 
@@ -37,10 +37,13 @@ road = output.road.Data;
 
 plot(t_span, xs);
 hold on
+
+end
+
 plot(t_span,road)
 title('Unsprung Mass Displacement');
 xlabel('Time (s)');
 ylabel('Displacement (ft)');
 
-end
+legend("linear","nonlinear")
 
