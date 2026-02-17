@@ -1,8 +1,3 @@
-%% Linear Dynamic Bicycle Model (4-state): [y; y_dot; psi; r]
-% Assumptions:
-% - Constant longitudinal speed Ux
-% - Small angles, linear tire forces (cornering stiffness Cf, Cr)
-% - Input: steering angle delta (rad)
 
 clear; clc; close all;
 
@@ -20,9 +15,7 @@ if Ux <= 0
     error('Ux must be > 0 for this linear model.');
 end
 
-%% 2) State-space matrices for x = [y; y_dot; psi; r]
-% Notes:
-% y_dot is lateral velocity v_y in this simplified small-angle form.
+
 
 A = zeros(4,4);
 B = zeros(4,1);
@@ -43,17 +36,16 @@ A(4,2) = -(a*Cf - b*Cr)/(Iz*Ux);
 A(4,4) = -(a^2*Cf + b^2*Cr)/(Iz*Ux);
 B(4)   =  a*Cf/Iz;
 
-%% 3) Steering input function delta(t)
-% Example: step steer of 3 degrees at t = 1 s
+%% Steering input function delta(t)
+
 delta_step_deg = 3;
 t_step = 1.0;
 
 delta = @(t) (t >= t_step) * deg2rad(delta_step_deg)*sin(t);
 
-%% 4) ODE definition: xdot = A x + B delta(t)
 f = @(t,x) A*x + B*delta(t);
 
-%% 5) Simulate with ode45
+%% sim
 tspan = [0 6];  % [s]
 x0 = [0; 0; 0; 0];  % initial [y; y_dot; psi; r]
 
