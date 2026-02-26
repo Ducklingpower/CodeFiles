@@ -13,7 +13,7 @@ alpha = linspace(-0.45, 0.45, 300); % radians
 
 %Fz_front_sweep = [800 1200 1600 2000 2400 2800 3200 3600]; % centered around 1465N
 %Fz_rear_sweep  = [1200 1600 2000 2200 2400 2800 3200 3600 4000]; % centered around 2200N
-Fz_front_sweep = linspace(550, 3700, 10);
+Fz_front_sweep = linspace(550, 3700, 5);
 Fz_rear_sweep = linspace(850, 4200, 10);
 Fz_front_sweep = linspace(850, 4200, 10);
 
@@ -41,7 +41,7 @@ end
 
 %% plotting output
 figure
-for i = 1:10
+for i = 1:5
 plot(alpha(1,:),Fy_front_all(i,:),'r')
 hold on
 plot(alpha(1,:),Fy_rear_all(i,:),'g')
@@ -52,4 +52,14 @@ hold on
 grid on
 end
 legend("Fy_f","Fy_r")
-
+%%
+figure
+for i = 1:5
+    plot(alpha(1,:),Fy_rear_all(i,:)+Fy_front_all(i,:),LineWidth=2)
+    hold on
+    grid on 
+    xlabel('Slip Angle (radians)');
+    ylabel('Lateral Force (N)');
+    title('Lateral Force vs. Slip Angle');
+    legend("Dry Surface","Wet Surface","Snow","Ice")
+end
