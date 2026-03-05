@@ -4,7 +4,7 @@ clear
 %% SIM 3 Pitch plain model
 % params
 
-m = 3000 / (32.17 * 12); %lb/in*s^2 ????
+m = 3000 / (32.17 * 12); %lb/in*s^2
 I = 20000;
 a = 4*12;% inches
 b = 4*12;% inches
@@ -46,7 +46,7 @@ delay = L/v_inps;
 figure
 speeds = [2 5 10 20 40 80];
 
-colors = [linspace(1,0.4,length(speeds))' zeros(length(speeds),1) zeros(length(speeds),1)];
+colors = [linspace(1,0.9,length(speeds))' zeros(length(speeds),1) zeros(length(speeds),1)];
 
 for k = 1:length(speeds)
 
@@ -58,11 +58,11 @@ for k = 1:length(speeds)
 
     for i = 1:length(t)-1
         if t(i) >= hit && t(i)<=tmax
-            in1(i) = 2/12;
+            in1(i) = 2;
         end
     
         if t(i)>=hit + round(delay,3) && t(i)<=tmax
-            in2(i) =2/12;
+            in2(i) =2;
         end
     end
     
@@ -78,14 +78,15 @@ for k = 1:length(speeds)
     theta = output.simout.Data(:,2);
     P = k-1;
     subplot(6,2,P*2+1);
-    xlabel('Time (s)');
-    ylabel('Position (inches)');
-    title('Position Response');
     plot(t,in1 ,'LineWidth',1.5);
     hold on
     plot(t,in2 ,'LineWidth',1.5);
     hold on
     plot(t, position,'Color',colors(k,:),'LineWidth',1.5);
+    ylim([0 0.35*12])
+    xlabel('Time (s)');
+    ylabel('Position (inches)');
+    title('Position Response');
     
     subplot(6,2,P*2+2);
     plot(t, theta,'Color',colors(k,:),'LineWidth',1.5);
@@ -93,6 +94,7 @@ for k = 1:length(speeds)
     ylabel('Pitch Angle (rad)');
     title('Pitch Response');
     hold on
+    ylim([-0.004*12 0.004*12])
 
 
 end
