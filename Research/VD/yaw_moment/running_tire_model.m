@@ -13,9 +13,9 @@ alpha = linspace(-0.45, 0.45, 300); % radians
 
 %Fz_front_sweep = [800 1200 1600 2000 2400 2800 3200 3600]; % centered around 1465N
 %Fz_rear_sweep  = [1200 1600 2000 2200 2400 2800 3200 3600 4000]; % centered around 2200N
-Fz_front_sweep = linspace(550, 3700, 5);
-Fz_rear_sweep = linspace(850, 4200, 10);
-Fz_front_sweep = linspace(850, 4200, 10);
+
+Fz_rear_sweep = linspace(1000, 2000, 2);
+Fz_front_sweep = linspace(1000, 2000, 2);
 
 % Preallocate
 Fy_front_all = zeros(length(Fz_front_sweep), length(alpha));
@@ -61,5 +61,5 @@ for i = 1:5
     xlabel('Slip Angle (radians)');
     ylabel('Lateral Force (N)');
     title('Lateral Force vs. Slip Angle');
-    legend("Dry Surface","Wet Surface","Snow","Ice")
+    legend("1000 N","2000 N")
 end
