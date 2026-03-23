@@ -11,6 +11,9 @@ b = 4*12;% inches
 K1 = 200;% lb/in
 K2 = 300;% lb/in
 
+c1 = 4.1667; % lb*s/in
+c2 = c1;
+
 L = a+b;
 
 % state space rep
