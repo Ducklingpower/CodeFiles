@@ -1,0 +1,59 @@
+clc
+close all
+clear 
+%% Final Sim 
+g = 32.17;
+
+W =  3000; %lb
+Ws = 2700; %lb
+
+m = W/g; % slugs
+ms = Ws/g; % 
+
+x1 = 3.5; % ft
+x2 = -4.5; 
+h = -1.2;
+t =6;
+c = 0.5;
+
+Iz = 40000/g; %slug ft^2
+Ix = 15000/g; 
+
+dphiF = 8000/g;%slug-ft
+dphiR = 5000/g;
+
+ddphiF = 1000/g;%slug-ft/s
+ddphiR = 500/g;
+
+% linear tires
+c1 = 140 *(1/g)*(180/pi);% slug/rad
+c2=c1;
+
+ca = c1+c2;
+cb = x1*c1+x2*c2;
+cc = x1^2*c1+x2^2*c2;
+
+cPhi1 = 0;
+cPhi2 = 0;
+
+K = dphiF+dphiR;
+D = ddphiF+ddphiR;
+
+
+
+u = 10; %ft/s
+
+
+
+M1 = [m 0 -ms*h;0 Iz -ms*h*c; -ms*h -ms*h*c Ix];
+M2 = [-ca/u (-cb/u)-m*u 0 cPhi1+cPhi2;
+      -cb/u -cc/u 0 x1*cPhi1+x2*cPhi2;
+      0 ms*h*u -D -K];
+M3 = [c1 c2; x1*c1 x2*c2; 0 0];
+
+% ss
+A = [M1^(-1)*M2;0 0 1 0];
+B = M1^(-1)*M3;
+
+
+eigan = eigs(A)
