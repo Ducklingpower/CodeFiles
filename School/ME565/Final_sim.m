@@ -12,7 +12,7 @@ ms = Ws/g; %
 
 x1 = 3.5; % ft
 x2 = -4.5; 
-h = -1.2;
+h = 1.2;
 t =6;
 c = 0.5;
 
@@ -26,7 +26,7 @@ ddphiF = 1000;%lb-ft/s
 ddphiR = 500;
 
 % linear tires
-c1 = 140 *(180/pi);% slug/rad
+c1 = 140 *(180/pi);% lb/rad
 c2=c1;
 
 ca = c1+c2;
@@ -43,43 +43,104 @@ D = ddphiF+ddphiR;
 
 Ux = 30; %MPH
 Ux = Ux * (5280/3600);%ft/s
+U = [30 60].* (5280/3600);
 
 
 
-M1 = [m 0 -ms*h;0 Iz -ms*h*c; -ms*h -ms*h*c Ix];
-M2 = [-ca/Ux (-cb/Ux)-m*Ux 0 cPhi1+cPhi2;
-      -cb/Ux -cc/Ux 0 x1*cPhi1+x2*cPhi2;
-      0 ms*h*Ux -D -K];
-M3 = [c1 c2; x1*c1 x2*c2; 0 0];
 
-% ss
-A = [M1\M2; 0 0 1 0];
-B = [M1\M3; 0 0];
+%% main loop for sim plots and eigs
+
+for i = 1:length(U)
+    Ux = U(i);
+    M1 = [m 0 -ms*h;0 Iz -ms*h*c; -ms*h -ms*h*c Ix];
+    M2 = [-ca/Ux (-cb/Ux)-m*Ux 0 cPhi1+cPhi2;
+          -cb/Ux -cc/Ux 0 x1*cPhi1+x2*cPhi2;
+          0 ms*h*Ux -D -K];
+    M3 = [c1 c2; x1*c1 x2*c2; 0 0];
+    
+    % ss
+    A = [M1\M2; 0 0 1 0];
+    B = [M1\M3; 0 0];
+    
+    
+    eigan = eigs(A);
+    % sim
+    t_sim = 0:0.01:5;  
+    
+    
+    delta1_step = 45*pi/180;   % rads
+    
+    % input 
+    u = zeros(length(t_sim),2);
+    u(:,1) = delta1_step;   % step in delta1
+    u(:,2) = 0;             % delta2 = 0
+    
+    
+    x0 = zeros(4,1);% IC
+    
+    % create state-space system
+    sys = ss(A,B,eye(4),zeros(4,2));
+    
+    % simulate
+    [x,t_out] = lsim(sys,u,t_sim,x0);
+    x(:,1) = -1*x(:,1);
+
+    % plot inloop
+
+    if true % plot for eigan values and resones at 30 60 mph
+        figure(1)
+        if i ==1
+            color = "red";
+        else
+            color = "blue";
+          
+        end
+
+        subplot(4,1,1)
+        hold on
+        plot(t_out,x(:,1)/Ux,".",Color=color,LineWidth=3)
+        xlabel("time (s)")
+        ylabel("drift angle magnitude response")
+        legend("30 Mph","60 Mph")
+        hold off
+        grid on
+        
+        subplot(4,1,2)
+        hold on
+        plot(t_out,x(:,2),".",Color=color,LineWidth=3)
+        xlabel("time (s)")
+        ylabel("Yaw rate")
+        legend("30 Mph","60 Mph")
+        hold off
+        grid on
+        
+        subplot(4,1,3)
+        hold on
+        plot(t_out,x(:,4),".",Color=color,LineWidth=3)
+        xlabel("time (s)")
+        ylabel("Roll angle in rads")
+        legend("30 Mph","60 Mph")
+        hold off
+        grid on
+        
+        subplot(4,1,4)
+        plot(real(eigan),imag(eigan),"*",Color=color,LineWidth=3)
+        grid on
+        hold on
+        legend("30 Mph","60 Mph")
+        xlabel("Real axis")
+        ylabel("Imaginary")
+    end
 
 
-eigan = eigs(A)
+
+end
 
 
+%% steadt state yaw rate resones
+SS = (Ux*c1*(cb-x1*ca))/(cb^2-ca*cc+cb*m*Ux^2+(x1*ca*cPhi1+x2*ca*cPhi2 - (cPhi1+cPhi2)*cb)*((ms*h*Ux^2)/(K)));
 
-% sim 
-t_sim = 0:0.01:20;   % 5 seconds
 
-% step magnitude (radians)
-delta1_step = 45*pi/180;   % 45 deg step in rads
-
-% input matrix [delta1, delta2]
-u = zeros(length(t_sim),2);
-u(:,1) = delta1_step;   % step in delta1
-u(:,2) = 0;             % delta2 = 0
-
-% initial condition
-x0 = zeros(4,1);
-
-% create state-space system
-sys = ss(A,B,eye(4),zeros(4,2));
-
-% simulate
-[x,t_out] = lsim(sys,u,t_sim,x0);
 
 % plot
 figure

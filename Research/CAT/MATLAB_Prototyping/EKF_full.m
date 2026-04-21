@@ -454,51 +454,50 @@ end
 %% ============================================================
 % 7) PLOTS
 %% ============================================================
-
 figure;
 
 subplot(4,2,1);
-plot(t, x_true(1,:), 'b', 'LineWidth',1.4); hold on;
-plot(t, vx_meas, '.', 'Color',[0.7 0.7 0.7], 'MarkerSize',4);
-plot(t, xhat(1,:), 'r', 'LineWidth',1.4);
+plot(t, x_true(1,:)); hold on;
+plot(t, vx_meas, '.');
+plot(t, xhat(1,:));
 grid on; ylabel('v_x [m/s]'); title('Longitudinal speed');
 legend('true','measured','EKF');
 
 subplot(4,2,2);
-plot(t, x_true(2,:), 'b', 'LineWidth',1.4); hold on;
-plot(t, vy_meas, '.', 'Color',[0.7 0.7 0.7], 'MarkerSize',4);
-plot(t, xhat(2,:), 'r--', 'LineWidth',1.4);
+plot(t, x_true(2,:)); hold on;
+plot(t, vy_meas, '.');
+plot(t, xhat(2,:));
 grid on; ylabel('v_y [m/s]'); title('Lateral speed');
 legend('true','measured','EKF');
 
 subplot(4,2,3);
-plot(t, x_true(3,:), 'b', 'LineWidth',1.4); hold on;
-plot(t, r_meas, '.', 'Color',[0.7 0.7 0.7], 'MarkerSize',4);
-plot(t, xhat(3,:), 'r--', 'LineWidth',1.4);
+plot(t, x_true(3,:)); hold on;
+plot(t, r_meas, '.');
+plot(t, xhat(3,:));
 grid on; ylabel('r [rad/s]'); title('Yaw rate');
 legend('true','measured','EKF');
 
 subplot(4,2,4);
-plot(t, x_true(4,:), 'b', 'LineWidth',1.4); hold on;
-plot(t, xhat(4,:), 'r--', 'LineWidth',1.4);
+plot(t, x_true(4,:)); hold on;
+plot(t, xhat(4,:));
 grid on; ylabel('\phi [rad]'); title('Roll angle');
 legend('true','EKF');
 
 subplot(4,2,5);
-plot(t, x_true(5,:), 'b', 'LineWidth',1.4); hold on;
-plot(t, xhat(5,:), 'r--', 'LineWidth',1.4);
+plot(t, x_true(5,:)); hold on;
+plot(t, xhat(5,:));
 grid on; ylabel('\phi dot [rad/s]'); title('Roll rate');
 legend('true','EKF');
 
 subplot(4,2,6);
-plot(t, x_true(6,:), 'b', 'LineWidth',1.4); hold on;
-plot(t, xhat(6,:), 'r--', 'LineWidth',1.4);
+plot(t, x_true(6,:)); hold on;
+plot(t, xhat(6,:));
 grid on; ylabel('\theta [rad]'); title('Pitch angle');
 legend('true','EKF');
 
 subplot(4,2,7);
-plot(t, x_true(7,:), 'b', 'LineWidth',1.4); hold on;
-plot(t, xhat(7,:), 'r--', 'LineWidth',1.4);
+plot(t, x_true(7,:)); hold on;
+plot(t, xhat(7,:));
 grid on; ylabel('\theta dot [rad/s]'); xlabel('time [s]');
 title('Pitch rate');
 legend('true','EKF');
@@ -509,8 +508,8 @@ names = {'FL','FR','RL','RR'};
 
 for i = 1:4
     subplot(4,2,2*i-1);
-    plot(t, x_true(7+i,:), 'b', 'LineWidth',1.3); hold on;
-    plot(t, xhat(7+i,:), 'r--', 'LineWidth',1.3);
+    plot(t, x_true(7+i,:)); hold on;
+    plot(t, xhat(7+i,:));
     grid on; ylabel(['Fx ',names{i},' [N]']);
     title(['Longitudinal force ',names{i}]);
     legend('true','EKF');
@@ -518,14 +517,14 @@ end
 
 for i = 1:4
     subplot(4,2,2*i);
-    plot(t, x_true(11+i,:), 'b', 'LineWidth',1.3); hold on;
-    plot(t, xhat(11+i,:), 'r--', 'LineWidth',1.3);
+    plot(t, x_true(11+i,:)); hold on;
+    plot(t, xhat(11+i,:));
     grid on; ylabel(['Fy ',names{i},' [N]']);
     title(['Lateral force ',names{i}]);
     legend('true','EKF');
 end
 
-figure('Color','w','Name','Measured vs predicted outputs');
+figure;
 
 zhat_store = zeros(nz,N);
 for i = 1:N
@@ -537,33 +536,33 @@ for i = 1:N
 end
 
 subplot(5,1,1);
-plot(t, vx_meas, 'b'); hold on;
-plot(t, zhat_store(1,:), 'r--', 'LineWidth',1.3);
+plot(t, vx_meas); hold on;
+plot(t, zhat_store(1,:));
 grid on; ylabel('v_x');
 title('Measured vs EKF-predicted outputs');
 legend('measured','predicted');
 
 subplot(5,1,2);
-plot(t, vy_meas, 'b'); hold on;
-plot(t, zhat_store(2,:), 'r--', 'LineWidth',1.3);
+plot(t, vy_meas); hold on;
+plot(t, zhat_store(2,:));
 grid on; ylabel('v_y');
 legend('measured','predicted');
 
 subplot(5,1,3);
-plot(t, r_meas, 'b'); hold on;
-plot(t, zhat_store(3,:), 'r--', 'LineWidth',1.3);
+plot(t, r_meas); hold on;
+plot(t, zhat_store(3,:));
 grid on; ylabel('r');
 legend('measured','predicted');
 
 subplot(5,1,4);
-plot(t, ax_meas, 'b'); hold on;
-plot(t, zhat_store(4,:), 'r--', 'LineWidth',1.3);
+plot(t, ax_meas); hold on;
+plot(t, zhat_store(4,:));
 grid on; ylabel('a_x');
 legend('measured','predicted');
 
 subplot(5,1,5);
-plot(t, ay_meas, 'b'); hold on;
-plot(t, zhat_store(5,:), 'r--', 'LineWidth',1.3);
+plot(t, ay_meas); hold on;
+plot(t, zhat_store(5,:));
 grid on; ylabel('a_y'); xlabel('time [s]');
 legend('measured','predicted');
 
@@ -571,8 +570,8 @@ figure;
 
 for i = 1:4
     subplot(4,1,i);
-    plot(t, Fz_true(i,:), 'k', 'LineWidth',1.2); hold on;
-    plot(t, Fz_meas(i,:), '.', 'Color',[0.7 0.7 0.7], 'MarkerSize',4);
+    plot(t, Fz_true(i,:)); hold on;
+    plot(t, Fz_meas(i,:), '.');
     grid on; ylabel(['Fz ',names{i}]);
     title(['Wheel load ',names{i}]);
     if i == 4
@@ -584,29 +583,30 @@ end
 figure;
 
 subplot(2,1,1);
-plot(t, slip_est(1,:), 'DisplayName','FL'); hold on;
-plot(t, slip_est(2,:), 'DisplayName','FR');
-plot(t, slip_est(3,:), 'DisplayName','RL');
-plot(t, slip_est(4,:), 'DisplayName','RR');
+plot(t, slip_est(1,:)); hold on;
+plot(t, slip_est(2,:));
+plot(t, slip_est(3,:));
+plot(t, slip_est(4,:));
 grid on; ylabel('\kappa'); title('Estimated slip ratios from EKF states + measured wheel speeds');
-legend;
+legend('FL','FR','RL','RR');
 
 subplot(2,1,2);
-plot(t, mu_est(1,:), 'DisplayName','FL'); hold on;
-plot(t, mu_est(2,:), 'DisplayName','FR');
-plot(t, mu_est(3,:), 'DisplayName','RL');
-plot(t, mu_est(4,:), 'DisplayName','RR');
+plot(t, mu_est(1,:)); hold on;
+plot(t, mu_est(2,:));
+plot(t, mu_est(3,:));
+plot(t, mu_est(4,:));
 grid on; ylabel('\mu utilization'); xlabel('time [s]');
 title('Estimated friction utilization using measured Fz');
-legend;
+legend('FL','FR','RL','RR');
 
-figure('Color','w','Name','Diagonal Entries of P');
+figure;
+
 state_names = {'vx','vy','r','phi','phiDot','theta','thetaDot', ...
                'Fxfl','Fxfr','Fxrl','Fxrr','Fyfl','Fyfr','Fyrl','Fyrr'};
 
 for i = 1:nx
     subplot(nx,1,i);
-    plot(t, squeeze(P_hist(i,i,:)), 'LineWidth',1.2);
+    plot(t, squeeze(P_hist(i,i,:)));
     grid on; ylabel(state_names{i});
     if i == 1
         title('EKF covariance diagonal entries');
@@ -621,7 +621,6 @@ disp('EKF estimated states:');
 disp('[vx vy r phi phi_dot theta theta_dot Fx_fl Fx_fr Fx_rl Fx_rr Fy_fl Fy_fr Fy_rl Fy_rr]');
 disp('Measured inputs available in this tutorial: steering, wheel speeds, wheel loads');
 disp('Measured outputs used by EKF update: [vx vy r ax ay]');
-
 %% ============================================================
 % LOCAL FUNCTIONS
 %% ============================================================
