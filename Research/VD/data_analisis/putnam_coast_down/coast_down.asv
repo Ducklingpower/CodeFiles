@@ -1,0 +1,77 @@
+clc
+close all
+clear
+%% opening csv
+
+data = readtable('output.csv');
+
+%%
+t = data.time_s;
+
+ax = data.a_x;
+ay = data.a_y;
+az = data.a_z;
+
+vx = data.bot_x_m;
+vy = data.bot_y_m;
+
+rpm = data.engine_rpm;
+throttle = data.throttle_pct;
+gear = data.current_gear;
+T_e = data.est_drive_torque_nm;
+
+
+qx = data.odom_qx;
+qy = data.odom_qy;
+qz = data.odom_qz;
+qw = data.odom_qw;
+
+q = [qw qx qy qz];         
+eul = quat2eul(q, 'ZYX');   % [yaw pitch roll]
+
+yaw   = eul(:,1);
+pitch = eul(:,2);
+roll  = eul(:,3);
+
+roll_deg  = rad2deg(roll);
+pitch_deg = rad2deg(pitch);
+yaw_deg   = rad2deg(yaw);
+
+m = 787;
+r = 0.31;
+roh = 1.22;
+Cd = 0.3;
+g = 9.81;
+
+%% cleaning just for coast downs
+
+% coast down at gear 2
+a = length(rpm)*0.41;
+b = length(rpm)*0.45;
+
+
+% coast down at gear3
+a = length(rpm)*0.519;
+b = length(rpm)*0.535;
+
+% phys
+F = m*ax + 0.5 * roh* 1* Cd*vx.^2 - m*g*sin(pitch);
+
+%
+
+
+
+
+
+figure
+
+plot(a:b,rpm(a:b))
+
+figure
+plot(a:b,gear(a:b))
+
+figure
+plot(a:b,pitch_deg(a:b))
+
+figure
+plot(a:b,thr(a:b))
