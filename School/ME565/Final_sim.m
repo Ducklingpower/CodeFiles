@@ -33,8 +33,8 @@ ca = c1+c2;
 cb = (x1*c1+x2*c2);
 cc = x1^2*c1+x2^2*c2;
 
-epsilon1 = 0;
-epsilon2 = 0;
+epsilon1 = 0.00;
+epsilon2 = -0.03;
 cPhi1 = c1*epsilon1;
 cPhi2 = c2*epsilon2;
 
@@ -47,10 +47,10 @@ Ux = 30; %MPH
 Ux = Ux * (5280/3600);%ft/s
 U = [30 60].* (5280/3600);
 
+%%
 
 
-
-%% main loop for sim plots and eigs
+% main loop for sim plots and eigs
 
 for i = 1:length(U)
     Ux = U(i);
@@ -65,7 +65,7 @@ for i = 1:length(U)
     B = [M1\M3; 0 0];
     
     
-    eigan = eigs(A)
+    eigan = eigs(A);
     % sim
     t_sim = 0:0.01:10;  
     
@@ -133,7 +133,7 @@ for i = 1:length(U)
             legend("steering angle")
             xlabel("time")
             ylabel("steering angle in (deg)")
-            title("Front steering input")
+            title("Front steering input, \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
         else
             color = "blue";
           
@@ -144,7 +144,7 @@ for i = 1:length(U)
         plot(t_out,x(:,1)/Ux,Color=color,LineWidth=3)
         xlabel("time (s)")
         ylabel("drift angle magnitude response")
-        title("Drift angle")
+        title("Drift angle, \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
         legend("30 Mph","60 Mph")
         hold off
         grid on
@@ -155,7 +155,7 @@ for i = 1:length(U)
         xlabel("time (s)")
         ylabel("Yaw rate")
         legend("30 Mph","60 Mph")
-        title("Yaw rate")
+        title("Yaw rate, \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
         hold off
         grid on
         
@@ -165,7 +165,7 @@ for i = 1:length(U)
         xlabel("time (s)")
         ylabel("Roll angle in rads")
         legend("30 Mph","60 Mph")
-        title("Roll angle Rads")
+        title("Roll angle Rads, \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
         hold off
         grid on
         
@@ -177,7 +177,14 @@ end
 
 %% steadt state yaw rate resonee
 
- figure(2)
+ %figure(2)
+
+ % epsilon11 = [0.04 0.04 0.04 0 0 0 -0.04 -0.04 -0.04];
+ % epsilon22 = [0.04 0 -0.04 0.04 0 -0.04 0.04 0 -0.04];
+ epsilon11 = 0;
+ epsilon22 = 0;
+ for j = 1:length(epsilon22)
+     figure
    for n = 1:3
 
        if n ==1
@@ -201,8 +208,9 @@ end
         cb = x1*c1+x2*c2;
         cc = x1^2*c1+x2^2*c2;
         
-        epsilon1 = 0;
-        epsilon2 = -0.03;
+        epsilon1 = epsilon11(j);
+        epsilon2 = epsilon22(j);
+
         cPhi1 = c1*epsilon1;
         cPhi2 = c2*epsilon2;
         K = dphiF+dphiR;
@@ -220,7 +228,8 @@ end
             grid on
             ylabel("SS Yaw rate respone")
             xlabel("Vehcile speed in ft/s")
-            title("Steady state Yaw rate respone")
+            title("Steady state Yaw rate respone,  \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+            ylim([0 25])
 
 
         end
@@ -231,20 +240,22 @@ end
         for k = 1:length(U)
             subplot(2,1,2)
             SS = (U(k)*c1*(cb-x1*ca))/(cb^2-ca*cc+cb*m*U(k)^2+(x1*ca*cPhi1+x2*ca*cPhi2 - (cPhi1+cPhi2)*cb)*((ms*h*U(k)^2)/(K)));
-            steering = U(k)/(SS * 400);
+            steering = U(k)/(SS * 400) * (180/pi);
+
             plot(U(k),steering,"*",Color=color,LineWidth=3)
             hold on
             grid on
-            ylabel("SS Yaw rate respone")
+            ylabel("steering in deg")
             xlabel("Vehcile speed in ft/s")
-            title("Steady state Yaw rate respone")
+            title("Steering to maintain constant curve,  \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
 
 
         end
 
    end
+ end
 
-
+%%
    % 
    % 
    %  figure(3)
