@@ -1,0 +1,327 @@
+clc
+close all
+clear 
+%% Final Sim 
+g = 32.17;
+
+W =  3000; %lb
+Ws = 2700; %lb
+
+m = W/g; % slugs
+ms = Ws/g; % 
+
+x1 = 3.5; % ft
+x2 = -4.5; 
+h = -1.2;
+t =6;
+c = 0.5;
+
+Iz = 40000/g; %slug ft^2
+Ix = 15000/g; 
+
+dphiF = 8000;%lb-ft
+dphiR = 5000;
+
+ddphiF = 1000;%lb-ft/s
+ddphiR = 500;
+
+% linear tires
+c1 = 140 *(180/pi);% lb/rad
+c2=c1;
+
+ca = c1+c2;
+cb = (x1*c1+x2*c2);
+cc = x1^2*c1+x2^2*c2;
+
+epsilon1 = 0.00;
+epsilon2 = -0.03;
+cPhi1 = c1*epsilon1;
+cPhi2 = c2*epsilon2;
+
+K = dphiF+dphiR;
+D = ddphiF+ddphiR;
+
+
+
+Ux = 30; %MPH
+Ux = Ux * (5280/3600);%ft/s
+U = [30 60].* (5280/3600);
+
+%%
+
+
+% main loop for sim plots and eigs
+
+for i = 1:length(U)
+    Ux = U(i);
+    M1 = [m 0 -ms*h;0 Iz -ms*h*c; -ms*h -ms*h*c Ix];
+    M2 = [-ca/Ux (-cb/Ux)-m*Ux 0 cPhi1+cPhi2;
+          -cb/Ux -cc/Ux 0 x1*cPhi1+x2*cPhi2;
+          0 ms*h*Ux -D -K];
+    M3 = [c1 c2; x1*c1 x2*c2; 0 0];
+    
+    % ss
+    A = [M1\M2; 0 0 1 0];
+    B = [M1\M3; 0 0];
+    
+    
+    eigan = eigs(A);
+    % sim
+    t_sim = 0:0.01:10;  
+    
+    
+
+    % changing steering input
+    rate_max = 180;   % deg/s
+    delta_hw = zeros(size(t_sim));
+    
+    for l = 1:length(t_sim)-1
+        if t_sim(l) < 3
+            delta_des = 45;
+        elseif t_sim(l) < 6
+            delta_des = -45;
+        elseif t_sim(l) < 9
+            delta_des = 0;
+        else
+            delta_des = 0;
+        end
+    
+        % error to target
+        err = delta_des - delta_hw(l);
+        max_step = rate_max * 0.01;
+    
+        if abs(err) <= max_step
+            delta_hw(l+1) = delta_des;   % hit target exactly
+        else
+            delta_hw(l+1) = delta_hw(l) + sign(err)*max_step;
+        end
+    end
+
+    delta1_step = delta_hw * (pi/180);   % rads
+    
+    % input 
+    u = zeros(length(t_sim),2);
+    u(:,1) = delta1_step;   % step in delta1
+    u(:,2) = 0;             % delta2 = 0
+    
+
+
+
+    x0 = zeros(4,1);% IC
+    
+    % create state-space system
+    sys = ss(A,B,eye(4),zeros(4,2));
+    
+    % simulate
+    [x,t_out] = lsim(sys,u,t_sim,x0);
+    x(:,1) = -1*x(:,1);
+
+ 
+
+    
+    % plot inloop
+
+    if true % plot for eigan values and resones at 30 60 mph
+        figure(1)
+        if i ==1
+            color = "red";
+
+            subplot(4,1,4)
+            plot(t_out,u(:,1).*(180/pi),"*",Color=color,LineWidth=3)
+            grid on
+            hold on
+            legend("steering angle")
+            xlabel("time")
+            ylabel("steering angle in (deg)")
+            title("Front steering input, \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+        else
+            color = "blue";
+          
+        end
+
+        subplot(4,1,1)
+        hold on
+        plot(t_out,x(:,1)/Ux,Color=color,LineWidth=3)
+        xlabel("time (s)")
+        ylabel("drift angle magnitude response")
+        title("Drift angle, \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+        legend("30 Mph","60 Mph")
+        hold off
+        grid on
+        
+        subplot(4,1,2)
+        hold on
+        plot(t_out,x(:,2),Color=color,LineWidth=3)
+        xlabel("time (s)")
+        ylabel("Yaw rate")
+        legend("30 Mph","60 Mph")
+        title("Yaw rate, \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+        hold off
+        grid on
+        
+        subplot(4,1,3)
+        hold on
+        plot(t_out,x(:,4),Color=color,LineWidth=3)
+        xlabel("time (s)")
+        ylabel("Roll angle in rads")
+        legend("30 Mph","60 Mph")
+        title("Roll angle Rads, \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+        hold off
+        grid on
+        
+        
+  
+    end
+end
+
+
+%% steadt state yaw rate resonee
+
+ %figure(2)
+
+ % epsilon11 = [0.04 0.04 0.04 0 0 0 -0.04 -0.04 -0.04];
+ % epsilon22 = [0.04 0 -0.04 0.04 0 -0.04 0.04 0 -0.04];
+ epsilon11 = 0;
+ epsilon22 = 0;
+ for j = 1:length(epsilon22)
+     figure
+   for n = 1:3
+
+       if n ==1
+        x1 = 3.5; 
+        x2 = -4.5; 
+        color = "red";
+       elseif n==2
+        x1 = 4.5;
+        x2 = -4.5; 
+         color = "green";
+       else
+        x1 = 4.5;
+        x2 = -3.5; 
+         color = "blue";
+       end
+
+        c1 = 140 *(180/pi);% lb/rad
+        c2=c1;
+        
+        ca = c1+c2;
+        cb = x1*c1+x2*c2;
+        cc = x1^2*c1+x2^2*c2;
+        
+        epsilon1 = epsilon11(j);
+        epsilon2 = epsilon22(j);
+
+        cPhi1 = c1*epsilon1;
+        cPhi2 = c2*epsilon2;
+        K = dphiF+dphiR;
+        D = ddphiF+ddphiR;
+        
+
+        Ux = 10:1:120; %MPH
+        U = Ux.* (5280/3600);%ft/s
+        
+        for k = 1:length(U)
+            SS = (U(k)*c1*(cb-x1*ca))/(cb^2-ca*cc+cb*m*U(k)^2+(x1*ca*cPhi1+x2*ca*cPhi2 - (cPhi1+cPhi2)*cb)*((ms*h*U(k)^2)/(K)));
+            subplot(2,1,1)
+            plot(U(k),SS,"*",Color=color,LineWidth=3)
+            hold on
+            grid on
+            ylabel("SS Yaw rate respone")
+            xlabel("Vehcile speed in ft/s")
+            title("Steady state Yaw rate respone,  \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+            ylim([0 25])
+
+
+        end
+
+
+        % steering R=400 ft
+      
+        for k = 1:length(U)
+            subplot(2,1,2)
+            SS = (U(k)*c1*(cb-x1*ca))/(cb^2-ca*cc+cb*m*U(k)^2+(x1*ca*cPhi1+x2*ca*cPhi2 - (cPhi1+cPhi2)*cb)*((ms*h*U(k)^2)/(K)));
+            steering = U(k)/(SS * 400) * (180/pi);
+
+            plot(U(k),steering,"*",Color=color,LineWidth=3)
+            hold on
+            grid on
+            ylabel("steering in deg")
+            xlabel("Vehcile speed in ft/s")
+            title("Steering to maintain constant curve,  \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+
+
+        end
+
+   end
+ end
+
+%%
+   % 
+   % 
+   %  figure(3)
+   % for n = 1:3
+   % 
+   %     if n ==1
+   %      x1 = 3.5; 
+   %      x2 = -4.5; 
+   %      color = "red";
+   %     elseif n==2
+   %      x1 = 4.5;
+   %      x2 = -4.5; 
+   %       color = "green";
+   %     else
+   %      x1 = 4.5;
+   %      x2 = -3.5; 
+   %       color = "blue";
+   %     end
+   % 
+   %      c1 = 140 *(180/pi);% lb/rad
+   %      c2=c1;
+   % 
+   %      ca = c1+c2;
+   %      cb = x1*c1+x2*c2;
+   %      cc = x1^2*c1+x2^2*c2;
+   % 
+   %      epsilon1 = 0;
+   %      epsilon2 = -0.03;
+   %      cPhi1 = c1*epsilon1;
+   %      cPhi2 = c2*epsilon2;
+   %      K = dphiF+dphiR;
+   %      D = ddphiF+ddphiR;
+   % 
+   % 
+   %      Ux = 10:1:120; %MPH
+   %      U = Ux.* (5280/3600);%ft/s
+   % 
+   % 
+   %      % steering R=400 ft
+   % 
+   %      for k = 1:length(U)
+   %          SS = (U(k)*c1*(cb-x1*ca))/(cb^2-ca*cc+cb*m*U(k)^2+(x1*ca*cPhi1+x2*ca*cPhi2 - (cPhi1+cPhi2)*cb)*((ms*h*U(k)^2)/(K)));
+   %          steering = U(k)/(SS * 400);
+   %          plot(U(k),steering,"*",Color=color,LineWidth=3)
+   %          hold on
+   %          grid on
+   %          ylabel("SS Yaw rate respone")
+   %          xlabel("Vehcile speed in ft/s")
+   %          title("Steady state Yaw rate respone")
+   % 
+   % 
+   %      end
+   % 
+   %  end
+
+
+
+
+
+% plot
+figure
+plot(t_out,x)
+legend('v','r','\phi dot','\phi')
+xlabel('Time (s)')
+ylabel('States')
+title('Response to Step in \delta_1')
+grid on
+
+

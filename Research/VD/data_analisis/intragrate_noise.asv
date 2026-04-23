@@ -1,0 +1,71 @@
+f = 1/20;  
+t = 0:0.01:50; 
+noise = randn(size(t)) * 0.005;
+y = sin(2*pi*f*t) + noise;
+
+%% Moving average / smoothing
+Y = zeros(size(y));
+len = 100;   % smooth over len samples
+
+for n = 1:length(y)
+    if n > len
+        Y(n) = mean(y(n-len+1:n));
+    end
+end
+
+%% Sliding window integrator
+window_size = length(t);              % number of samples in integration window
+dt = t(2) - t(1);              % actual sample time
+
+error_window = [];
+error_sum = 0;
+y_integral = zeros(size(t));
+
+for k = 1:length(t)
+    error = y(k);
+
+    % add newest sample
+    error_window(end+1) = error;
+    error_sum = error_sum + error;
+
+    % remove oldest sample if window too large
+    if length(error_window) > window_size
+        error_sum = error_sum - error_window(1);
+        error_window(1) = [];
+    end
+
+    % sliding window integral
+    y_integral(k) = error_sum * dt;
+end
+
+%% true numeric integration 
+
+delta = 0.01;
+y_integral = 0;
+y_last = y_0;
+for i = 1:length(t)
+   
+   
+    y_integral = y_integral + (y(i)- y_last) * delta;  % true numeric integration
+    y_last = y(i); 
+
+    I = y_integral()
+
+
+
+end
+
+%% Plot
+figure
+plot(t, y, 'DisplayName', 'Raw Signal')
+hold on
+plot(t, Y, 'LineWidth', 1.5, 'DisplayName', 'Smoothed Signal')
+plot(t, y_integral, 'r', 'LineWidth', 2, 'DisplayName', 'Sliding Window Integral')
+plot(t,cos(pi*f*t))
+plot(t,y)
+hold off
+grid on
+xlabel('Time [s]')
+ylabel('Amplitude')
+title('Signal, Smoothed Signal, and Sliding Window Integral')
+legend
