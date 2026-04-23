@@ -114,8 +114,7 @@ for i = 1:length(U)
         % NOnlinear tire model
         c1 = Cf_tire(Fz_fl) + Cf_tire(Fz_fr); % front axle total
         c2 = Cr_tire(Fz_rl) + Cr_tire(Fz_rr); % rear axle total
-        STUPID(k) = Fz_fl+ Fz_fr;
-
+       
         ca = c1 + c2;
         cb = x1*c1 + x2*c2;
         cc = x1^2*c1 + x2^2*c2;
@@ -209,3 +208,97 @@ for i = 1:length(U)
     legend("front","rear")
     grid on
 end
+
+
+
+
+
+
+%% steadt state yaw rate resonee
+
+ %figure(2)
+
+ % epsilon11 = [0.04 0.04 0.04 0 0 0 -0.04 -0.04 -0.04];
+ % epsilon22 = [0.04 0 -0.04 0.04 0 -0.04 0.04 0 -0.04];
+ epsilon11 = 0;
+ epsilon22 = 0;
+
+Cf_tire = @(Fz) (16.667 + 0.3519 * (Fz) - 0.00001 *(Fz)^2) * (180/pi); 
+Cr_tire = @(Fz) (16.667 + 0.3519 * (Fz) - 0.00001 *(Fz)^2) * (180/pi);
+
+ 
+ for j = 1:length(epsilon22)
+     figure
+   for n = 1:3
+
+       if n ==1
+        x1 = 3.5; 
+        x2 = -4.5; 
+        color = "red";
+       elseif n==2
+        x1 = 4.5;
+        x2 = -4.5; 
+         color = "green";
+       else
+        x1 = 4.5;
+        x2 = -3.5; 
+         color = "blue";
+       end
+
+        c1 = 140 *(180/pi);% lb/rad
+        c2=c1;
+        
+        ca = c1+c2;
+        cb = x1*c1+x2*c2;
+        cc = x1^2*c1+x2^2*c2;
+        
+        epsilon1 = epsilon11(j);
+        epsilon2 = epsilon22(j);
+
+        cPhi1 = c1*epsilon1;
+        cPhi2 = c2*epsilon2;
+        K = dphiF+dphiR;
+        D = ddphiF+ddphiR;
+        
+
+        Ux = 10:1:120; %MPH
+        U = Ux.* (5280/3600);%ft/s
+
+
+
+        % need to compute dphi, phi ss to get moment for load tranfer
+        
+        for k = 1:length(U)
+            SS = (U(k)*c1*(cb-x1*ca))/(cb^2-ca*cc+cb*m*U(k)^2+(x1*ca*cPhi1+x2*ca*cPhi2 - (cPhi1+cPhi2)*cb)*((ms*h*U(k)^2)/(K)));
+            subplot(2,1,1)
+            plot(U(k),SS,"*",Color=color,LineWidth=3)
+            hold on
+            grid on
+            ylabel("SS Yaw rate respone")
+            xlabel("Vehcile speed in ft/s")
+            title("Steady state Yaw rate respone,  \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+            ylim([0 25])
+
+
+        end
+
+
+        % steering R=400 ft
+      
+        for k = 1:length(U)
+            subplot(2,1,2)
+            SS = (U(k)*c1*(cb-x1*ca))/(cb^2-ca*cc+cb*m*U(k)^2+(x1*ca*cPhi1+x2*ca*cPhi2 - (cPhi1+cPhi2)*cb)*((ms*h*U(k)^2)/(K)));
+            steering = U(k)/(SS * 400) * (180/pi);
+
+            plot(U(k),steering,"*",Color=color,LineWidth=3)
+            hold on
+            grid on
+            ylabel("steering in deg")
+            xlabel("Vehcile speed in ft/s")
+            title("Steering to maintain constant curve,  \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+
+
+        end
+
+   end
+ end
