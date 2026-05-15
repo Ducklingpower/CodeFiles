@@ -21,9 +21,9 @@ Iz = 40000/g; % slug-ft^2
 Ix = 15000/g;
 
 dphiF  = 8000; % lb-ft/rad
-dphiR  = 5000; % lb-ft/rad
-ddphiF = 1000; % lb-ft-s/rad
-ddphiR = 500;  % lb-ft-s/rad
+dphiR  = 5000; 
+ddphiF = 1000; 
+ddphiR = 500;  
 
 % linear model
 c1_lin = 140*(180/pi); % lb/rad  
@@ -84,7 +84,7 @@ for i = 1:length(U)
     end
 
     u = zeros(N,2);
-    u(:,1) = delta_hw*pi/180; % delta1
+    u(:,1) = 1*(delta_hw*pi/180); % delta1
     u(:,2) = 0;               
 
     
@@ -122,7 +122,7 @@ for i = 1:length(U)
         cPhi1 = c1*epsilon1;
         cPhi2 = c2*epsilon2;
 
-         M1 = [m 0 -ms*h; 0 Iz -ms*h*c_geom; -ms*h -ms*h*c_geom Ix];
+        M1 = [m 0 -ms*h; 0 Iz -ms*h*c_geom; -ms*h -ms*h*c_geom Ix];
 
         M2 = [ -ca/Ux, (-cb/Ux)-m*Ux, 0, cPhi1 + cPhi2;
                -cb/Ux, -cc/Ux, 0, x1*cPhi1 + x2*cPhi2;
@@ -214,91 +214,195 @@ end
 
 
 
-%% steadt state yaw rate resonee
-
- %figure(2)
-
- % epsilon11 = [0.04 0.04 0.04 0 0 0 -0.04 -0.04 -0.04];
- % epsilon22 = [0.04 0 -0.04 0.04 0 -0.04 0.04 0 -0.04];
- epsilon11 = 0;
- epsilon22 = 0;
-
-Cf_tire = @(Fz) (16.667 + 0.3519 * (Fz) - 0.00001 *(Fz)^2) * (180/pi); 
-Cr_tire = @(Fz) (16.667 + 0.3519 * (Fz) - 0.00001 *(Fz)^2) * (180/pi);
-
- 
- for j = 1:length(epsilon22)
-     figure
-   for n = 1:3
-
-       if n ==1
-        x1 = 3.5; 
-        x2 = -4.5; 
-        color = "red";
-       elseif n==2
-        x1 = 4.5;
-        x2 = -4.5; 
-         color = "green";
-       else
-        x1 = 4.5;
-        x2 = -3.5; 
-         color = "blue";
-       end
-
-        c1 = 140 *(180/pi);% lb/rad
-        c2=c1;
-        
-        ca = c1+c2;
-        cb = x1*c1+x2*c2;
-        cc = x1^2*c1+x2^2*c2;
-        
-        epsilon1 = epsilon11(j);
-        epsilon2 = epsilon22(j);
-
-        cPhi1 = c1*epsilon1;
-        cPhi2 = c2*epsilon2;
-        K = dphiF+dphiR;
-        D = ddphiF+ddphiR;
-        
-
-        Ux = 10:1:120; %MPH
-        U = Ux.* (5280/3600);%ft/s
+ epsilon11 = [0.04 0.04 0.04 0 0 0 -0.04 -0.04 -0.04];
+ epsilon22 = [0.04 0 -0.04 0.04 0 -0.04 0.04 0 -0.04];
+ % epsilon11 =0;
+ % epsilon22 =0;
 
 
 
-        % need to compute dphi, phi ss to get moment for load tranfer
-        
-        for k = 1:length(U)
-            SS = (U(k)*c1*(cb-x1*ca))/(cb^2-ca*cc+cb*m*U(k)^2+(x1*ca*cPhi1+x2*ca*cPhi2 - (cPhi1+cPhi2)*cb)*((ms*h*U(k)^2)/(K)));
-            subplot(2,1,1)
-            plot(U(k),SS,"*",Color=color,LineWidth=3)
-            hold on
-            grid on
-            ylabel("SS Yaw rate respone")
-            xlabel("Vehcile speed in ft/s")
-            title("Steady state Yaw rate respone,  \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
-            ylim([0 25])
+% 
+% dphiF1  = [10000 10000 10000 1000 10000 1000 10000 10000]; % lb-ft/rad
+% dphiR1  = [10000 10000 1000 10000 1000 10000 10000 10000]; % lb-ft/rad
+% ddphiF1 = [20 1000 20 20 1000 1000 20 500]; % lb-ft-s/rad
+% ddphiR1 = [20 1000 20 20 1000 1000 500 20];  % lb-ft-s/rad
+
+ for p = 1:length(epsilon22)
+       figure
 
 
+    for i = 1:length(U)
+    
+        Ux = U(i);
+    
+        % time vector
+        dt = 0.0001;
+        t_sim = 0:dt:10;
+        N = length(t_sim);
+    
+        % steering input
+        rate_max = 180; % deg/s
+        delta_hw = zeros(N,1);
+    
+        for k = 1:N-1
+            if t_sim(k) < 3
+                delta_des = 4.5;
+            elseif t_sim(k) < 6
+                delta_des = -4.5;
+            else
+                delta_des = 0;
+            end
+    
+            err = delta_des - delta_hw(k);
+            max_step = rate_max*dt;
+    
+            if abs(err) <= max_step
+                delta_hw(k+1) = delta_des;
+            else
+                delta_hw(k+1) = delta_hw(k) + sign(err)*max_step;
+            end
         end
+    
+        u = zeros(N,2);
+        u(:,1) = delta_hw*pi/180; % delta1
+        u(:,2) = 0;               
+    
+        
+        x = zeros(N,4); % [vy; r; phidot; phi]
+        Fz_hist = zeros(N,4);   % [fl fr rl rr]
+        C_hist  = zeros(N,2);   % [c1 c2]
+    
+        for k = 1:N-1
+    
+            vy     = x(k,1);
+            r      = x(k,2);
+            phidot = x(k,3);
+            phi    = x(k,4);
+    
+            % roll load tranfer
+            % dphiF = dphiF1(p);
+            % dphiR = dphiR1(p);
+            % ddphiF = ddphiF1(p);
+            % ddphiR = ddphiR1(p);
+            K = dphiF + dphiR;
+            D = ddphiF + ddphiR;
 
+            Mroll_f = dphiF*phi + ddphiF*phidot;
+            Mroll_r = dphiR*phi + ddphiR*phidot;
+    
+            dFzf = 2*Mroll_f/t;
+            dFzr = 2*Mroll_r/t;
+    
+            Fz_fl = Fzfl0 - dFzf/2;
+            Fz_fr = Fzfr0 + dFzf/2;
+            Fz_rl = Fzrl0 - dFzr/2;
+            Fz_rr = Fzrr0 + dFzr/2;
+    
+            % NOnlinear tire model
+            c1 = Cf_tire(Fz_fl) + Cf_tire(Fz_fr); % front axle total
+            c2 = Cr_tire(Fz_rl) + Cr_tire(Fz_rr); % rear axle total
+           
+            ca = c1 + c2;
+            cb = x1*c1 + x2*c2;
+            cc = x1^2*c1 + x2^2*c2;
+                  
+            epsilon1 = epsilon11(p);
+            epsilon2 = epsilon22(p);
+            % epsilon1 = 0.0;
+            % epsilon2 = 0.0;
+            cPhi1 = c1*epsilon1;
+            cPhi2 = c2*epsilon2;
 
-        % steering R=400 ft
+    
+             M1 = [m 0 -ms*h; 0 Iz -ms*h*c_geom; -ms*h -ms*h*c_geom Ix];
+    
+            M2 = [ -ca/Ux, (-cb/Ux)-m*Ux, 0, cPhi1 + cPhi2;
+                   -cb/Ux, -cc/Ux, 0, x1*cPhi1 + x2*cPhi2;
+                    0, ms*h*Ux, -D, -K ];
+    
+            M3 = [ c1, c2; x1*c1,  x2*c2;0, 0 ];
+    
+            Ak = [M1\M2;
+                  0 0 1 0];
+    
+            Bk = [M1\M3;
+                  0 0];
+    
+            xdot = Ak*x(k,:)' + Bk*u(k,:)';
+            x(k+1,:) = x(k,:) + (dt*xdot)';
+    
+            Fz_hist(k,:) = [Fz_fl Fz_fr Fz_rl Fz_rr];
+            C_hist(k,:)  = [c1 c2];
+        end
+    
+        
+    
+        %% plotting
+        if i == 1
+            color = "red";
+        else
+            color = "blue";
+        end
+    
       
-        for k = 1:length(U)
-            subplot(2,1,2)
-            SS = (U(k)*c1*(cb-x1*ca))/(cb^2-ca*cc+cb*m*U(k)^2+(x1*ca*cPhi1+x2*ca*cPhi2 - (cPhi1+cPhi2)*cb)*((ms*h*U(k)^2)/(K)));
-            steering = U(k)/(SS * 400) * (180/pi);
+    
+        subplot(4,1,1)
+        hold on
+        plot(t_sim, -x(:,1)/Ux, Color=color, LineWidth=3)
+        xlabel("time (s)")
+        ylabel("drift angle")
+        title("Drift angle, \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+        % title("Drift angle, d\phi_F ="+dphiF+", d\phi_R = "+dphiR +", dd\phi_F ="+ddphiF+", dd\phi_R = "+ddphiR)
+        legend("30 mph","60 mph")
+        grid on
+    
+        subplot(4,1,2)
+        hold on
+        plot(t_sim, x(:,2), Color=color, LineWidth=3)
+        xlabel("time (s)")
+        ylabel("Yaw rate")
+        title("Yaw rate, \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+        % title("Yaw rate, d\phi_F ="+dphiF+", d\phi_R = "+dphiR +", dd\phi_F ="+ddphiF+", dd\phi_R = "+ddphiR)
+        legend("30 mph","60 mph")
+        grid on
+    
+        subplot(4,1,3)
+        hold on
+        plot(t_sim, x(:,4), Color=color, LineWidth=3)
+        xlabel("time (s)")
+        ylabel("Roll angle (rad)")
+        title("Roll angle , \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+        % title("Roll angle , d\phi_F ="+dphiF+", d\phi_R = "+dphiR +", dd\phi_F ="+ddphiF+", dd\phi_R = "+ddphiR)
+        legend("30 mph","60 mph")
+        grid on
+    
+        subplot(4,1,4)
+        hold on
+        plot(t_sim, u(:,1)*(180/pi), "*", Color=color, LineWidth=2)
+        xlabel("time (s)")
+        ylabel("steering angle (deg)")
+        title("Front steering input, \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
+        % title("Front steering input, d\phi_F ="+dphiF+", d\phi_R = "+dphiR +", dd\phi_F ="+ddphiF+", dd\phi_R = "+ddphiR)
+        legend("30 mph","60 mph")
+        grid on
+    
+        % figure(2)
+        % subplot(2,1,1)
+        % hold on
+        % plot(t_sim, Fz_hist(:,1),  t_sim, Fz_hist(:,2), t_sim, Fz_hist(:,3), '--',  t_sim, Fz_hist(:,4), '--', LineWidth=2,Color=color)
+        % xlabel("time (s)")
+        % ylabel("Normal load (lb)")
+        % title("Tire normal loads")
+        % grid on
+        % 
+        % subplot(2,1,2)
+        % hold on
+        % plot(t_sim, C_hist(:,1), t_sim, C_hist(:,2), '--', LineWidth=2, Color=color)
+        % xlabel("time (s)")
+        % ylabel("Axle cornering stiffness")
+        % title("Load-dependent axle cornering stiffness")
+        % legend("front","rear")
+        % grid on
+    end
 
-            plot(U(k),steering,"*",Color=color,LineWidth=3)
-            hold on
-            grid on
-            ylabel("steering in deg")
-            xlabel("Vehcile speed in ft/s")
-            title("Steering to maintain constant curve,  \epsilon1 ="+epsilon1+" ,\epsilon2 = "+epsilon2)
-
-
-        end
-
-   end
  end

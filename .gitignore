@@ -1,2 +1,7 @@
 
 Research/VD/data_analisis/putnam_coast_down/output.csv
+Research/VD/data_analisis/putnam_coast_down/FastLaps.csv 
+*.csv
+*.bag
+*.mat
+*.rosbag
