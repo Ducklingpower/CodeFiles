@@ -4,11 +4,21 @@ clear
 
 %% opening csv
 
-data = readtable('FastLaps.csv');
+% data = readtable('FastLaps.csv');
+data = readtable('output.csv');
 
 %% raw data
+
+% 
+% boost_aim = data.boost_aim_kpa;
+% boost_pressure = data.boost_pressure_kpa;
+
+
+
 t = data.time_s;
 t = t-t(1);
+
+throttle_com = data.joy_accelerator_cmd;
 
 ax = data.a_x;
 ay = data.a_y;
@@ -39,10 +49,6 @@ roll  = eul(:,3);
 roll_deg  = rad2deg(roll);
 pitch_deg = rad2deg(pitch);
 yaw_deg   = rad2deg(yaw);
-
-boost_aim = data.boost_aim_kpa;
-boost_pressure = data.boost_pressure_kpa;
-
 
 %% filtered data
 Ft = movmean(data.time_s,10);
@@ -80,7 +86,7 @@ Fyaw_deg   = rad2deg(Fyaw);
 
 
 m = 787;
-r = 0.31;
+r = 0.3;
 roh = 1.22;
 Cd = 0.3;
 g = 9.81;
@@ -121,22 +127,23 @@ torqueAtengine_e = T_e           ./ total_ratio;
 figure
 
 ha(1) = subplot(3,1,1);
-plot(t, throttle)
+plot(t, throttle,LineWidth=2)
 grid on
 xlabel("time")
 ylabel("throttle")
 
 ha(2) = subplot(3,1,2);
-plot(t, FForce, "r")
+plot(t, FForce, "r",LineWidth=2)
 hold on
-plot(t, F_tire_e, "b")
+plot(t, F_tire_e, "b",LineWidth=2)
 grid on
 xlabel("time")
 ylabel("Torque")
+legend("Calculated forve","Modetc Torque estimate to force")
 
 
 ha(3) = subplot(3,1,3);
-plot(t,gear)
+plot(t,gear,LineWidth=2)
 grid on
 xlabel("time")
 ylabel("gear")
@@ -161,14 +168,14 @@ zoom on
 
 
 %% tranfer function
-F_tire_e_cut = FForce(96000:116000);
-throttle_cut = throttle(96000:116000);
+F_tire_e_cut = FForce(130000:140000);
+throttle_cut = throttle_com(130000:140000);
 
 
 dt = mean(diff(t));
 data = iddata(F_tire_e_cut, throttle_cut, dt);
-np = 3;
-nz = 2;
+np = 1;
+nz = 0;
 sys = tfest(data, np, nz);
 disp(sys)
 
@@ -190,123 +197,244 @@ fit_pct = 100 * (1 - norm(F_tire_e - F_tire_sim) / norm(F_tire_e - mean(F_tire_e
 fprintf('\nFit: %.1f%%\n', fit_pct)
 
 figure
-subplot(2,1,1)
-plot(t_sim, FForce,   'b', 'DisplayName', 'Measured')
+
+ha(1) = subplot(2,1,1)
+plot(t_sim, throttle,   'b', 'DisplayName', 'Measured',LineWidth=2)
 hold on
-plot(t_sim, F_tire_sim, 'r--', 'DisplayName', 'TF Simulated')
+plot(t_sim, throttle_com, 'r', 'DisplayName', 'Commanded',LineWidth=2)
+grid on
+xlabel('Time (s)')
+ylabel('Throttle (%)')
+legend
+
+ha(2) = subplot(2,1,2)
+plot(t_sim, F_tire_e,   'b', 'DisplayName', 'Measured',LineWidth=2)
+hold on
+plot(t_sim, F_tire_sim, 'r-.', 'DisplayName', 'TF Simulated',LineWidth=2)
 grid on
 xlabel('Time (s)')
 ylabel('Tire Force (N)')
 legend
 
-subplot(2,1,2)
-plot(t_sim, F_tire_e - F_tire_sim, 'k')
-grid on
-xlabel('Time (s)')
-ylabel('Residual (N)')
-title('Prediction Error')
+linkaxes(ha, 'x')
+
 
 
 
 
 
 %% engine map look up
-map_raw = readtable('engine_map_boosted_reduced.csv');
 
-map_throttle_bp = [0.0, 0.3, 1.0];
-map_rpm_bp      = map_raw{:, 1};
-map_torque      = map_raw{:, 2:end};
+% 100 percent boost map
+map_boost_raw = readtable('engine_map_boosted_reduced.csv', ...
+    'VariableNamingRule','preserve');
 
-valid_rows      = isfinite(map_rpm_bp);
-map_rpm_bp      = map_rpm_bp(valid_rows);
-map_torque      = map_torque(valid_rows, :);
+map_boost_throttle_bp = [0.0, 0.3, 1.0];
+map_boost_rpm_bp      = map_boost_raw{:, 1};
+map_boost_torque      = map_boost_raw{:, 2:end};
 
+valid_rows_boost      = isfinite(map_boost_rpm_bp);
+map_boost_rpm_bp      = map_boost_rpm_bp(valid_rows_boost);
+map_boost_torque      = map_boost_torque(valid_rows_boost, :);
+
+
+% 0 percent boost / no boost map
+map_noboost_raw = readtable('engine_map_no_boost.csv', ...
+    'VariableNamingRule','preserve');
+
+% CSV columns are rpm, 0, 50, 100
+% Convert 0, 50, 100 percent throttle into normalized throttle
+map_noboost_throttle_bp = [0.0, 0.5, 1.0];
+map_noboost_rpm_bp      = map_noboost_raw{:, 1};
+map_noboost_torque      = map_noboost_raw{:, 2:end};
+
+valid_rows_noboost      = isfinite(map_noboost_rpm_bp);
+map_noboost_rpm_bp      = map_noboost_rpm_bp(valid_rows_noboost);
+map_noboost_torque      = map_noboost_torque(valid_rows_noboost, :);
+
+
+% Clean throttle and rpm signals
 throttle_norm  = throttle / 100;
 rpm_clean      = rpm;
 throttle_clean = throttle_norm;
 
-rpm_clean(~isfinite(rpm_clean))= map_rpm_bp(1);
+rpm_clean(~isfinite(rpm_clean)) = map_boost_rpm_bp(1);
 throttle_clean(~isfinite(throttle_clean)) = 0;
 
-rpm_clean      = min(max(rpm_clean,map_rpm_bp(1)),map_rpm_bp(end));
-throttle_clean = min(max(throttle_clean, map_throttle_bp(1)), map_throttle_bp(end));
 
-% LT
-T_map = interp2(map_throttle_bp, map_rpm_bp, map_torque,throttle_clean, rpm_clean, 'linear');
-T_map(throttle_norm <= 0.06) = 0;
+% Clamp rpm and throttle separately for each map
+rpm_clean_boost = min(max(rpm_clean, ...
+    map_boost_rpm_bp(1)), map_boost_rpm_bp(end));
 
+rpm_clean_noboost = min(max(rpm_clean, ...
+    map_noboost_rpm_bp(1)), map_noboost_rpm_bp(end));
+
+throttle_clean_boost = min(max(throttle_clean, ...
+    map_boost_throttle_bp(1)), map_boost_throttle_bp(end));
+
+throttle_clean_noboost = min(max(throttle_clean, ...
+    map_noboost_throttle_bp(1)), map_noboost_throttle_bp(end));
+
+
+% Interpolate each torque map independently
+T_map_boost = interp2( ...
+    map_boost_throttle_bp, ...
+    map_boost_rpm_bp, ...
+    map_boost_torque, ...
+    throttle_clean_boost, ...
+    rpm_clean_boost, ...
+    'linear');
+
+T_map_noboost = interp2( ...
+    map_noboost_throttle_bp, ...
+    map_noboost_rpm_bp, ...
+    map_noboost_torque, ...
+    throttle_clean_noboost, ...
+    rpm_clean_noboost, ...
+    'linear');
 
 
 
 %% alpha calc
+
 boost_diff = boost_aim - boost_pressure;
 
 alpha = zeros(size(t));
-alpha(boost_diff <= 5)= 1.0;
-alpha(boost_diff >  5 & boost_aim > 0)= boost_pressure(boost_diff > 5 & boost_aim > 0) ./ boost_aim(boost_diff > 5 & boost_aim > 0);
+
+% Only calculate boost ratio when boost is actually being commanded
+boost_cmd_idx = boost_aim > 0 & isfinite(boost_aim) & isfinite(boost_pressure);
+
+alpha(boost_cmd_idx) = boost_pressure(boost_cmd_idx) ./ boost_aim(boost_cmd_idx);
+
+% Clamp alpha between 0 and 1
+alpha(~isfinite(alpha)) = 0;
+alpha = min(max(alpha, 0), 1);
 
 
-active_idx = throttle_norm > 0.06 & T_map > 0;
-T_map_ref  = mean(T_map(active_idx));
+% Blend between no-boost and boosted engine maps
+%
+% alpha = 0 -> use no-boost torque map
+% alpha = 1 -> use 100 percent boost torque map
+T_map = (1 - alpha) .* T_map_noboost + alpha .* T_map_boost;
 
-gain_normalised = ((alpha .* T_map)./r) ./ (0.5336*10^3);
 
-F_tire_scaled = F_tire_sim .* gain_normalised;
+% Remove torque when throttle is basically closed
+T_map(throttle_norm <= 0.06) = 0;
 
 
 %%
-% num_d = [0, 0.0752, 0.0738];
-% den_d = [1, -1.9419, 0.9451];
+% first order tire/engine force response
 
-num_d = [1];
-den_d = [0.353, 1];
+tau = 0.153;   % seconds
 
-dt = mean(diff(t));
-dc_gain = sum(num_d) / sum(den_d);
-num_norm = num_d / dc_gain;
-sys_norm = tf(num_norm, den_d);
+% Physical steady-state tire force estimate
+% Engine torque -> wheel torque -> tire force
+K = 0.7*(T_map .* total_ratio) ./ 0.31;
 
-K = (alpha .* T_map .* total_ratio) ./ r;
 K(throttle_norm <= 0.06) = 0;
 K(T_map <= 0)            = 0;
+K(~isfinite(K))          = 0;
+
+% Make time start at zero
+t_lsim = t - t(1);
+
+% Continuous first-order low-pass:
+% tau*y_dot + y = K
+A = -1/tau;
+B =  1/tau;
+C =  1;
+D =  0;
+
+sys_first_order = ss(A, B, C, D);
+
+% Important:
+% If the system is already producing force at the first sample,
+% do not force the model to start from zero.
+y0 = K(1);
+
+F_tire_model = lsim(sys_first_order, K, t_lsim, y0);
 
 
+%%
 
-F_tire_model = lsim(sys_norm, K, t_sim);
-F_tire_model = max(F_tire_model, 0);
-
-fit_model = 100*(1 - norm(F_tire_e - F_tire_model) / norm(F_tire_e - mean(F_tire_e)));
-
-
-%% 
 figure
 
-ha4(1) = subplot(4,1,1);
-    plot(t, throttle, 'k')
+ha4(1) = subplot(5,1,1);
+    plot(t, throttle, 'k', 'LineWidth', 1.5)
     ylabel('Throttle (%)')
     grid on
 
-ha4(2) = subplot(4,1,2);
-    plot(t, K, 'c', 'DisplayName', 'K(t) = \alpha T_{map} ratio/r')
+ha4(2) = subplot(5,1,2);
+    plot(t, FForce, 'b', 'LineWidth', 1.5, ...
+        'DisplayName', 'Measured F_{tire}')
     hold on
-    plot(t, F_tire_e, 'b', 'DisplayName', 'Measured F_{tire}')
-    ylabel('Force (N)')
-    legend; grid on
+    plot(t, (T_map_boost.*total_ratio) ./ 0.31, 'k', 'LineWidth', 1.5, ...
+        'DisplayName', '100% Boost Torque Map')
+    ylabel('Tire Force N')
+    legend
+    grid on
+    title('Torque from 100% Boost Engine Map')
+
+ha4(3) = subplot(5,1,3);
+    plot(t, FForce, 'b', 'LineWidth', 1.5, ...
+        'DisplayName', 'Measured F_{tire}')
+    hold on
+    plot(t, K, 'r', 'LineWidth', 1.5, ...
+        'DisplayName', 'K(t) = T_{map} ratio/r')
+    hold on
+
+    ylabel('Tire Force N')
+    legend
+    grid on
     title('Physics-based gain K(t) vs Measured')
 
-ha4(3) = subplot(4,1,3);
-    plot(t, F_tire_e,'b',  'DisplayName', 'Measured')
+ha4(4) = subplot(5,1,4);
+    plot(t, FForce, 'b', 'LineWidth', 1.5, ...
+        'DisplayName', 'Measured')
     hold on
-    plot(t, F_tire_model, 'r',  'DisplayName', sprintf('Model %.1f%%', fit_model))
+    plot(t, F_tire_model, 'r', 'LineWidth', 1.5, ...
+        'DisplayName', 'TF sim * blended map')
     ylabel('Tire Force (N)')
-    legend; grid on
-
-ha4(4) = subplot(4,1,4);
-    plot(t, F_tire_e - F_tire_model, 'k')
-    yline(0, 'r--')
-    ylabel('Residual (N)')
-    xlabel('Time (s)')
+    legend
     grid on
 
+ha4(5) = subplot(5,1,5);
+    plot(t_sim, FForce, 'b', 'LineWidth', 1.5, ...
+        'DisplayName', 'Measured')
+    hold on
+    plot(t_sim, F_tire_sim, 'r-.', 'LineWidth', 1.5, ...
+        'DisplayName', 'TF Simulated')
+    grid on
+    xlabel('Time (s)')
+    ylabel('Tire Force (N)')
+    legend
+
 linkaxes(ha4, 'x')
-sgtitle('F_{tire} = TF_{norm}(z) × [\alpha(t) × T_{map} × ratio / r]')
+
+sgtitle('F_{tire} = TF_{norm}(z) × [T_{map,blend}(t) × ratio / r]')
+
+%% figure for meeting 
+
+figure
+ha(1) = subplot(3,1,1)
+plot(t_sim, FForce,   'b', 'DisplayName', 'Measured',LineWidth=2)
+hold on
+plot(t_sim, F_tire_sim, 'r-.', 'DisplayName', 'TF Simulated',LineWidth=2)
+grid on
+xlabel('Time (s)')
+ylabel('Tire Force (N)')
+legend
+
+ha(2) = subplot(3,1,2)
+plot(t_sim, throttle, 'k')
+grid on
+xlabel('Time (s)')
+ylabel('Throttle')
+
+ha(3) = subplot(3,1,3)
+plot(t_sim, boost_pressure)
+grid on
+xlabel('Time (s)')
+ylabel('boost ')
+
+linkaxes(ha, "x")
