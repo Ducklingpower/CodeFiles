@@ -1,0 +1,493 @@
+clc
+close all
+clear
+%% opening csv
+
+% data = readtable('FastLaps.csv');
+% data = readtable('/home/elijah/PurdueRacing/bags/putnam/oversteer/2026-04-28_150159_merged.csv');
+data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
+%% filtered data
+
+mm =50;
+Ft = movmean(data.time_s,mm);
+
+Fax = movmean(data.a_x,mm);
+Fay = movmean(data.a_y,mm);
+Faz = movmean(data.a_z,mm);
+
+Ffz_fr = data.fr_load_n;
+Ffz_fl = data.fl_load_n;
+Ffz_rr = data.rr_load_n;
+Ffz_rl = data.rl_load_n;
+
+Fvx = movmean(data.odom_vx_mps,mm);
+Fvy = movmean(data.odom_vy_mps,mm);
+
+Frpm = movmean(data.engine_rpm,mm);
+throttle = data.throttle_pct;
+Fgear = movmean(data.current_gear,mm);
+FT_e = movmean(data.est_drive_torque_nm,mm);
+Fbrake = movmean(data.front_brake_pressure_kpa,mm);
+
+steering_wheel = movmean(data.steer_wheel_ang_deg,mm); 
+toe_angle = 0.333+(steering_wheel)/15.015;
+toe_rad = toe_angle*(pi/180);
+
+Fqx = movmean(data.odom_qx,mm);
+Fqy = movmean(data.odom_qy,mm);
+Fqz = movmean(data.odom_qz,mm);
+Fqw = movmean(data.odom_qw,mm);
+
+Fwz = movmean(data.odom_wz_rads,mm);
+Fwx = movmean(data.odom_wx_rads,mm);
+Fwy = -movmean(data.odom_wy_rads,mm);
+
+
+
+Fq = [Fqw Fqx Fqy Fqz];         
+Feul = quat2eul(Fq, 'ZYX');   % [yaw pitch roll]
+
+Fyaw   = Feul(:,1);
+Fpitch = -Feul(:,2);
+Froll  = Feul(:,3);
+
+yaw_u   = unwrap(Fyaw);
+pitch_u = unwrap(Fpitch);
+roll_u  = unwrap(Froll);
+
+yaw_dot   = Fwz;
+pitch_dot = Fwy;
+roll_dot  = Fwx;
+
+yaw_unwrapped = unwrap(Fyaw);
+
+x_pos = data.odom_px_m;
+y_pos = data.odom_py_m;
+
+% tire temp
+
+fr_T_0 = data.fr_temp_1;
+fr_T_1 = data.fr_temp_2;
+fr_T_2 = data.fr_temp_3;
+fr_T_3 = data.fr_temp_4;
+
+
+
+
+%% getting yaw, pitch, and roll curvature
+
+t = data.time_s(:);
+t = t - t(1);
+
+
+V = sqrt(Fvx.^2 + Fvy.^2);
+ds = [0; cumsum(0.5 * (V(1:end-1) + V(2:end)) .* diff(t))];
+
+v_min_curv = 2.0;
+
+% Curvature
+kappa_yaw   = nan(size(V));
+kappa_pitch = nan(size(V));
+kappa_roll  = nan(size(V));
+
+curv_valid = isfinite(V) & V > v_min_curv;
+
+kappa_yaw(curv_valid)   = yaw_dot(curv_valid)   ./ V(curv_valid);
+kappa_pitch(curv_valid) = pitch_dot(curv_valid) ./ V(curv_valid);
+kappa_roll(curv_valid)  = roll_dot(curv_valid)  ./ V(curv_valid);
+
+
+
+
+
+
+%% params 
+vehicleParams.wheelbase   = 2.9718;      % wheelbase (m)  [2971.8 mm]
+vehicleParams.w_dist_f    = 0.42;        % front weight distribution [42%]
+vehicleParams.t_f         = 1.638762;    % front track (m)  [1638.762 mm]
+vehicleParams.t_r         = 1.5239686;   % rear track (m)   [1523.9686 mm]
+
+% Wheel rates computed from springs & motion ratios at 0 mm:
+% avg stiffness*(motion_ratio)^2
+
+vehicleParams.wheelRate_f = 2.985553732e5;  % (N/m)
+vehicleParams.wheelRate_r = 3.941321827e5;  % (N/m)
+
+vehicleParams.ARB_f       = 0;             % (Nm/deg)  TBD
+vehicleParams.ARB_r       = 0;              % (Nm/deg)  no anti roll bar in rear
+
+vehicleParams.cg_z        = 0.275;          % CG height (m)  [275 mm]
+vehicleParams.rc_f        = 0.1202436;      % roll center front (m) 
+vehicleParams.rc_r        = 0.0016628;      % roll center rear  (m) 
+
+vehicleParams.toe_f       = -0.451;         % toe front (deg, - = out) 
+vehicleParams.toe_r       = -0.451;         % toe rear  (deg, - = out)
+
+vehicleParams.m           = 815;            % vehicle mass (kg)  [base vehicle mass]
+
+vehicleParams.mech_trail_f = 0;             % mech trail front (m) TBD
+vehicleParams.mech_trail_r = 0;             % mech trail rear  (m) TBD
+
+vehicleParams.frontalArea = 1 ;             % frontal area (m^2) TBD
+vehicleParams.Cd          = 0.0;            % drag coeff (-)     TBD
+vehicleParams.Cl          = 0.0;            % ift coeff (-)      TBD
+vehicleParams.ACd         = 0.58;           % Area*coef down force      TBD
+vehicleParams.aeroBalance = .33;            % frontal aero load (-) 33% avg
+vehicleParams.copShift    = 0;              % balance shift with Vx (%/(m/s))TBD
+vehicleParams.inertia     = 1000;           % moment of inertia
+
+%% load tranfer calcs
+
+
+L  = vehicleParams.wheelbase;
+b  = vehicleParams.w_dist_f * L;        
+a  = L - b;            
+m  = vehicleParams.m;
+cgh = vehicleParams.cg_z;
+
+%basic load tranfer 
+fz_f_basic = ((a*m*9.81)/(L) - (m*Fax*cgh)/L);
+fz_r_basic = ((b*m*9.81)/(L) + (m*Fax*cgh)/L);
+
+front_axle = (Ffz_fl + Ffz_fr)/2 + 1750/2;
+rear_axle = (Ffz_rr + Ffz_rl)/2 -1700/2;
+
+
+
+% CONSIDER CURVATURE 
+aero_balance = 0.33;
+scalar = 0.5
+down_force = 0.5 * 0.58 * 1.225 .* Fvx.^2;
+
+front_aero = aero_balance .* down_force;
+rear_aero  = (1 - aero_balance) .* down_force;
+
+L = a + b;   % assuming a = lf, b = lr
+
+az_road = ...
+    9.81 .* cos(Fpitch) .* cos(Froll) ...
+    + Fvx .* Fwz .* sin(Froll) ...
+    + Fvx .* Fwy*scalar;
+
+long_transfer_accel = ...
+    Fax + 9.81 .* sin(Fpitch);
+
+fz_f_curvature = ...
+    a .* (m .* az_road) ./ L ...
+    - (m .* long_transfer_accel .* cgh) ./ L ...
+    + front_aero;
+
+fz_r_curvature = ...
+    b .* (m .* az_road) ./ L ...
+    + (m .* long_transfer_accel .* cgh) ./ L ...
+    + rear_aero;
+
+figure 
+tiledlayout(3,1)
+nexttile
+plot(t,front_axle)
+hold on
+plot(t,fz_f_basic)
+hold on
+plot(t,fz_f_curvature,LineWidth=2)
+
+fz_f_curvature_debug = ...
+    a .* (m .* az_road) ./ L ...
+    - (m .* Fax.* cgh) ./ L ...
+    - (m .* 9.81 .* sin(Fpitch)* cgh*2) ./ L ...
+    + front_aero;
+
+hold on
+plot(t,fz_f_curvature_debug,LineWidth=2)
+legend("front measured","front basic calc","front 3D calc")
+
+
+nexttile
+plot(t,rear_axle)
+hold on
+plot(t,fz_r_basic)
+hold on
+plot(t,fz_r_curvature,LineWidth=2)
+legend("rear measured","rear basic calc","rear 3D calc")
+
+
+
+
+fz_r_curvature_debug = ...
+    b .* (m .* az_road) ./ L ...
+    + (m .* Fax.* cgh) ./ L ...
+    + (m .* 9.81 .* sin(Fpitch)* cgh) ./ L ...
+    + rear_aero;
+hold on
+plot(t,fz_r_curvature_debug,LineWidth=2)
+
+nexttile
+plot(t,Ffz_fr)
+hold on
+plot(t,Ffz_fl)
+
+
+
+%% Observer Bycicle model
+
+
+Fz_front_meas = front_axle;
+Fz_rear_meas = rear_axle;
+
+
+Fz_front_model = fz_f_curvature;
+Fz_rear_model = fz_r_curvature;
+
+
+% measured and model
+Fz_meas = [Fz_front_meas Fz_rear_meas];
+Fz_model = [Fz_front_model Fz_rear_model];
+
+% gains
+
+K_front = 0.05;
+K_rear  = 0.05;
+K = [K_front K_rear];
+
+N = length(t);
+
+Fz_hat = zeros(N,2);
+
+% IC
+Fz_hat(1,:) = 0;
+
+for k = 2:N
+
+    % model step
+    model_delta = Fz_model(k,:) - Fz_model(k-1,:);
+
+    % Prediction step
+    Fz_pred = Fz_hat(k-1,:) + model_delta;
+
+    error = Fz_meas(k,:) - Fz_pred;
+
+    Fz_hat(k,:) = Fz_pred + K .* error;
+
+    Fz_hat(k,:) = max(Fz_hat(k,:), 0);
+end
+
+% Split observer outputs
+Fz_front_obs = Fz_hat(:,1);
+Fz_rear_obs = Fz_hat(:,2);
+
+
+
+
+
+figure
+tiledlayout(2,1, 'TileSpacing', 'compact', 'Padding', 'compact')
+
+axs = gobjects(4,1);
+
+axs(1) = nexttile;
+plot(t, front_axle, 'LineWidth', 1);
+hold on
+plot(t, fz_f_curvature, 'LineWidth', 1.5);
+plot(t, Fz_front_obs, 'LineWidth', 1.5);
+legend("front measured", "front model", "front observer")
+title("Front")
+ylabel("F_z [N]")
+grid on
+
+axs(2) = nexttile;
+plot(t, rear_axle, 'LineWidth', 1);
+hold on
+plot(t, fz_r_curvature, 'LineWidth', 1.5);
+plot(t, Fz_rear_obs, 'LineWidth', 1.5);
+legend("rear measured", "rear model", "rear observer")
+title("rear")
+ylabel("F_z [N]")
+grid on
+
+linkaxes(axs, 'x')
+
+
+%% doal track load tranfer 
+
+% split laterally 
+
+
+w_dist_f = vehicleParams.w_dist_f;
+rc_f = vehicleParams.rc_f;                
+rc_r = vehicleParams.rc_r;                 
+wheelRate_f = vehicleParams.wheelRate_f;    
+wheelRate_r = vehicleParams.wheelRate_r;    
+t_f = vehicleParams.t_f;                    
+t_r = vehicleParams.t_r;                  
+ARB_f = vehicleParams.ARB_f;                
+
+
+w = m*9.81;                                                      %Vehcile weight (N)
+cg2rollAxis = cgh -((1-w_dist_f)*(rc_r-rc_f) + rc_f);
+l_a = (1 - w_dist_f) * L;                           
+l_b = L - l_a;                                       
+k_phi_f = ((wheelRate_f *(t_f^2))/2) + (ARB_f);   
+k_phi_r = ((wheelRate_r *(t_r^2))/2) + (0);       
+LAT_weightTransferGradient_f = (w/t_f) * ((cg2rollAxis * k_phi_f)/(k_phi_f + k_phi_r) + (l_b * rc_f/L));
+LAT_weightTransferGradient_r = (w/t_r) * ((cg2rollAxis * k_phi_r)/(k_phi_f + k_phi_r) + (l_a * rc_r/L));
+
+
+
+Fz_fr = fz_f_curvature + LAT_weightTransferGradient_f * (Fay/9.81);
+Fz_fl = fz_f_curvature - LAT_weightTransferGradient_f* (Fay/9.81);
+
+Fz_rr = fz_r_curvature + LAT_weightTransferGradient_r* (Fay/9.81);
+Fz_rl = fz_r_curvature - LAT_weightTransferGradient_r* (Fay/9.81);
+
+
+
+
+figure
+tiledlayout(2,2)
+
+axs = gobjects(4,1);
+
+axs(1) = nexttile;
+plot(t, Ffz_fl + 800);
+hold on
+plot(t, Fz_fl, 'LineWidth', 2);
+legend("Fl measured","Fl est")
+title("Front Left")
+grid on
+
+axs(2) = nexttile;
+plot(t, Ffz_fr + 800);
+hold on
+plot(t, Fz_fr, 'LineWidth', 2);
+legend("Fr measured","Fr est")
+title("Front Right")
+grid on
+
+axs(3) = nexttile;
+plot(t, Ffz_rl - 900);
+hold on
+plot(t, Fz_rl, 'LineWidth', 2);
+legend("Rl measured","Rl est")
+title("Rear Left")
+grid on
+xlabel("Time [s]")
+
+axs(4) = nexttile;
+plot(t, Ffz_rr - 900);
+hold on
+plot(t, Fz_rr, 'LineWidth', 2);
+legend("Rr measured","Rr est")
+title("Rear Right")
+grid on
+xlabel("Time [s]")
+
+linkaxes(axs, 'x')
+
+%% Observer dual track 
+
+
+Fz_fl_meas = Ffz_fl + 800;
+Fz_fr_meas = Ffz_fr + 800;
+Fz_rl_meas = Ffz_rl - 900;
+Fz_rr_meas = Ffz_rr - 900;
+
+Fz_fl_model = Fz_fl;
+Fz_fr_model = Fz_fr;
+Fz_rl_model = Fz_rl;
+Fz_rr_model = Fz_rr;
+
+% measured and model
+Fz_meas = [Fz_fl_meas, Fz_fr_meas, Fz_rl_meas, Fz_rr_meas];
+Fz_model = [Fz_fl_model, Fz_fr_model, Fz_rl_model, Fz_rr_model];
+
+% gains
+K_fl = 0.05;
+K_fr = 0.05;
+K_rl = 0.05;
+K_rr = 0.05;
+
+K = [K_fl, K_fr, K_rl, K_rr];
+
+
+N = length(t);
+
+Fz_hat = zeros(N,4);
+
+% IC
+Fz_hat(1,:) = 0;
+
+for k = 2:N
+
+    % model step
+    model_delta = Fz_model(k,:) - Fz_model(k-1,:);
+
+    % Prediction step
+    Fz_pred = Fz_hat(k-1,:) + model_delta;
+
+    error = Fz_meas(k,:) - Fz_pred;
+
+    Fz_hat(k,:) = Fz_pred + K .* error;
+
+    Fz_hat(k,:) = max(Fz_hat(k,:), 0);
+end
+
+% Split observer outputs
+Fz_fl_obs = Fz_hat(:,1);
+Fz_fr_obs = Fz_hat(:,2);
+Fz_rl_obs = Fz_hat(:,3);
+Fz_rr_obs = Fz_hat(:,4);
+
+
+
+
+figure
+tiledlayout(2,2, 'TileSpacing', 'compact', 'Padding', 'compact')
+
+axs = gobjects(4,1);
+
+axs(1) = nexttile;
+plot(t, Fz_fl_meas, 'LineWidth', 1);
+hold on
+plot(t, Fz_fl_model, 'LineWidth', 1.5);
+plot(t, Fz_fl_obs, 'LineWidth', 1.5);
+legend("FL measured", "FL model", "FL observer")
+title("Front Left")
+ylabel("F_z [N]")
+grid on
+
+axs(2) = nexttile;
+plot(t, Fz_fr_meas, 'LineWidth', 1);
+hold on
+plot(t, Fz_fr_model, 'LineWidth', 1.5);
+plot(t, Fz_fr_obs, 'LineWidth', 1.5);
+legend("FR measured", "FR model", "FR observer")
+title("Front Right")
+ylabel("F_z [N]")
+grid on
+
+axs(3) = nexttile;
+plot(t, Fz_rl_meas, 'LineWidth', 1);
+hold on
+plot(t, Fz_rl_model, 'LineWidth', 1.5);
+plot(t, Fz_rl_obs, 'LineWidth', 1.5);
+legend("RL measured", "RL model", "RL observer")
+title("Rear Left")
+xlabel("Time [s]")
+ylabel("F_z [N]")
+grid on
+
+axs(4) = nexttile;
+plot(t, Fz_rr_meas, 'LineWidth', 1);
+hold on
+plot(t, Fz_rr_model, 'LineWidth', 1.5);
+plot(t, Fz_rr_obs, 'LineWidth', 1.5);
+legend("RR measured", "RR model", "RR observer")
+title("Rear Right")
+xlabel("Time [s]")
+ylabel("F_z [N]")
+grid on
+
+linkaxes(axs, 'x')
+
+
+

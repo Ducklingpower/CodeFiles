@@ -5,20 +5,20 @@ clear
 %% opening csv
 
 % data = readtable('FastLaps.csv');
-data = readtable('output.csv');
+data = readtable('/home/elijah/PurdueRacing/bags/putnum_AI_data/csv_output/tried_to_get_step.csv');
 
 %% raw data
 
 % 
-% boost_aim = data.boost_aim_kpa;
-% boost_pressure = data.boost_pressure_kpa;
+boost_aim = data.boost_aim_kpa;
+boost_pressure = data.boost_pressure_kpa;
 
 
 
 t = data.time_s;
 t = t-t(1);
 
-throttle_com = data.joy_accelerator_cmd;
+% throttle_com = data.joy_accelerator_cmd;
 
 ax = data.a_x;
 ay = data.a_y;
@@ -51,26 +51,28 @@ pitch_deg = rad2deg(pitch);
 yaw_deg   = rad2deg(yaw);
 
 %% filtered data
-Ft = movmean(data.time_s,10);
 
-Fax = movmean(data.a_x,10);
-Fay = movmean(data.a_y,10);
-Faz = movmean(data.a_z,10);
+mm = 20;
+Ft = movmean(data.time_s,mm);
 
-Fvx = movmean(data.odom_vx_mps,10);
-Fvy = movmean(data.odom_vy_mps,10);
+Fax = movmean(data.a_x,mm);
+Fay = movmean(data.a_y,mm);
+Faz = movmean(data.a_z,mm);
 
-Frpm = movmean(data.engine_rpm,10);
-Fthrottle = movmean(data.throttle_pct,10);
-Fgear = movmean(data.current_gear,10);
-FT_e = movmean(data.est_drive_torque_nm,10);
-Fbrake = movmean(data.front_brake_pressure_kpa,10);
+Fvx = movmean(data.odom_vx_mps,mm);
+Fvy = movmean(data.odom_vy_mps,mm);
+
+Frpm = movmean(data.engine_rpm,mm);
+Fthrottle = movmean(data.throttle_pct,mm);
+Fgear = movmean(data.current_gear,mm);
+FT_e = movmean(data.est_drive_torque_nm,mm);
+Fbrake = movmean(data.front_brake_pressure_kpa,mm);
 
 
-Fqx = movmean(data.odom_qx,10);
-Fqy = movmean(data.odom_qy,10);
-Fqz = movmean(data.odom_qz,10);
-Fqw = movmean(data.odom_qw,10);
+Fqx = movmean(data.odom_qx,mm);
+Fqy = movmean(data.odom_qy,mm);
+Fqz = movmean(data.odom_qz,mm);
+Fqw = movmean(data.odom_qw,mm);
 
 Fq = [Fqw Fqx Fqy Fqz];         
 Feul = quat2eul(Fq, 'ZYX');   % [yaw pitch roll]
@@ -169,7 +171,7 @@ zoom on
 
 %% tranfer function
 F_tire_e_cut = FForce(130000:140000);
-throttle_cut = throttle_com(130000:140000);
+throttle_cut = throttle(130000:140000);
 
 
 dt = mean(diff(t));
@@ -201,7 +203,7 @@ figure
 ha(1) = subplot(2,1,1)
 plot(t_sim, throttle,   'b', 'DisplayName', 'Measured',LineWidth=2)
 hold on
-plot(t_sim, throttle_com, 'r', 'DisplayName', 'Commanded',LineWidth=2)
+plot(t_sim, throttle, 'r', 'DisplayName', 'Commanded',LineWidth=2)
 grid on
 xlabel('Time (s)')
 ylabel('Throttle (%)')
@@ -329,11 +331,11 @@ tau = 0.153;   % seconds
 
 % Physical steady-state tire force estimate
 % Engine torque -> wheel torque -> tire force
-K = 0.7*(T_map .* total_ratio) ./ 0.31;
+K = (T_map .* total_ratio) ./ 0.3;
 
-K(throttle_norm <= 0.06) = 0;
-K(T_map <= 0)            = 0;
-K(~isfinite(K))          = 0;
+% K(throttle_norm <= 0.06) = 0;
+% K(T_map <= 0)            = 0;
+% K(~isfinite(K))          = 0;
 
 % Make time start at zero
 t_lsim = t - t(1);
@@ -353,7 +355,7 @@ sys_first_order = ss(A, B, C, D);
 y0 = K(1);
 
 F_tire_model = lsim(sys_first_order, K, t_lsim, y0);
-
+F_tire_model = K;
 
 %%
 
@@ -368,22 +370,34 @@ ha4(2) = subplot(5,1,2);
     plot(t, FForce, 'b', 'LineWidth', 1.5, ...
         'DisplayName', 'Measured F_{tire}')
     hold on
-    plot(t, (T_map_boost.*total_ratio) ./ 0.31, 'k', 'LineWidth', 1.5, ...
+    plot(t, (T_map_boost.*total_ratio) ./ 0.3, 'k', 'LineWidth', 1.5, ...
         'DisplayName', '100% Boost Torque Map')
+    hold on
+    plot(t, (T_map_noboost.*total_ratio) ./ 0.3, 'g', 'LineWidth', 1.5, ...
+        'DisplayName', '0% Boost Torque Map')
     ylabel('Tire Force N')
     legend
     grid on
     title('Torque from 100% Boost Engine Map')
 
-ha4(3) = subplot(5,1,3);
-    plot(t, FForce, 'b', 'LineWidth', 1.5, ...
-        'DisplayName', 'Measured F_{tire}')
-    hold on
-    plot(t, K, 'r', 'LineWidth', 1.5, ...
-        'DisplayName', 'K(t) = T_{map} ratio/r')
-    hold on
+% ha4(3) = subplot(5,1,3);
+%     plot(t, FForce, 'b', 'LineWidth', 1.5, ...
+%         'DisplayName', 'Measured F_{tire}')
+%     hold on
+%     plot(t, K, 'r', 'LineWidth', 1.5, ...
+%         'DisplayName', 'K(t) = T_{map} ratio/r')
+%     hold on
+% 
+%     ylabel('Tire Force N')
+%     legend
+%     grid on
+%     title('Physics-based gain K(t) vs Measured')
 
-    ylabel('Tire Force N')
+ha4(3) = subplot(5,1,3);
+    plot(t, alpha, 'b', 'LineWidth', 1.5, ...
+        'DisplayName', 'alpah')
+
+    ylabel('alpha')
     legend
     grid on
     title('Physics-based gain K(t) vs Measured')
@@ -394,6 +408,9 @@ ha4(4) = subplot(5,1,4);
     hold on
     plot(t, F_tire_model, 'r', 'LineWidth', 1.5, ...
         'DisplayName', 'TF sim * blended map')
+    hold on
+    plot(t,F_tire_e,'g', 'LineWidth', 1.5, 'DisplayName','estimated by motec')
+
     ylabel('Tire Force (N)')
     legend
     grid on
