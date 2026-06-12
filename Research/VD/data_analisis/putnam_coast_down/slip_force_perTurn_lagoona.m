@@ -99,46 +99,15 @@ kappa_roll(curv_valid)  = roll_dot(curv_valid)  ./ V(curv_valid);
 
 
 
+%% bicycle model lateral force
 
-%% params 
+%%params 
 vehicleParams.wheelbase   = 2.9718;      % wheelbase (m)  [2971.8 mm]
 vehicleParams.w_dist_f    = 0.42;        % front weight distribution [42%]
-vehicleParams.t_f         = 1.638762;    % front track (m)  [1638.762 mm]
-vehicleParams.t_r         = 1.5239686;   % rear track (m)   [1523.9686 mm]
-
-% Wheel rates computed from springs & motion ratios at 0 mm:
-% avg stiffness*(motion_ratio)^2
-
-vehicleParams.wheelRate_f = 2.985553732e5;  % (N/m)
-vehicleParams.wheelRate_r = 3.941321827e5;  % (N/m)
-
-vehicleParams.ARB_f       = 0;             % (Nm/deg)  TBD
-vehicleParams.ARB_r       = 0;              % (Nm/deg)  no anti roll bar in rear
-
-vehicleParams.cg_z        = 0.275;          % CG height (m)  [275 mm]
-vehicleParams.rc_f        = 0.1202436;      % roll center front (m) 
-vehicleParams.rc_r        = 0.0016628;      % roll center rear  (m) 
-
-vehicleParams.toe_f       = -0.451;         % toe front (deg, - = out) 
-vehicleParams.toe_r       = -0.451;         % toe rear  (deg, - = out)
-
 vehicleParams.m           = 787;            % vehicle mass (kg)  [base vehicle mass]
-
-vehicleParams.mech_trail_f = 0;             % mech trail front (m) TBD
-vehicleParams.mech_trail_r = 0;             % mech trail rear  (m) TBD
-
 vehicleParams.frontalArea = 1 ;             % frontal area (m^2) TBD
-vehicleParams.Cd          = 0.0;            % drag coeff (-)     TBD
-vehicleParams.Cl          = 0.0;            % ift coeff (-)      TBD
-vehicleParams.ACd         = 0.58;           % Area*coef down force      TBD
-vehicleParams.aeroBalance = .33;            % frontal aero load (-) 33% avg
-vehicleParams.copShift    = 0;              % balance shift with Vx (%/(m/s))TBD
-vehicleParams.inertia     = 1000;           % moment of inertia
+vehicleParams.inertia = 1000;
 
-
-
-
-%% bicycle model lateral force
 
 L  = vehicleParams.wheelbase;
 b  = vehicleParams.w_dist_f * L;        
@@ -146,6 +115,7 @@ a  = L - b;
 
 m  = vehicleParams.m;
 Iz = vehicleParams.inertia;
+
 r = Fwz;
 % yaw acceleration
 rdot = gradient(r, t);
@@ -325,7 +295,20 @@ title(tl, "Front and Rear Lateral Force vs Slip Angle by Corner")
 
 
 
+%%params 
+vehicleParams.wheelbase   = 2.9718;      % wheelbase (m)  [2971.8 mm]
+vehicleParams.w_dist_f    = 0.42;        % front weight distribution [42%]
+vehicleParams.m           = 787;            % vehicle mass (kg)  [base vehicle mass]
+vehicleParams.frontalArea = 1 ;             % frontal area (m^2) TBD
+vehicleParams.inertia = 1000;
 
+
+L  = vehicleParams.wheelbase;
+b  = vehicleParams.w_dist_f * L;        
+a  = L - b;                             
+
+m  = vehicleParams.m;
+Iz = vehicleParams.inertia;
 
 %% PART 2 method with grade, bank, and curvature
 
@@ -471,19 +454,6 @@ title(tl, "Front and Rear Lateral Force vs Slip Angle by Corner")
 
 
 
-
-
-%% debug plot
-
-figure
-plot(Fpitch,ay_cg)
-hold on
-plot(Fpitch,ay_tire)
-
-figure
-plot(Froll,ay_cg)
-hold on
-plot(Froll,ay_tire)
 
 
 
