@@ -5,7 +5,8 @@ clear
 
 % data = readtable('FastLaps.csv');
 % data = readtable('/home/elijah/PurdueRacing/bags/putnam/oversteer/2026-04-28_150159_merged.csv');
-data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
+% data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
+data = readtable('/home/elijah/bag_files/VD/laguna/comp/2025-07-24_175839_merged.csv');
 %% filtered data
 
 mm =5;
@@ -819,9 +820,9 @@ figure
 tiledlayout(4,1, 'TileSpacing', 'compact', 'Padding', 'compact')
 
 ax1 = nexttile;
-plot(t, Fz_front_model_online, 'LineWidth', 1.2)
+plot(t, Fz_front_model_online)
 hold on
-plot(t, Fz_front_obs, 'LineWidth', 2)
+plot(t, Fz_front_obs)
 plot(t, Fz_front_strain_aligned,Color="red")
 legend("front model", "front rate observer", "front strain aligned for visual only")
 title("Front Axle Rate-Based Normal Load Observer")
@@ -829,28 +830,28 @@ ylabel("F_z [N]")
 grid on
 
 ax2 = nexttile;
-plot(t, Fz_rear_model_online, 'LineWidth', 1.2)
+plot(t, Fz_rear_model_online)
 hold on
-plot(t, Fz_rear_obs, 'LineWidth', 2)
-plot(t, Fz_rear_strain_aligned, '--', 'LineWidth', 1)
+plot(t, Fz_rear_obs)
+plot(t, Fz_rear_strain_aligned, '--')
 legend("rear model", "rear rate observer", "rear strain aligned for visual only")
 title("Rear Axle Rate-Based Normal Load Observer")
 ylabel("F_z [N]")
 grid on
 
 ax3 = nexttile;
-plot(t, corr_front_log, 'LineWidth', 1.5)
+plot(t, corr_front_log)
 hold on
-plot(t, corr_rear_log, 'LineWidth', 1.5)
+plot(t, corr_rear_log)
 legend("front dynamic correction", "rear dynamic correction")
 title("Observer Dynamic Correction")
 ylabel("Correction [N]")
 grid on
 
 ax4 = nexttile;
-plot(t, rate_error_front_log, 'LineWidth', 1.2)
+plot(t, rate_error_front_log)
 hold on
-plot(t, rate_error_rear_log, 'LineWidth', 1.2)
+plot(t, rate_error_rear_log)
 legend("front delta error", "rear delta error")
 title("Delta Error: Measured Load Transfer Change - Model Load Transfer Change")
 xlabel("Time [s]")
@@ -884,8 +885,8 @@ function obs = initBicycleFzRateObserver()
     % Observer gain
     % Larger = follows strain-gage dynamic load transfer more aggressively.
     % Smaller = trusts model more.
-    obs.K_front = 0.03;
-    obs.K_rear  = 1;
+    obs.K_front = 0.006;
+    obs.K_rear  = 0.005;
 
     % Leakage prevents the correction from becoming a fake offset.
     % 1.00 = correction can persist forever
@@ -895,13 +896,13 @@ function obs = initBicycleFzRateObserver()
 
     % Optional limit on correction step per sample [N/sample]
     % This prevents spikes in strain gage from causing large jumps.
-    obs.max_correction_step_front = 150;
-    obs.max_correction_step_rear  = 150;
+    obs.max_correction_step_front = 150000;
+    obs.max_correction_step_rear  = 150000;
 
     % Optional total correction limit [N]
     % This keeps observer from drifting too far from physics model.
-    obs.max_total_correction_front = 1500;
-    obs.max_total_correction_rear  = 1500;
+    obs.max_total_correction_front = 1500000;
+    obs.max_total_correction_rear  = 1500000;
 
     % Internal state
     obs.dynamic_correction = [0, 0];
