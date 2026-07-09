@@ -355,7 +355,7 @@ sys_first_order = ss(A, B, C, D);
 y0 = K(1);
 
 F_tire_model = lsim(sys_first_order, K, t_lsim, y0);
-F_tire_model = K;
+%F_tire_model = K;
 
 %%
 

@@ -5,11 +5,11 @@ clear
 %% opening csv
 
 % data = readtable('FastLaps.csv');
-% data = readtable('/home/elijah/PurdueRacing/bags/putnam/oversteer/2026-04-28_150159_merged.csv');
-data = readtable('/home/elijah/bag_files/VD/laguna/comp/2025-07-24_175839_merged.csv');
+%data = readtable('/home/elijah/PurdueRacing/bags/putnam/oversteer/2026-04-28_150159_merged.csv');
+%data = readtable('/home/elijah/bag_files/VD/laguna/comp/2025-07-24_175839_merged.csv');
 %% filtered data
 
-mm =50;
+mm =10;
 Ft = movmean(data.time_s,mm);
 
 Fax = movmean(data.a_x,mm);

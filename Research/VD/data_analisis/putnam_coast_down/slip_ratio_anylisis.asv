@@ -15,7 +15,7 @@ tCut   = 1000;
 tRel = data.time_s - data.time_s(1);
 data = data(tRel >= tStart & tRel <= tCut, :);
 
-mm = 10;
+mm = 50;
 vx_min_slip_angle = 10;
 vx_min_slip_ratio = 0.001;
 
@@ -76,10 +76,6 @@ t = t - t(1);
 
 ax = movmean(data.a_x, mm);
 ay_meas = movmean(data.a_y, mm);
-
-
-% mask_fax = Fax>0;
-% Fax = Fax(mask_fax);
 
 vx = movmean(data.odom_vx_mps, mm);
 vy = movmean(data.odom_vy_mps, mm);
@@ -319,143 +315,138 @@ slip_ratio_combined_rr = sqrt(slip_ratio_x_rr.^2 + slip_ratio_y_rr.^2);
 
 
 
-% %% paper method !!!
-% 
-% 
-% Vw_min = 5;      % [m/s] avoid low-speed slip explosion
-% Fz_min = 200;    % [N] avoid bad normalization
-% 
-% % Make everything column vectors to avoid accidental NxN matrix expansion
-% Vx_tire_fl = Vx_tire_fl(:);
-% Vx_tire_fr = Vx_tire_fr(:);
-% Vx_tire_rl = Vx_tire_rl(:);
-% Vx_tire_rr = Vx_tire_rr(:);
-% 
-% Vy_tire_fl = Vy_tire_fl(:);
-% Vy_tire_fr = Vy_tire_fr(:);
-% Vy_tire_rl = Vy_tire_rl(:);
-% Vy_tire_rr = Vy_tire_rr(:);
-% 
-% Vw_fl = Vw_fl(:);
-% Vw_fr = Vw_fr(:);
-% Vw_rl = Vw_rl(:);
-% Vw_rr = Vw_rr(:);
-% 
-% fx_fl = fx_fl(:);
-% fx_fr = fx_fr(:);
-% fx_rl = fx_rl(:);
-% fx_rr = fx_rr(:);
-% 
-% Fyf = Fyf(:);
-% Fyr = Fyr(:);
-% ds  = ds(:);
-% vx  = vx(:);
-% 
-% 
-% Fz_fl_eff = Fz_fl(:) + 0.5 * Fz_front_offset_N;
-% Fz_fr_eff = Fz_fr(:) + 0.5 * Fz_front_offset_N;
-% Fz_rl_eff = Fz_rl(:) + 0.5 * Fz_rear_offset_N;
-% Fz_rr_eff = Fz_rr(:) + 0.5 * Fz_rear_offset_N;
-% 
-% 
-% den_fl = Vw_fl;
-% den_fr = Vw_fr;
-% den_rl = Vw_rl;
-% den_rr = Vw_rr;
-% 
-% den_fl(abs(den_fl) < Vw_min) = NaN;
-% den_fr(abs(den_fr) < Vw_min) = NaN;
-% den_rl(abs(den_rl) < Vw_min) = NaN;
-% den_rr(abs(den_rr) < Vw_min) = NaN;
-% 
-% Sx_fl = (Vx_tire_fl - Vw_fl) ./ den_fl;
-% Sx_fr = (Vx_tire_fr - Vw_fr) ./ den_fr;
-% Sx_rl = (Vx_tire_rl - Vw_rl) ./ den_rl;
-% Sx_rr = (Vx_tire_rr - Vw_rr) ./ den_rr;
-% 
-% 
-% Sy_fl = Vy_tire_fl ./ den_fl;
-% Sy_fr = Vy_tire_fr ./ den_fr;
-% Sy_rl = Vy_tire_rl ./ den_rl;
-% Sy_rr = Vy_tire_rr ./ den_rr;
-% 
-% % Total slip rate
-% S_fl = hypot(Sx_fl, Sy_fl);
-% S_fr = hypot(Sx_fr, Sy_fr);
-% S_rl = hypot(Sx_rl, Sy_rl);
-% S_rr = hypot(Sx_rr, Sy_rr);
-% 
-% % total force
-% F_fl = hypot(fx_fl, Fyf ./ 2);
-% F_fr = hypot(fx_fr, Fyf ./ 2);
-% F_rl = hypot(fx_rl, Fyr ./ 2);
-% F_rr = hypot(fx_rr, Fyr ./ 2);
-% 
-% % mue
-% Fn_fl = F_fl ./ Fz_fl_eff;
-% Fn_fr = F_fr ./ Fz_fr_eff;
-% Fn_rl = F_rl ./ Fz_rl_eff;
-% Fn_rr = F_rr ./ Fz_rr_eff;
-% 
-% % Valid masks
-% valid_fl = isfinite(S_fl) & isfinite(Fn_fl) & Fz_fl_eff > Fz_min & ...
-%            abs(vx) > vx_min_slip_angle & S_fl >= 0 & S_fl < 0.6 & ...
-%            Fn_fl >= 0 & Fn_fl < 2.0;
-% 
-% valid_fr = isfinite(S_fr) & isfinite(Fn_fr) & Fz_fr_eff > Fz_min & ...
-%            abs(vx) > vx_min_slip_angle & S_fr >= 0 & S_fr < 0.6 & ...
-%            Fn_fr >= 0 & Fn_fr < 2.0;
-% 
-% valid_rl = isfinite(S_rl) & isfinite(Fn_rl) & Fz_rl_eff > Fz_min & ...
-%            abs(vx) > vx_min_slip_angle & S_rl >= 0 & S_rl < 0.6 & ...
-%            Fn_rl >= 0 & Fn_rl < 2.0;
-% 
-% valid_rr = isfinite(S_rr) & isfinite(Fn_rr) & Fz_rr_eff > Fz_min & ...
-%            abs(vx) > vx_min_slip_angle & S_rr >= 0 & S_rr < 0.6 & ...
-%            Fn_rr >= 0 & Fn_rr < 2.0;
-% 
-% figure('Name','Paper Method: Normalized Total Force vs Total Slip');
-% tiledlayout(2,2)
-% 
-% nexttile
-% scatter(S_fl(valid_fl), Fn_fl(valid_fl), 12, ds(valid_fl), 'filled')
-% grid on
-% xlabel('Total slip S [-]')
-% ylabel('F_n = sqrt(F_x^2 + F_y^2) / F_z [-]')
-% title('FL paper method')
-% colorbar
-% 
-% nexttile
-% scatter(S_fr(valid_fr), Fn_fr(valid_fr), 12, ds(valid_fr), 'filled')
-% grid on
-% xlabel('Total slip S [-]')
-% ylabel('F_n [-]')
-% title('FR paper method')
-% colorbar
-% 
-% nexttile
-% scatter(S_rl(valid_rl), Fn_rl(valid_rl), 12, ds(valid_rl), 'filled')
-% grid on
-% xlabel('Total slip S [-]')
-% ylabel('F_n [-]')
-% title('RL paper method')
-% colorbar
-% 
-% nexttile
-% scatter(S_rr(valid_rr), Fn_rr(valid_rr), 12, ds(valid_rr), 'filled')
-% grid on
-% xlabel('Total slip S [-]')
-% ylabel('F_n [-]')
-% title('RR paper method')
-% colorbar
-% 
-% sgtitle('Paper Method: F_n vs S')
-% 
+%% paper method !!!
 
 
+Vw_min = 5;      % [m/s] avoid low-speed slip explosion
+Fz_min = 200;    % [N] avoid bad normalization
+
+% Make everything column vectors to avoid accidental NxN matrix expansion
+Vx_tire_fl = Vx_tire_fl(:);
+Vx_tire_fr = Vx_tire_fr(:);
+Vx_tire_rl = Vx_tire_rl(:);
+Vx_tire_rr = Vx_tire_rr(:);
+
+Vy_tire_fl = Vy_tire_fl(:);
+Vy_tire_fr = Vy_tire_fr(:);
+Vy_tire_rl = Vy_tire_rl(:);
+Vy_tire_rr = Vy_tire_rr(:);
+
+Vw_fl = Vw_fl(:);
+Vw_fr = Vw_fr(:);
+Vw_rl = Vw_rl(:);
+Vw_rr = Vw_rr(:);
+
+fx_fl = fx_fl(:);
+fx_fr = fx_fr(:);
+fx_rl = fx_rl(:);
+fx_rr = fx_rr(:);
+
+Fyf = Fyf(:);
+Fyr = Fyr(:);
+ds  = ds(:);
+vx  = vx(:);
 
 
-%%
+Fz_fl_eff = Fz_fl(:) + 0.5 * Fz_front_offset_N;
+Fz_fr_eff = Fz_fr(:) + 0.5 * Fz_front_offset_N;
+Fz_rl_eff = Fz_rl(:) + 0.5 * Fz_rear_offset_N;
+Fz_rr_eff = Fz_rr(:) + 0.5 * Fz_rear_offset_N;
+
+
+den_fl = Vw_fl;
+den_fr = Vw_fr;
+den_rl = Vw_rl;
+den_rr = Vw_rr;
+
+den_fl(abs(den_fl) < Vw_min) = NaN;
+den_fr(abs(den_fr) < Vw_min) = NaN;
+den_rl(abs(den_rl) < Vw_min) = NaN;
+den_rr(abs(den_rr) < Vw_min) = NaN;
+
+Sx_fl = (Vx_tire_fl - Vw_fl) ./ den_fl;
+Sx_fr = (Vx_tire_fr - Vw_fr) ./ den_fr;
+Sx_rl = (Vx_tire_rl - Vw_rl) ./ den_rl;
+Sx_rr = (Vx_tire_rr - Vw_rr) ./ den_rr;
+
+
+Sy_fl = Vy_tire_fl ./ den_fl;
+Sy_fr = Vy_tire_fr ./ den_fr;
+Sy_rl = Vy_tire_rl ./ den_rl;
+Sy_rr = Vy_tire_rr ./ den_rr;
+
+% Total slip rate
+S_fl = hypot(Sx_fl, Sy_fl);
+S_fr = hypot(Sx_fr, Sy_fr);
+S_rl = hypot(Sx_rl, Sy_rl);
+S_rr = hypot(Sx_rr, Sy_rr);
+
+% total force
+F_fl = hypot(fx_fl, Fyf ./ 2);
+F_fr = hypot(fx_fr, Fyf ./ 2);
+F_rl = hypot(fx_rl, Fyr ./ 2);
+F_rr = hypot(fx_rr, Fyr ./ 2);
+
+% mue
+Fn_fl = F_fl ./ Fz_fl_eff;
+Fn_fr = F_fr ./ Fz_fr_eff;
+Fn_rl = F_rl ./ Fz_rl_eff;
+Fn_rr = F_rr ./ Fz_rr_eff;
+
+% Valid masks
+valid_fl = isfinite(S_fl) & isfinite(Fn_fl) & Fz_fl_eff > Fz_min & ...
+           abs(vx) > vx_min_slip_angle & S_fl >= 0 & S_fl < 0.6 & ...
+           Fn_fl >= 0 & Fn_fl < 2.0;
+
+valid_fr = isfinite(S_fr) & isfinite(Fn_fr) & Fz_fr_eff > Fz_min & ...
+           abs(vx) > vx_min_slip_angle & S_fr >= 0 & S_fr < 0.6 & ...
+           Fn_fr >= 0 & Fn_fr < 2.0;
+
+valid_rl = isfinite(S_rl) & isfinite(Fn_rl) & Fz_rl_eff > Fz_min & ...
+           abs(vx) > vx_min_slip_angle & S_rl >= 0 & S_rl < 0.6 & ...
+           Fn_rl >= 0 & Fn_rl < 2.0;
+
+valid_rr = isfinite(S_rr) & isfinite(Fn_rr) & Fz_rr_eff > Fz_min & ...
+           abs(vx) > vx_min_slip_angle & S_rr >= 0 & S_rr < 0.6 & ...
+           Fn_rr >= 0 & Fn_rr < 2.0;
+
+figure('Name','Paper Method: Normalized Total Force vs Total Slip');
+tiledlayout(2,2)
+
+nexttile
+scatter(S_fl(valid_fl), Fn_fl(valid_fl), 12, ds(valid_fl), 'filled')
+grid on
+xlabel('Total slip S [-]')
+ylabel('F_n = sqrt(F_x^2 + F_y^2) / F_z [-]')
+title('FL paper method')
+colorbar
+
+nexttile
+scatter(S_fr(valid_fr), Fn_fr(valid_fr), 12, ds(valid_fr), 'filled')
+grid on
+xlabel('Total slip S [-]')
+ylabel('F_n [-]')
+title('FR paper method')
+colorbar
+
+nexttile
+scatter(S_rl(valid_rl), Fn_rl(valid_rl), 12, ds(valid_rl), 'filled')
+grid on
+xlabel('Total slip S [-]')
+ylabel('F_n [-]')
+title('RL paper method')
+colorbar
+
+nexttile
+scatter(S_rr(valid_rr), Fn_rr(valid_rr), 12, ds(valid_rr), 'filled')
+grid on
+xlabel('Total slip S [-]')
+ylabel('F_n [-]')
+title('RR paper method')
+colorbar
+
+sgtitle('Paper Method: F_n vs S')
+
 % per axle
 
 Vx_front_axle = vx;              

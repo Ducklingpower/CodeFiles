@@ -6,8 +6,8 @@ clear
 
 % data = readtable('FastLaps.csv');
 % data = readtable('/home/elijah/PurdueRacing/bags/putnam/oversteer/2026-04-28_150159_merged.csv');
-% data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
-data = readtable('/home/elijah/bag_files/VD/laguna/comp/2025-07-24_175839_merged.csv');
+data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
+% data = readtable('/home/elijah/bag_files/VD/laguna/comp/2025-07-24_175839_merged.csv');
 
 
 
@@ -19,10 +19,12 @@ data   = data(tRel >= tStart & tRel <= tCut, :);
 
 %% filtered data  (unchanged filtering strategy)
 
-mm = 20;
+mm = 10;
 Ft = movmean(data.time_s,mm);
 
 Fax = movmean(data.a_x,mm);
+
+
 Fay = movmean(data.a_y,mm);
 Faz = movmean(data.a_z,mm);
 
