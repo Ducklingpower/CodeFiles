@@ -148,7 +148,7 @@ ay_inertial = v2_kappa_yaw;
 % gravity projected into lateral body axis from roll/bank
 g_y_body = -g .* cos(theta) .* sin(phi);
 
-% Set true if you want to include bank/roll gravity correction.
+% Set this to true if you want to include bank/roll gravity correction.
 useBankRollGravity = false;
 
 if useBankRollGravity
@@ -187,151 +187,111 @@ valid = isfinite(alpha_f_deg) & ...
         isfinite(y_pos) & ...
         abs(Fvx) > vx_min;
 
-%% connected polygon section setup
-% These are the ordered shared transition points around the track.
-% Each point is treated as the center of a gate/border line.
-% Section 1 goes from gate 1 to gate 2.
-% Section 2 goes from gate 2 to gate 3.
-% ...
-% Last section goes from final gate back to gate 1.
-
-gate_x = [-106.1; -115.4; 18.39; 172; 367.59; 577; 536.6; 377.25];
-gate_y = [-128; -460; -279.28; -539.9; -800; -586; -192.4; 639.76];
-
-gateCenters = [gate_x, gate_y];
-
-numGates = size(gateCenters, 1);
-numCorners = numGates;
-
-% Rename these however you want.
-sectionNames = strings(numCorners, 1);
-for i = 1:numCorners
-    sectionNames(i) = "S" + string(i);
-end
-
-% This controls how wide each shared border line is.
-% Increase if polygons do not cover the blue track.
-% Decrease if polygons touch another part of the track.
-gateHalfWidth = 90;   % [m]
-
-%% create shared gate border lines
-
-gateLeft  = zeros(numGates, 2);
-gateRight = zeros(numGates, 2);
-
-for i = 1:numGates
-
-    if i == 1
-        pPrev = gateCenters(end, :);
-        pNext = gateCenters(i+1, :);
-    elseif i == numGates
-        pPrev = gateCenters(i-1, :);
-        pNext = gateCenters(1, :);
-    else
-        pPrev = gateCenters(i-1, :);
-        pNext = gateCenters(i+1, :);
-    end
-
-    tangent = pNext - pPrev;
-    tangent = tangent ./ norm(tangent);
-
-    normal = [-tangent(2), tangent(1)];
-
-    gateLeft(i, :)  = gateCenters(i, :) + gateHalfWidth .* normal;
-    gateRight(i, :) = gateCenters(i, :) - gateHalfWidth .* normal;
-
-end
-
-%% build connected polygons
-% Adjacent polygons share the exact same border points.
-
-cornerPolys = cell(numCorners, 2);
-
-for i = 1:numCorners
-
-    iNext = i + 1;
-
-    if iNext > numGates
-        iNext = 1;
-    end
-
-    P = [
-        gateLeft(i, :);
-        gateLeft(iNext, :);
-        gateRight(iNext, :);
-        gateRight(i, :)
+cornerPolys = {
+    "C1", [
+         -54.37, -158.40;   % G1 A
+        -160.00, -330.00;   % C1 bulge
+        -173.39, -475.53;   % extra gate A between C1/C2
+        -246.71, -504.38;   % extra gate B between C1/C2
+        -157.83,  -97.60    % G1 B
     ];
+    "C2", [
+        -173.39, -475.53;   % G2 A
+         -57.41, -444.47;   % G2 B
+        -140.00, -600.00;   % C2 bulge
+        -246.71, -504.38    % extra gate B between C1/C2
+    ];
+    "C3", [
+        -173.39, -475.53;   % G2 A
+        -150.00, -340.00;   % C3 support point
+        -105.00, -250.00;   % C3 bulge
+          31.90, -220.86;   % G3 A
+           4.88, -337.70;   % G3 B
+         -57.41, -444.47    % G2 B
+    ];
+    "C4", [
+          31.90, -220.86;   % G3 A
+         215.00, -285.00;   % C4 bulge
+         231.22, -549.84;   % G4 A
+         112.78, -529.96;   % G4 B
+           4.88, -337.70    % G3 B
+    ];
+    "C5", [
+         231.22, -549.84;   % G4 A
+         358.25, -741.30;   % G5 A
+         376.93, -858.70;   % G5 B
+          60.00, -880.00;   % C5 bulge
+         112.78, -529.96    % G4 B
+    ];
+    "C6", [
+         358.25, -741.30;   % G5 A
+         517.23, -581.52;   % G6 A
+         636.77, -590.48;   % G6 B
+         625.00, -790.00;   % C6 bulge
+         376.93, -858.70    % G5 B
+    ];
+    "C7", [
+         517.23, -581.52;   % G6 A
+         476.62, -191.70;   % G7 A
+         596.58, -193.10;   % G7 B
+         635.00, -330.00;   % C7 bulge
+         636.77, -590.48    % G6 B
+    ];
+    "C8", [
+         476.62, -191.70;   % G7 A
+         424.04, -131.52;   % G8_5 A, new split gate
+         368.48,   18.52;   % G8_5 B, new split gate
+         600.00,   10.00;   % C8 bulge
+         596.58, -193.10    % G7 B
+    ];
+    "C9", [
+         424.04, -131.52;   % G8_5 A
+         246.63,  -92.47;   % relief point: bows inner wall off corner apex (1.01m -> 2.62m)
+          70.00,  -50.00;   % G8 A
+         264.00,  129.88;   % G8 B
+         450.00,   85.00;   % C9 bulge
+         368.48,   18.52    % G8_5 B
+    ];
+    "C10", [
+          70.00,  -50.00;   % G8 A
+         -54.37, -158.40;   % G1 A
+        -157.83,  -97.60;   % G1 B
+          80.00,  190.00;   % C10 bulge
+         264.00,  129.88    % G8 B
+    ];
+};
+%% create masks for each polygon
 
-    cornerPolys{i, 1} = sectionNames(i);
-    cornerPolys{i, 2} = P;
-
-end
-
-%% create corner masks using polygon method
-% inpolygon includes boundary points.
-% To prevent a boundary point from being counted in two sections,
-% this assigns each data point to only the first section it appears in.
+numCorners = size(cornerPolys, 1);
 
 cornerMasks = false(length(x_pos), numCorners);
 alreadyAssigned = false(length(x_pos), 1);
 
-rawCornerMasks = false(length(x_pos), numCorners);
-
 for i = 1:numCorners
+    P = cornerPolys{i,2};
 
-    P = cornerPolys{i, 2};
+    insideCorner = inpolygon(x_pos, y_pos, P(:,1), P(:,2));
 
-    poly_x = P(:,1);
-    poly_y = P(:,2);
+    cornerMasks(:,i) = insideCorner & valid & ~alreadyAssigned;
 
-    insideCorner = inpolygon(x_pos, y_pos, poly_x, poly_y);
-
-    rawCornerMasks(:, i) = insideCorner & valid;
-
-    cornerMasks(:, i) = insideCorner & valid & ~alreadyAssigned;
-
-    alreadyAssigned = alreadyAssigned | cornerMasks(:, i);
-
+    alreadyAssigned = alreadyAssigned | cornerMasks(:,i);
 end
 
-%% overlap diagnostic
-
-numRawMatches = sum(rawCornerMasks, 2);
-overlapMask = numRawMatches > 1;
-unassignedValidMask = valid & ~any(cornerMasks, 2);
-
-fprintf("\nPolygon section diagnostic:\n")
-fprintf("Valid points:              %d\n", nnz(valid))
-fprintf("Assigned valid points:     %d\n", nnz(any(cornerMasks, 2)))
-fprintf("Unassigned valid points:   %d\n", nnz(unassignedValidMask))
-fprintf("Raw overlapping points:    %d\n", nnz(overlapMask))
-fprintf("\n")
-
-for i = 1:numCorners
-    fprintf("%s points: %d\n", cornerPolys{i,1}, nnz(cornerMasks(:,i)))
-end
-
-%% plot track with connected polygon sections
+%% plot track with corner polygon sections
 
 figure
-plot(x_pos, y_pos, 'b', 'LineWidth', 1.2)
+plot(x_pos, y_pos, 'b')
 hold on
 grid on
 axis equal
 xlabel("xpos")
 ylabel("ypos")
-title("Track Map with Connected Polygon Sections")
+title("Track Map with Corner Polygon Sections")
 
-% Plot gate center points
-plot(gate_x, gate_y, 'ko', ...
-    'MarkerFaceColor', 'k', ...
-    'MarkerSize', 5)
-
-% Plot polygons
 for i = 1:numCorners
 
-    name = cornerPolys{i, 1};
-    P = cornerPolys{i, 2};
+    name = cornerPolys{i,1};
+    P = cornerPolys{i,2};
 
     poly_x = P(:,1);
     poly_y = P(:,2);
@@ -349,32 +309,6 @@ for i = 1:numCorners
         'Interpreter', 'none');
 
 end
-
-% Plot shared gate borders
-for i = 1:numGates
-
-    plot([gateLeft(i,1), gateRight(i,1)], ...
-         [gateLeft(i,2), gateRight(i,2)], ...
-         'k--', ...
-         'LineWidth', 1.2)
-
-    text(gateCenters(i,1), gateCenters(i,2), ...
-        "G" + string(i), ...
-        'Color', 'k', ...
-        'FontSize', 8, ...
-        'FontWeight', 'bold', ...
-        'HorizontalAlignment', 'center');
-
-end
-
-% Plot unassigned valid points, if any
-if any(unassignedValidMask)
-    plot(x_pos(unassignedValidMask), y_pos(unassignedValidMask), ...
-        'mo', ...
-        'MarkerSize', 3)
-end
-
-legend("track", "gate centers", "sections", "gate borders", "unassigned valid points")
 
 %% optional diagnostic plots
 
@@ -409,7 +343,7 @@ ylabel("a_y [m/s^2]")
 legend("IMU ay", "curvature method")
 title("IMU vs Curvature-Based Tire Lateral Acceleration")
 
-%% lateral force vs slip angle per section
+%% lateral force vs slip angle per corner
 
 nCols = 3;
 nRows = ceil(numCorners / nCols);
@@ -429,9 +363,11 @@ if tMax == tMin
     tMax = tMin + 1;
 end
 
+% Different color maps
 frontMap = winter(256);
 rearMap  = autumn(256);
 
+% Convert every time sample into a color index
 tNorm = (Ft - tMin) ./ (tMax - tMin);
 tNorm = max(0, min(1, tNorm));
 
@@ -445,7 +381,7 @@ for i = 1:numCorners
 
     nexttile
 
-    mask = cornerMasks(:, i);
+    mask = cornerMasks(:,i);
 
     hold on
 
@@ -476,4 +412,8 @@ for i = 1:numCorners
 
 end
 
-title(tl, "Front and Rear Lateral Force vs Slip Angle by Track Section")
+title(tl, "Front and Rear Lateral Force vs Slip Angle by Corner")
+
+
+
+

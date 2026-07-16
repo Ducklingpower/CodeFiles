@@ -7,16 +7,20 @@ clear
 %data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
 %data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_172638_merged.csv');
 % data = readtable('/home/elijah/PurdueRacing/bags/lagoona/october/MPC_benchmark/csv_output/2025-10-27_180328_merged.csv');
-data = readtable('/home/elijah/PurdueRacing/bags/putnam/oversteer/2026-04-28_150159_merged.csv');
+% data = readtable('/home/elijah/PurdueRacing/bags/putnam/oversteer/2026-04-28_150159_merged.csv');
+data = readtable('/home/elijah/PurdueRacing/bags/lagoona/october/spin_out/csv_output/2025-10-28_180511_merged.csv'); % october testing oversteer
 
-tStart = 0;
-tCut   = 1000;
+
 
 tRel = data.time_s - data.time_s(1);
+tStart = 0;
+tCut   = length(tRel);
+
 data = data(tRel >= tStart & tRel <= tCut, :);
 
-mm = 10;
-vx_min_slip_angle = 10;
+
+mm = 30;
+vx_min_slip_angle = 2;    % aligned with slip_force_with_model.m
 vx_min_slip_ratio = 0.001;
 
 onlyAccelerating = false; 
@@ -33,7 +37,7 @@ Rw_f = 0.30;   % [m]
 Rw_r = 0.31;   % [m]
 
 wheelSpeedIsKmh = true;
-brakePressureMin_kPa = 200;
+brakePressureMin_kPa = 75;    % aligned with slip_force_with_model.m
 defaultFrontBrakeBias = 0.53; 
 
 % Longitudinal force deadband
@@ -166,17 +170,21 @@ ay_tire(~validCurv) = NaN;
 
 
 
-Fz_front_offset_N = -4168.3223;
-Fz_rear_offset_N  = -3885.9196;
-
-Fz_fl = movmean(data.fl_load_n,mm); 
-Fz_fr = movmean(data.fr_load_n,mm); 
-Fz_rl = movmean(data.rl_load_n,mm); 
-Fz_rr = movmean(data.rr_load_n,mm); 
+tStart = 0;
+tCut   = length(tRel);
 
 
-Fz_front = Fz_fl + Fz_fr + Fz_front_offset_N;
-Fz_rear  = Fz_rl + Fz_rr + Fz_rear_offset_N;
+Fz_front_offset_N = 3700;
+Fz_rear_offset_N  = 3050;
+
+Fz_fl = movmean(data.fl_load_n,mm) - Fz_front_offset_N/2; 
+Fz_fr = movmean(data.fr_load_n,mm) - Fz_front_offset_N/2; 
+Fz_rl = movmean(data.rl_load_n,mm) - Fz_rear_offset_N/2; 
+Fz_rr = movmean(data.rr_load_n,mm) - Fz_rear_offset_N/2; 
+
+
+Fz_front = Fz_fl + Fz_fr;
+Fz_rear  = Fz_rl + Fz_rr;
 
 
 %% 
@@ -847,10 +855,10 @@ Vt_rr_c11 = Vx_tire_rr;             Vt_rr_c11(~maskC11) = NaN;
 
 slipR_c11_rl = slip_ratio_x_rl; slipR_c11_rl(~maskC11) = NaN;
 slipR_c11_rr = slip_ratio_x_rr; slipR_c11_rr(~maskC11) = NaN;
-Fz_fl_c11 = movmean(data.fl_load_n, mm); Fz_fl_c11(~maskC11) = NaN;
-Fz_fr_c11 = movmean(data.fr_load_n, mm); Fz_fr_c11(~maskC11) = NaN;
-Fz_rl_c11 = movmean(data.rl_load_n, mm); Fz_rl_c11(~maskC11) = NaN;
-Fz_rr_c11 = movmean(data.rr_load_n, mm); Fz_rr_c11(~maskC11) = NaN;
+Fz_fl_c11 = Fz_fl; Fz_fl_c11(~maskC11) = NaN;
+Fz_fr_c11 = Fz_fr; Fz_fr_c11(~maskC11) = NaN;
+Fz_rl_c11 = Fz_rl; Fz_rl_c11(~maskC11) = NaN;
+Fz_rr_c11 = Fz_rr; Fz_rr_c11(~maskC11) = NaN;
 thr_c11   = throttle_pct;                thr_c11(~maskC11)   = NaN;
 cmd_throttle_c11 = cmd_throttle;         cmd_throttle_c11(~maskC11) = NaN;
 
@@ -891,12 +899,12 @@ title('Corner 11: Wheel Speeds vs Time');
 legend('Vw_rl','vw_rr','vx-tire_rl','vx_tire_rr','Location','best');
 
 axC11(4) = subplot(5,1,4);
-% plot(t, Fz_fl_c11);
-% hold on;
-% plot(t, Fz_fr_c11);
-% plot(t, Fz_rl_c11);
-% plot(t, Fz_rr_c11);
-plot(t,Pr)
+plot(t, Fz_fl_c11);
+hold on;
+plot(t, Fz_fr_c11);
+plot(t, Fz_rl_c11);
+plot(t, Fz_rr_c11);
+
 grid on;
 xlabel('Time [s]');
 ylabel('Normal load [N]');
@@ -916,6 +924,253 @@ legend("measured thorttle","cmd thorttle")
 linkaxes(axC11, 'x');
 
 sgtitle('Corner 11 Time Histories');
+
+%% =========================
+%  Two-Lap Overlay (like Corner 11 time series)
+%  Last lap in color, second-to-last lap in grey
+% =========================
+
+% Detect each visit to corner 11 (contiguous runs of the geometric mask),
+% then overlay the last two visits aligned to their corner-entry sample.
+c11geo = cornerMasks(:, iC11);
+edges    = diff([false; c11geo(:); false]);
+segStart = find(edges ==  1);          % index of corner entry for each visit
+segEnd   = find(edges == -1) - 1;      % index of corner exit for each visit
+
+nSeg = numel(segStart);
+if nSeg < 2
+    error('slip_ratio_anylisis:notEnoughC11Visits', ...
+          'Need at least 2 corner-11 visits to overlay, found %d.', nSeg);
+end
+
+% Index ranges for the second-to-last and last corner-11 visits.
+rngPrev = segStart(nSeg-1):segEnd(nSeg-1);   % second-to-last lap -> grey
+rngLast = segStart(nSeg)  :segEnd(nSeg);     % last lap           -> color
+
+% Align each visit so t = 0 at corner entry.
+tPrev = t(rngPrev) - t(rngPrev(1));   % time since corner-11 entry [s]
+tLast = t(rngLast) - t(rngLast(1));
+
+greyCol = [0.6 0.6 0.6];
+
+figure('Name','Two-Lap Overlay - Time Series');
+
+axOv = gobjects(5,1);
+
+% Row 1: longitudinal acceleration
+axOv(1) = subplot(5,1,1);
+plot(tPrev, ax(rngPrev), 'Color', greyCol, 'LineWidth', 1.0, 'HandleVisibility','off');
+hold on;
+plot(tLast, ax(rngLast), 'b', 'LineWidth', 1.5, 'DisplayName','a_x last lap');
+grid on;
+xlabel('Lap time [s]');
+ylabel('a_x [m/s^2]');
+title('Longitudinal Acceleration');
+yline(0,'k--','HandleVisibility','off');
+legend('Location','best');
+
+% Row 2: rear slip ratio (rl & rr)
+axOv(2) = subplot(5,1,2);
+plot(tPrev, slip_ratio_x_rl(rngPrev), 'Color', greyCol, 'LineWidth', 1.0, 'HandleVisibility','off');
+hold on;
+plot(tPrev, slip_ratio_x_rr(rngPrev), 'Color', greyCol, 'LineWidth', 1.0, 'HandleVisibility','off');
+plot(tLast, slip_ratio_x_rl(rngLast), 'LineWidth', 1.5, 'DisplayName','\kappa_{rl} last lap');
+plot(tLast, slip_ratio_x_rr(rngLast), 'LineWidth', 1.5, 'DisplayName','\kappa_{rr} last lap');
+grid on;
+xlabel('Lap time [s]');
+ylabel('Rear slip ratio \kappa_r [-]');
+title('Rear Slip Ratio');
+yline(0,'k--','HandleVisibility','off');
+legend('Location','best');
+
+% Row 3: rear wheel & tire speeds
+axOv(3) = subplot(5,1,3);
+plot(tPrev, Vw_rl(rngPrev),      'Color', greyCol, 'HandleVisibility','off'); hold on;
+plot(tPrev, Vw_rr(rngPrev),      'Color', greyCol, 'HandleVisibility','off');
+plot(tPrev, Vx_tire_rl(rngPrev), 'Color', greyCol, 'HandleVisibility','off');
+plot(tPrev, Vx_tire_rr(rngPrev), 'Color', greyCol, 'HandleVisibility','off');
+plot(tLast, Vw_rl(rngLast),      'LineWidth', 1.5, 'DisplayName','V_{w,rl}');
+plot(tLast, Vw_rr(rngLast),      'LineWidth', 1.5, 'DisplayName','V_{w,rr}');
+plot(tLast, Vx_tire_rl(rngLast), 'LineWidth', 1.5, 'DisplayName','V_{x,tire,rl}');
+plot(tLast, Vx_tire_rr(rngLast), 'LineWidth', 1.5, 'DisplayName','V_{x,tire,rr}');
+grid on;
+xlabel('Lap time [s]');
+ylabel('Speed [m/s]');
+title('Rear Wheel & Tire Speeds');
+legend('Location','best');
+
+% Row 4: rear normal loads only
+axOv(4) = subplot(5,1,4);
+plot(tPrev, Fz_rl(rngPrev), 'Color', greyCol, 'HandleVisibility','off'); hold on;
+plot(tPrev, Fz_rr(rngPrev), 'Color', greyCol, 'HandleVisibility','off');
+plot(tLast, Fz_rl(rngLast), 'LineWidth', 1.5, 'DisplayName','F_{z,rl}');
+plot(tLast, Fz_rr(rngLast), 'LineWidth', 1.5, 'DisplayName','F_{z,rr}');
+grid on;
+xlabel('Lap time [s]');
+ylabel('Normal load [N]');
+title('Rear Tire Normal Loads');
+legend('Location','best');
+
+% Row 5: measured throttle only
+axOv(5) = subplot(5,1,5);
+plot(tPrev, throttle_pct(rngPrev), 'Color', greyCol, 'HandleVisibility','off'); hold on;
+plot(tLast, throttle_pct(rngLast), 'b', 'LineWidth', 1.5, 'DisplayName','measured throttle last lap');
+grid on;
+xlabel('Lap time [s]');
+ylabel('Throttle [%]');
+title('Measured Throttle');
+legend('Location','best');
+
+linkaxes(axOv, 'x');
+sgtitle('Two-Lap Overlay: last lap (color) vs second-to-last lap (grey)');
+
+%% =========================
+%  Two-Lap C11 Overlay - Slip vs Force (rear)
+%  Same method: last lap in color, second-to-last lap in grey.
+% =========================
+
+% Column-forced copies so x/y orientations always match when indexed.
+alr  = alpha_r_deg(:);
+fyr  = Fyr(:);
+srl  = slip_ratio_x_rl(:);
+srr  = slip_ratio_x_rr(:);
+fxrl = fx_rl(:);
+fxrr = fx_rr(:);
+fxr  = Fxr(:);
+
+lastCol = [0 0.447 0.741];
+
+figure('Name','C11 Overlay - Slip vs Force (rear)');
+
+subplot(1,3,1)
+plot(alr(rngPrev), fyr(rngPrev), 'Color', greyCol, 'LineWidth', 1.0, 'DisplayName','second-to-last lap');
+hold on;
+plot(alr(rngLast), fyr(rngLast), 'Color', lastCol, 'LineWidth', 1.5, 'DisplayName','last lap');
+grid on;
+xlabel('Rear slip angle \alpha_r [deg]');
+ylabel('Rear lateral force F_{y,r} [N]');
+title('Rear F_y vs Slip Angle');
+xline(0,'k--','HandleVisibility','off'); yline(0,'k--','HandleVisibility','off');
+legend('Location','best');
+
+subplot(1,3,2)
+plot(srl(rngPrev), fxrl(rngPrev), 'Color', greyCol, 'LineWidth', 1.0, 'DisplayName','second-to-last lap');
+hold on;
+plot(srl(rngLast), fxrl(rngLast), 'Color', lastCol, 'LineWidth', 1.5, 'DisplayName','last lap');
+grid on;
+xlabel('Rear-left slip ratio \kappa_{rl} [-]');
+ylabel('Rear-left longitudinal force F_{x,rl} [N]');
+title('RL F_x vs Slip Ratio');
+xline(0,'k--','HandleVisibility','off'); yline(0,'k--','HandleVisibility','off');
+legend('Location','best');
+
+subplot(1,3,3)
+plot(srr(rngPrev), fxrr(rngPrev), 'Color', greyCol, 'LineWidth', 1.0, 'DisplayName','second-to-last lap');
+hold on;
+plot(srr(rngLast), fxrr(rngLast), 'Color', lastCol, 'LineWidth', 1.5, 'DisplayName','last lap');
+grid on;
+xlabel('Rear-right slip ratio \kappa_{rr} [-]');
+ylabel('Rear-right longitudinal force F_{x,rr} [N]');
+title('RR F_x vs Slip Ratio');
+xline(0,'k--','HandleVisibility','off'); yline(0,'k--','HandleVisibility','off');
+legend('Location','best');
+
+sgtitle('Corner 11 Two-Lap Overlay: Slip vs Force');
+
+%% =========================
+%  Two-Lap C11 Overlay - Fy vs Fx (rear)
+% =========================
+
+figure('Name','C11 Overlay - Fy vs Fx (rear)');
+plot(fxr(rngPrev), fyr(rngPrev), 'Color', greyCol, 'LineWidth', 1.0, 'DisplayName','second-to-last lap');
+hold on;
+plot(fxr(rngLast), fyr(rngLast), 'Color', lastCol, 'LineWidth', 1.5, 'DisplayName','last lap');
+grid on; axis equal;
+xlabel('Rear longitudinal force F_{x,r} [N]');
+ylabel('Rear lateral force F_{y,r} [N]');
+title('Corner 11 Two-Lap Overlay: Rear F_y vs F_x');
+xline(0,'k--','HandleVisibility','off'); yline(0,'k--','HandleVisibility','off');
+legend('Location','best');
+
+%% =========================
+%  Rear Fx/Fz vs Slip Ratio: equal split vs load-distribution split
+% =========================
+
+% Rear normal loads: the sensor offset is already removed in the Normal Loads
+% section above, so Fz_rl / Fz_rr are the true tire loads used directly here
+% for both the load-based split and the normalization.
+Fz_rl_eff = Fz_rl(:);
+Fz_rr_eff = Fz_rr(:);
+
+Fxr_col = Fxr(:);
+
+% --- Equal split: Fx shared 50/50 between the two rear tires ---
+fx_rl_eq = 0.5 .* Fxr_col;
+fx_rr_eq = 0.5 .* Fxr_col;
+
+% --- Load-distribution split: Fx shared by rear normal-load fraction ---
+Fz_rear_tot = Fz_rl_eff + Fz_rr_eff;
+fx_rl_load = Fxr_col .* (Fz_rl_eff ./ Fz_rear_tot);
+fx_rr_load = Fxr_col .* (Fz_rr_eff ./ Fz_rear_tot);
+
+% Normalized (Fx/Fz) per rear tire
+muX_rl_eq   = fx_rl_eq   ./ Fz_rl_eff;
+muX_rr_eq   = fx_rr_eq   ./ Fz_rr_eff;
+muX_rl_load = fx_rl_load ./ Fz_rl_eff;
+muX_rr_load = fx_rr_load ./ Fz_rr_eff;
+
+sr_rl  = slip_ratio_x_rl(:);
+sr_rr  = slip_ratio_x_rr(:);
+ds_col = ds(:);
+
+% Validity masks for the rear-tire scatter plots
+% (no Fz>200 gate, to match slip_force_with_model.m's validTire)
+validRR = isfinite(sr_rr) & isfinite(muX_rr_eq) & ...
+          abs(vx) > vx_min_slip_angle & abs(sr_rr) < 1.0;
+validRL = isfinite(sr_rl) & isfinite(muX_rl_eq) & ...
+          abs(vx) > vx_min_slip_angle & abs(sr_rl) < 1.0;
+
+figure('Name','Rear Fx/Fz vs Slip Ratio: equal vs load split');
+
+% Row 1: Fx split equally between the two rear tires
+subplot(2,2,1)
+scatter(sr_rr(validRR), muX_rr_eq(validRR), 18, ds_col(validRR), 'filled');
+grid on;
+xlabel('Rear-right slip ratio \kappa_{rr} [-]');
+ylabel('F_{x,rr}/F_{z,rr} [-]');
+title('RR F_x/F_z vs Slip Ratio (equal split)');
+cb = colorbar; ylabel(cb, 'Distance around lap [m]');
+xline(0,'k--'); yline(0,'k--');
+
+subplot(2,2,2)
+scatter(sr_rl(validRL), muX_rl_eq(validRL), 18, ds_col(validRL), 'filled');
+grid on;
+xlabel('Rear-left slip ratio \kappa_{rl} [-]');
+ylabel('F_{x,rl}/F_{z,rl} [-]');
+title('RL F_x/F_z vs Slip Ratio (equal split)');
+cb = colorbar; ylabel(cb, 'Distance around lap [m]');
+xline(0,'k--'); yline(0,'k--');
+
+% Row 2: Fx split by rear normal-load distribution
+subplot(2,2,3)
+scatter(sr_rr(validRR), muX_rr_load(validRR), 18, ds_col(validRR), 'filled');
+grid on;
+xlabel('Rear-right slip ratio \kappa_{rr} [-]');
+ylabel('F_{x,rr}/F_{z,rr} [-]');
+title('RR F_x/F_z vs Slip Ratio (load-distribution split)');
+cb = colorbar; ylabel(cb, 'Distance around lap [m]');
+xline(0,'k--'); yline(0,'k--');
+
+subplot(2,2,4)
+scatter(sr_rl(validRL), muX_rl_load(validRL), 18, ds_col(validRL), 'filled');
+grid on;
+xlabel('Rear-left slip ratio \kappa_{rl} [-]');
+ylabel('F_{x,rl}/F_{z,rl} [-]');
+title('RL F_x/F_z vs Slip Ratio (load-distribution split)');
+cb = colorbar; ylabel(cb, 'Distance around lap [m]');
+xline(0,'k--'); yline(0,'k--');
+
+sgtitle('Rear F_x/F_z vs Slip Ratio: equal (row 1) vs load-distribution (row 2) split');
 
 %% =========================
 %  Local Functions

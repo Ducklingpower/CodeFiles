@@ -27,7 +27,7 @@ data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07
 
 %% Settings
 
-mm = 20;
+mm = 2;
 g = 9.81;
 
 vx_min = 10.0;          % only compare at meaningful speed

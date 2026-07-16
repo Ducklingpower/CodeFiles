@@ -6,8 +6,9 @@ clear
 
 % data = readtable('FastLaps.csv');
 % data = readtable('/home/elijah/PurdueRacing/bags/putnam/oversteer/2026-04-28_150159_merged.csv');
-data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
+% data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
 % data = readtable('/home/elijah/bag_files/VD/laguna/comp/2025-07-24_175839_merged.csv');
+data = readtable('/home/elijah/PurdueRacing/bags/lagoona/october/spin_out/csv_output/2025-10-28_180511_merged.csv'); % october testing oversteer
 
 %% filtered data
 
@@ -191,27 +192,24 @@ cornerPolys = {
     "C1", [
          -54.37, -158.40;   % G1 A
         -160.00, -330.00;   % C1 bulge
-        -173.39, -475.53;   % extra gate A between C1/C2
-        -246.71, -504.38;   % extra gate B between C1/C2
+        -173.39, -475.53;   % gate C1/C2 & C2/C3 corner
+        -246.71, -504.38;   % gate C1/C2
         -157.83,  -97.60    % G1 B
     ];
-
     "C2", [
         -173.39, -475.53;   % G2 A
          -57.41, -444.47;   % G2 B
-        -140.00, -600.00;   % C2 bulge
-        -246.71, -504.38    % extra gate B between C1/C2
+        -133.00, -543.00;   % C2 bulge (tightened from -140,-600)
+        -246.71, -504.38    % gate C1/C2
     ];
-
     "C3", [
         -173.39, -475.53;   % G2 A
-        -150.00, -340.00;   % C3 support point
+        -150.00, -340.00;   % C3 support
         -105.00, -250.00;   % C3 bulge
           31.90, -220.86;   % G3 A
            4.88, -337.70;   % G3 B
          -57.41, -444.47    % G2 B
     ];
-
     "C4", [
           31.90, -220.86;   % G3 A
          215.00, -285.00;   % C4 bulge
@@ -219,7 +217,6 @@ cornerPolys = {
          112.78, -529.96;   % G4 B
            4.88, -337.70    % G3 B
     ];
-
     "C5", [
          231.22, -549.84;   % G4 A
          358.25, -741.30;   % G5 A
@@ -227,7 +224,6 @@ cornerPolys = {
           60.00, -880.00;   % C5 bulge
          112.78, -529.96    % G4 B
     ];
-
     "C6", [
          358.25, -741.30;   % G5 A
          517.23, -581.52;   % G6 A
@@ -235,31 +231,25 @@ cornerPolys = {
          625.00, -790.00;   % C6 bulge
          376.93, -858.70    % G5 B
     ];
-
     "C7", [
          517.23, -581.52;   % G6 A
          476.62, -191.70;   % G7 A
          596.58, -193.10;   % G7 B
-         635.00, -330.00;   % C7 bulge
-         636.77, -590.48    % G6 B
+         636.77, -590.48    % G6 B  (removed redundant C7 bulge)
     ];
-
     "C8", [
          476.62, -191.70;   % G7 A
-         424.04, -131.52;   % G8_5 A, new split gate
-         368.48,   18.52;   % G8_5 B, new split gate
-         600.00,   10.00;   % C8 bulge
+         424.04, -131.52;   % G8_5 A
+         368.48,   18.52;   % G8_5 B
+         550.0, -50.00;   % C8 bulge
          596.58, -193.10    % G7 B
     ];
-
     "C9", [
          424.04, -131.52;   % G8_5 A
           70.00,  -50.00;   % G8 A
          264.00,  129.88;   % G8 B
-         450.00,   85.00;   % C9 bulge
-         368.48,   18.52    % G8_5 B
+         368.48,   18.52    % G8_5 B  (removed redundant C9 bulge)
     ];
-
     "C10", [
           70.00,  -50.00;   % G8 A
          -54.37, -158.40;   % G1 A
