@@ -6,29 +6,27 @@ close all;
 %% vehicle
 P.m  = 815;              
 P.g  = 9.81;
-P.h  = 0.35;             % CG height (m)
-P.lf = 1.723644;         % front axle -> CG (m)
-P.lr = 1.248156;         % CG -> rear axle (m)
+P.h  = 0.35;             
+P.lf = 1.723644;         
+P.lr = 1.248156;        
 P.L  = P.lf + P.lr;
-P.mf = P.m * P.lr / P.L; % front carries lr/L, not lf/L -> 42% static
+P.mf = P.m * P.lr / P.L; 
 P.mr = P.m * P.lf / P.L;
 
 %% aero
 P.rho     = 1.225;
-P.CdA     = 1.33;        % drag area (m^2)
-P.ACdLift = 0.58;        % downforce area (m^2)
-P.aeroBal = 0.33;        % front share of downforce
+P.CdA     = 1.33;        
+P.ACdLift = 0.58;       
+P.aeroBal = 0.33;       
 
 %% brake system
 P.A_caliper_mm2 = 4486.0;
-P.mu_k    = 0.4;         % pad friction
-P.R_lever = 0.134;       % effective pad radius (m)
-P.Rw_f    = 0.30;        % tire radius (m)
+P.mu_k    = 0.4;         
+P.R_lever = 0.134;       
+P.Rw_f    = 0.30;       
 P.Rw_r    = 0.31;
-P.Pmax    = 3000;        % kPa per circuit
+P.Pmax    = 3000;        
 
-% Per-tire brake force per kPa [N/kPa]:
-% clamp = P[kPa]*A[mm^2]/1000, torque = clamp*mu_k*R_lever, F = torque/Rw
 P.kF = P.A_caliper_mm2 * 1e-3 * P.mu_k * P.R_lever / P.Rw_f;
 P.kR = P.A_caliper_mm2 * 1e-3 * P.mu_k * P.R_lever / P.Rw_r;
 
@@ -38,7 +36,7 @@ P.muF = 1.15;
 P.muR = 1.15;
 
 P.k = 0.95;              % rear utilization as a fraction of front
-P.rearSafety = 0.5;      % rear force ceiling as a fraction of muR*Fzr
+P.rearSafety = 0.95      % safty threshold
 
 %% max braking vs speed
 vGrid = linspace(5, 80, 300);
@@ -200,13 +198,7 @@ legend('front','rear','Location','best');
 
 linkaxes(axD, 'x');
 
-figure('Name','Fig 5 - Bias vs speed during max stop','Position',[140 140 850 500]);
-plot(sim.v, sim.biasP, 'b-', 'LineWidth', 2); hold on;
-plot(sim.v, sim.biasF, 'g--', 'LineWidth', 1.5);
-grid on; set(gca,'XDir','reverse');
-xlabel('Speed [m/s]  (braking proceeds left)'); ylabel('Bias (front share)');
-legend('pressure bias','force bias','Location','best');
-title('Brake bias vs speed along a max-braking stop');
+
 
 %% mu sensitivity
 muSweep = linspace(0.7, 1.3, 60);
@@ -229,7 +221,7 @@ xline(0.7, 'k--', 'measured braking \mu_R');
 xline(1.15,'k--', 'measured accel \mu_R');
 
 %% summary
-fprintf('\n================ BRAKE ANALYSIS SUMMARY ================\n');
+
 fprintf('Per-tire gain      : front %.3f N/kPa | rear %.3f N/kPa\n', P.kF, P.kR);
 fprintf('At Pmax=%g kPa     : front %.0f N/tire | rear %.0f N/tire\n', P.Pmax, P.kF*P.Pmax, P.kR*P.Pmax);
 fprintf('At Pmax, per axle  : front %.0f N | rear %.0f N | total %.0f N\n', ...
@@ -251,7 +243,7 @@ fprintf('\nStop from %.0f m/s : %.2f s | %.1f m | peak %.2f m/s^2 (%.2f g)\n', .
         v0, sim.t(end), sim.s(end), max(sim.a), max(sim.a)/P.g);
 fprintf('Bias over the stop : %.3f at %.0f m/s -> %.3f at %.0f m/s\n', ...
         sim.biasP(1), sim.v(1), sim.biasP(end), sim.v(end));
-fprintf('========================================================\n');
+
 
 %% load transfer
 function [Fzf, Fzr] = axleLoads(a, v, P)

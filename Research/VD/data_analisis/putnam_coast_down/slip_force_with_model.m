@@ -4,10 +4,10 @@ clear
 
 %% data
 %data = readtable('/home/elijah/PurdueRacing/bags/putnum/oversteer/2026-04-28_150159_merged.csv');
-%data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
+data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
 % data = readtable('/home/elijah/PurdueRacing/bags/lagoona/october/spin_out/csv_output/2025-10-28_180511_merged.csv'); % october testing oversteer
 % 
-data = readtable("/home/elijah/PurdueRacing/bags/lvms/hard_braking/csv_output/2025-04-10_120110_merged.csv");
+%data = readtable("/home/elijah/PurdueRacing/bags/lvms/hard_braking/csv_output/2025-04-10_120110_merged.csv");
 
 
 tRel = data.time_s - data.time_s(1);
@@ -26,7 +26,7 @@ highlightOn     = false;
 highlightCorner = 'C2';    
 
 %% params
-mm = 30;
+mm = 10;
 vx_min_slip_angle = 2;
 vx_min_slip_ratio = 0.001;
 onlyAccelerating = false;

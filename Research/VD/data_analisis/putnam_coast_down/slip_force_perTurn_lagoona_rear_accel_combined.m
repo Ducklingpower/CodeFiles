@@ -9,8 +9,8 @@ clear
 
 % data = readtable('FastLaps.csv');
 % data = readtable('/home/elijah/PurdueRacing/bags/putnam/oversteer/2026-04-28_150159_merged.csv');
-% data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
-data = readtable('/home/elijah/bag_files/VD/laguna/comp/2025-07-24_175839_merged.csv');
+data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv');
+%data = readtable('/home/elijah/bag_files/VD/laguna/comp/2025-07-24_175839_merged.csv');
 
 
 corner_plot_1  = 0;   % C1
