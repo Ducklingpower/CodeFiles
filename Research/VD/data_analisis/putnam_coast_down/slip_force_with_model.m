@@ -8,7 +8,7 @@ data = readtable('/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07
 % data = readtable('/home/elijah/PurdueRacing/bags/lagoona/october/spin_out/csv_output/2025-10-28_180511_merged.csv'); % october testing oversteer
 % 
 %data = readtable("/home/elijah/PurdueRacing/bags/lvms/hard_braking/csv_output/2025-04-10_120110_merged.csv");
-
+data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_19_full_test/csv_output/2026-07-19_133128_merged.csv");
 
 tRel = data.time_s - data.time_s(1);
 t0 = data.time_s(1);          
@@ -26,7 +26,7 @@ highlightOn     = false;
 highlightCorner = 'C2';    
 
 %% params
-mm = 10;
+mm = 22;
 vx_min_slip_angle = 2;
 vx_min_slip_ratio = 0.001;
 onlyAccelerating = false;
@@ -51,18 +51,18 @@ vehicleParams.CdA    = 1.33;
 vehicleParams.rho    = 1.225;
 vehicleParams.g      = 9.81;
 
-% dual-track load-transfer params (from load_tranfer.m)
-vehicleParams.tF        = 1.638762;      % front track (m)
-vehicleParams.tR        = 1.5239686;     % rear track (m)
-vehicleParams.wheelRateF = 2.985553732e5; % front wheel rate (N/m), spring*MR^2 at 0 mm
-vehicleParams.wheelRateR = 3.941321827e5; % rear wheel rate (N/m)
-vehicleParams.ARBf      = 0;             % front anti-roll bar rate (Nm/deg) TBD
-vehicleParams.ARBr      = 0;             % no rear bar
-vehicleParams.rcF       = 0.1202436;     % front roll center height (m)
-vehicleParams.rcR       = 0.0016628;     % rear roll center height (m)
-vehicleParams.ACdLift   = 0.58;          % downforce area*coef (m^2)
-vehicleParams.aeroBal   = 0.33;          % front share of downforce
-vehicleParams.azScalar  = 2;           % weight on the vx*wy term in az_road
+% dual-track load-transfer params 
+vehicleParams.tF        = 1.638762;    
+vehicleParams.tR        = 1.5239686;    
+vehicleParams.wheelRateF = 2.985553732e5;
+vehicleParams.wheelRateR = 3.941321827e5; 
+vehicleParams.ARBf      = 0;            
+vehicleParams.ARBr      = 0;             
+vehicleParams.rcF       = 0.1202436;     
+vehicleParams.rcR       = 0.0016628;     
+vehicleParams.ACdLift   = 0.58;          
+vehicleParams.aeroBal   = 0.33;          
+vehicleParams.azScalar  = 2;           
 
 L  = vehicleParams.L;
 m  = vehicleParams.m;
@@ -180,11 +180,7 @@ Fz_rr = movmean(data.rr_load_n,mm) - Fz_rear_offset_N/2;
 Fz_front = Fz_fl + Fz_fr;
 Fz_rear  = Fz_rl + Fz_rr;
 
-%% normal loads - dual-track model (ported from load_tranfer.m)
-% Axle loads from a 3D bicycle model (gravity tilted by pitch/roll, plus the
-% centripetal terms from yawing/pitching at speed), then split left/right by
-% the roll-stiffness lateral transfer gradients. Model only - the measured
-% Fz_fl..Fz_rr above still drive every figure downstream.
+%% normal loads
 
 tF        = vehicleParams.tF;
 tR        = vehicleParams.tR;
@@ -228,15 +224,13 @@ k_phi_r     = (wheelRateR * tR^2) / 2 + ARBr;
 LAT_weightTransferGradient_f = (w_veh/tF) * ((cg2rollAxis * k_phi_f)/(k_phi_f + k_phi_r) + (lr * rcF / L));
 LAT_weightTransferGradient_r = (w_veh/tR) * ((cg2rollAxis * k_phi_r)/(k_phi_f + k_phi_r) + (lf * rcR / L));
 
-% ay_meas is the direct analog of load_tranfer.m's Fay; swap to ay_tire for the
-% bank-corrected value (it is NaN below vx_min_slip_angle).
+
 ay_model = ay_meas;
 
 dFz_lat_f = LAT_weightTransferGradient_f .* (ay_model ./ g);
 dFz_lat_r = LAT_weightTransferGradient_r .* (ay_model ./ g);
 
-% per-tire loads: half the axle total, then +/- the lateral transfer
-% (+ay = left turn in the body frame, so load moves to the right tires)
+% per-tire loads
 Fz_fl_model = Fz_front_model ./ 2 - dFz_lat_f +20 ;
 Fz_fr_model = Fz_front_model ./ 2 + dFz_lat_f - 70;
 Fz_rl_model = Fz_rear_model  ./ 2 - dFz_lat_r -100;
@@ -651,12 +645,11 @@ cb = colorbar; ylabel(cb,'Time [s]'); xline(0,'k--'); yline(0,'k--');
 
 
 %% fig 7 - Fx/Fz vs Fy/Fz (per tire, measured, even Fx split)
-% Per-tire lateral force: axle Fy shared between L/R tires by each tire's
-% normal-load fraction. (Reused by fig 8 and the paper-method figures below.)
-Fy_fl = Fyf .* (Fz_fl ./ Fz_front);
-Fy_fr = Fyf .* (Fz_fr ./ Fz_front);
-Fy_rl = Fyr .* (Fz_rl ./ Fz_rear);
-Fy_rr = Fyr .* (Fz_rr ./ Fz_rear);
+% Per-tire lateral force: devide even across axle
+Fy_fl = Fyf ./2;
+Fy_fr = Fyf ./2;
+Fy_rl = Fyr ./2;
+Fy_rr = Fyr ./2;
 
 figure('Name','Fig 7 - Fx/Fz vs Fy/Fz (per tire, measured, even Fx split)');
 
@@ -837,7 +830,7 @@ Fz_rr_eff = Fz_rr ;
 
 % Per-tire lateral forces (Fy_fl ... Fy_rr) are computed above, before fig 7.
 
-%% fig 12 - paper method (measured)
+%% fig 12 - poop paper method 
 figure('Name','Fig 12 - Paper Method (measured Fx)');
 
 subplot(2,2,1)
@@ -849,8 +842,7 @@ plotPaper(S_rl, hypot(fx_rl, Fy_rl), Fz_rl_eff, tAbs, vx, Fz_min_paper, vx_min_s
 subplot(2,2,4)
 plotPaper(S_rr, hypot(fx_rr, Fy_rr), Fz_rr_eff, tAbs, vx, Fz_min_paper, vx_min_slip_angle, cornerHi);
 
-%% fig 13 - paper method (modeled)
-
+%% fig 13 - poop paper method 
 if plot_modeled
     figure('Name','Fig 13 - Paper Method (modeled Fx)');
     
@@ -1008,16 +1000,16 @@ function scatterHi(x, y, c, hi)
 end
 
 function plotPaper(S, F, Fz_eff, tv, vx, Fz_min, vx_min, hi)
-    Fn = F ./ Fz_eff;
+    Fn = F ./ Fz_eff;   % only used to gate non-physical mu values
     v = isfinite(S) & isfinite(Fn) & Fz_eff > Fz_min & abs(vx) > vx_min & S >= 0 & S < 0.6 & Fn >= 0 & Fn < 2.0;
-    scatter(S(v), Fn(v), 12, tv(v), 'filled');
+    scatter(S(v), F(v), 12, tv(v), 'filled');
     grid on;
     hiv = v & hi;
     if any(hiv)
         hold on;
-        scatter(S(hiv), Fn(hiv), 16, 'r', 'filled');
+        scatter(S(hiv), F(hiv), 16, 'r', 'filled');
     end
     xlabel('Total slip S [-]');
-    ylabel('F_n = |F| / F_z [-]');
+    ylabel('|F| [N]');
     cb = colorbar; ylabel(cb, 'Time [s]');
 end
