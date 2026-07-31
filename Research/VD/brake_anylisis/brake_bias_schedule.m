@@ -30,14 +30,16 @@ P.kF = P.A_caliper_mm2 * 1e-3 * P.mu_k * P.R_lever / P.Rw_f;
 P.kR = P.A_caliper_mm2 * 1e-3 * P.mu_k * P.R_lever / P.Rw_r;
 
 %% tire grip
-P.muF = 1.15;
-P.muR = 1.15;
+%P.muF = 1.1;
+%P.muR = 1.15
+P.muF = 0.85;
+P.muR = 0.9;
 P.k = 1;
 P.rearSafety = 1;   % rear never uses more than 90% of its grip 
 
 %% acceleration and velocity sweep
 aGrid = 0:0.004:40;
-vGrid = linspace(5,80,400);
+vGrid = linspace(0,100,400);
 
 nA = numel(aGrid);
 nV = numel(vGrid);
@@ -52,6 +54,8 @@ utilR_v = zeros(1,nV);
 limitTag = strings(1,nV);
 limitFound = false(1,nV);
 biasP_map = nan(nA,nV);
+Pf_map = nan(nA,nV);
+Pr_map = nan(nA,nV);
 
 for ia = 1:nA
     a_cmd = aGrid(ia);
@@ -116,6 +120,8 @@ for ia = 1:nA
 
         if feasible
             biasP_map(ia,iv) = bP;
+            Pf_map(ia,iv) = Pf;
+            Pr_map(ia,iv) = Pr;
             aMax(iv) = a_cmd;
             biasF(iv) = bF;
             biasP(iv) = bP;
@@ -132,12 +138,177 @@ end
 
 limitTag(~limitFound) = "search limit";
 
+%% CSV export: bias lookup table + max decel vs speed
+% Breakpoints for the exported tables. Coarser than the solver grid on
+% purpose - the solver runs at da = 0.004 m/s^2 over 400 speeds, which is
+% 4e6 cells and useless as a CSV.
+LUT.v = 0:1:100;      % speed breakpoints [m/s]
+LUT.a = 0:0.25:20;   % commanded decel breakpoints [m/s^2]
+                     % a_max peaks near 18 m/s^2 with the current grip and
+                     % Pmax - raise this ceiling if you loosen either
+
+outDir = fileparts(mfilename('fullpath'));
+if isempty(outDir)
+    outDir = pwd;    % running the cell by hand rather than the file
+end
+outDir = fullfile(outDir,'lut');
+if ~exist(outDir,'dir')
+    mkdir(outDir);
+end
+
+% Nearest-neighbour sample of the solved maps. The solver grid is much finer
+% than the breakpoints (0.004 m/s^2 vs 0.25, 0.163 m/s vs 1.0), so the
+% sampling error is far inside the breakpoint spacing, and unlike interp2 it
+% does not smear NaN out of the infeasible region into valid cells.
+[~,ivLut] = min(abs(vGrid(:).' - LUT.v(:)),[],2);
+[~,iaLut] = min(abs(aGrid(:).' - LUT.a(:)),[],2);
+
+biasP_lut = biasP_map(iaLut,ivLut);
+Pf_lut    = Pf_map(iaLut,ivLut);
+Pr_lut    = Pr_map(iaLut,ivLut);
+
+% NaN in these maps = infeasible (above a_max); zero pressure on both axles
+% = drag alone already makes the commanded decel, so bias is undefined.
+brakesOn = isfinite(Pf_lut) & (Pf_lut + Pr_lut) > 0;
+
+biasF_lut = nan(size(Pf_lut));
+biasF_lut(brakesOn) = P.kF*Pf_lut(brakesOn) ./ ...
+    (P.kF*Pf_lut(brakesOn) + P.kR*Pr_lut(brakesOn));
+
+% Fill the undefined cells so a lookup always returns something usable, even
+% if the driver/controller asks for a decel the car cannot make. Held along
+% constant speed, i.e. down each column. Two different holes:
+%
+%   above a_max       infeasible. Hold bias AND pressures from a_max - that
+%                     is the saturation behaviour you want anyway: a request
+%                     past the limit returns the a_max answer for that speed.
+%
+%   below drag cut-in aero drag alone already makes the commanded decel, so
+%                     the pressures are genuinely zero and stay zero. Only
+%                     the ratio is 0/0, so hold the bias from the lowest
+%                     decel that actually uses the brakes.
+nLa = numel(LUT.a);
+nLv = numel(LUT.v);
+
+plotSolved  = false(nLa,nLv);   % masks for fig 4 - the plot masks share the
+plotHeldTop = false(nLa,nLv);   % boundary row with the solved region so the
+plotHeldBot = false(nLa,nLv);   % surfaces meet instead of leaving a gap
+srcHeldTop  = false(nLa,nLv);
+srcHeldBot  = false(nLa,nLv);
+
+aLoLut = nan(1,nLv);  biasLoLut = nan(1,nLv);
+aHiLut = nan(1,nLv);  biasHiLut = nan(1,nLv);
+
+for iv = 1:nLv
+    ib = find(brakesOn(:,iv));
+    if isempty(ib)
+        continue
+    end
+    lo = ib(1);
+    hi = ib(end);
+
+    biasP_lut(hi+1:end,iv) = biasP_lut(hi,iv);
+    biasF_lut(hi+1:end,iv) = biasF_lut(hi,iv);
+    Pf_lut(hi+1:end,iv)    = Pf_lut(hi,iv);
+    Pr_lut(hi+1:end,iv)    = Pr_lut(hi,iv);
+    srcHeldTop(hi+1:end,iv) = true;
+
+    biasP_lut(1:lo-1,iv) = biasP_lut(lo,iv);
+    biasF_lut(1:lo-1,iv) = biasF_lut(lo,iv);
+    srcHeldBot(1:lo-1,iv) = true;
+
+    plotSolved(lo:hi,iv)  = true;
+    plotHeldTop(hi:end,iv) = true;
+    plotHeldBot(1:lo,iv)   = true;
+
+    aLoLut(iv) = LUT.a(lo);  biasLoLut(iv) = biasP_lut(lo,iv);
+    aHiLut(iv) = LUT.a(hi);  biasHiLut(iv) = biasP_lut(hi,iv);
+end
+
+nBad = nnz(~isfinite(biasP_lut));
+if nBad > 0
+    warning('bias LUT still has %d undefined cells after fill',nBad);
+end
+
+srcTag = strings(nLa,nLv);
+srcTag(brakesOn)   = "solved";
+srcTag(srcHeldTop) = "held_above_amax";
+srcTag(srcHeldBot) = "held_below_drag";
+
+% 1) grid form - rows = commanded decel, columns = speed, cells = bias
+biasGridTbl = array2table(biasP_lut,'VariableNames',compose('%g',LUT.v));
+biasGridTbl = addvars(biasGridTbl,LUT.a(:),'Before',1, ...
+    'NewVariableNames','decel_mps2');
+writetable(biasGridTbl,fullfile(outDir,'brake_bias_map_grid.csv'));
+
+% 2) long form - one row per (speed, decel) breakpoint pair, no NaN, with a
+%    source column so you can tell a solved cell from a held one
+[VVlut,AAlut] = meshgrid(LUT.v,LUT.a);
+
+biasLongTbl = table( ...
+    VVlut(:), ...
+    AAlut(:), ...
+    AAlut(:)/P.g, ...
+    biasP_lut(:), ...
+    biasF_lut(:), ...
+    Pf_lut(:), ...
+    Pr_lut(:), ...
+    srcTag(:), ...
+    'VariableNames',{ ...
+    'speed_mps', ...
+    'decel_mps2', ...
+    'decel_g', ...
+    'bias_pressure', ...
+    'bias_force', ...
+    'Pf_kPa', ...
+    'Pr_kPa', ...
+    'source'});
+
+biasLongTbl = sortrows(biasLongTbl,{'speed_mps','decel_mps2'});
+writetable(biasLongTbl,fullfile(outDir,'brake_bias_map_long.csv'));
+
+% 3) max achievable decel vs speed, with the bias/pressures that produce it
+maxDecelTbl = table( ...
+    vGrid(:), ...
+    vGrid(:)*3.6, ...
+    aMax(:), ...
+    aMax(:)/P.g, ...
+    biasP(:), ...
+    biasF(:), ...
+    Pf_v(:), ...
+    Pr_v(:), ...
+    utilF_v(:), ...
+    utilR_v(:), ...
+    limitTag(:), ...
+    'VariableNames',{ ...
+    'speed_mps', ...
+    'speed_kph', ...
+    'a_max_mps2', ...
+    'a_max_g', ...
+    'bias_pressure', ...
+    'bias_force', ...
+    'Pf_kPa', ...
+    'Pr_kPa', ...
+    'util_front', ...
+    'util_rear', ...
+    'limited_by'});
+
+writetable(maxDecelTbl,fullfile(outDir,'max_decel_vs_speed.csv'));
+
+fprintf('CSV written to %s\n',outDir);
+fprintf('  brake_bias_map_grid.csv   %d decel x %d speed breakpoints\n', ...
+    nLa,nLv);
+fprintf('  brake_bias_map_long.csv   %d rows: %d solved, %d held above a_max, %d held below drag\n', ...
+    height(biasLongTbl),nnz(brakesOn),nnz(srcHeldTop),nnz(srcHeldBot));
+fprintf('  max_decel_vs_speed.csv    %d speeds, a_max %.2f-%.2f m/s^2\n', ...
+    nV,min(aMax),max(aMax));
+
 %% max braking vs speed
 figure;
 
 axA(1) = subplot(3,1,1);
-plot(vGrid,aMax,'b-','LineWidth',1.8); hold on;
-plot(vGrid,aMax./P.g,'r--','LineWidth',1.2);
+plot(vGrid,aMax,'b-'); hold on;
+plot(vGrid,aMax./P.g,'r--');
 grid on;
 ylabel('Max decel');
 legend('a_{max} [m/s^2]','a_{max} [g]','Location','best');
@@ -145,15 +316,15 @@ title(sprintf('Max braking vs speed  (P_{max} = %g kPa, \\mu = %.2f, k = %.2f, r
     P.Pmax,P.muF,P.k,P.rearSafety));
 
 axA(2) = subplot(3,1,2);
-plot(vGrid,biasP,'b-','LineWidth',1.8); hold on;
-plot(vGrid,biasF,'g--','LineWidth',1.4);
+plot(vGrid,biasP,'b-'); hold on;
+plot(vGrid,biasF,'g--');
 grid on;
-ylabel('Bias (front share)');
+ylabel('Bias ');
 legend('pressure bias','force bias','Location','best');
 
 axA(3) = subplot(3,1,3);
-plot(vGrid,Pf_v,'b-','LineWidth',1.8); hold on;
-plot(vGrid,Pr_v,'r-','LineWidth',1.8);
+plot(vGrid,Pf_v,'b-'); hold on;
+plot(vGrid,Pr_v,'r-');
 yline(P.Pmax,'k--','P_{max}');
 grid on;
 xlabel('Speed [m/s]');
@@ -166,8 +337,8 @@ linkaxes(axA,'x');
 figure;
 
 axB(1) = subplot(2,1,1);
-plot(vGrid,utilF_v,'b-','LineWidth',1.8); hold on;
-plot(vGrid,utilR_v,'r-','LineWidth',1.8);
+plot(vGrid,utilF_v,'b-'); hold on;
+plot(vGrid,utilR_v,'r-');
 yline(P.muF,'b--','\mu_F');
 yline(P.rearSafety*P.muR,'r--','rear ceiling');
 grid on;
@@ -176,7 +347,7 @@ legend('front','rear','Location','best');
 title('Friction utilization at max braking');
 
 axB(2) = subplot(2,1,2);
-plot(vGrid,double(contains(limitTag,"pressure")),'k-','LineWidth',2);
+plot(vGrid,double(contains(limitTag,"pressure")),'k-');
 grid on;
 ylim([-0.2 1.2]);
 yticks([0 1]);
@@ -198,8 +369,8 @@ shading interp;
 cb = colorbar;
 ylabel(cb,'Pressure bias P_f/(P_f+P_r)');
 hold on;
-plot(vGrid,aMax,'w-','LineWidth',2.5);
-plot(vGrid,aMax,'k--','LineWidth',1.2);
+plot(vGrid,aMax,'w-');
+plot(vGrid,aMax,'k--');
 
 validBias = biasMap(isfinite(biasMap));
 if ~isempty(validBias)
@@ -214,7 +385,7 @@ if ~isempty(validBias)
     caxis([cLo cHi]);
 
     lv = linspace(cLo,cHi,9);
-    [C,hC] = contour(VV,AA,biasMap,lv,'k-','LineWidth',0.75);
+    [C,hC] = contour(VV,AA,biasMap,lv,'k-');
     clabel(C,hC,'FontSize',8,'Color','k');
 end
 
@@ -224,32 +395,52 @@ ylabel('Commanded decel [m/s^2]');
 title('Bias schedule (line = max achievable decel, blank above it = infeasible)');
 
 %% 3D bias schedule surface  (bias vs speed & commanded long decel)
-figure;
-% downsample to a readable grid spacing so the mesh lines are visible
-vSkip = 12;
-aSkip = 50;
-vIdx = 1:vSkip:nV;
-aIdx = 1:aSkip:numel(aMap);
+% Drawn from the exported LUT rather than the solver grid, so what you see is
+% exactly what the CSV contains - including the held fill, which is the whole
+% point: colour-mapped = solved from the physics, red = held down from a_max,
+% amber = held up from the drag cut-in. Anything not colour-mapped is a value
+% the controller can still use but that the vehicle cannot actually deliver.
+figure('Name','Fig 4 - Bias schedule with held fill','Position',[160 120 950 620]);
 
-VVg = VV(aIdx,vIdx);
-AAg = AA(aIdx,vIdx);
-biasGrid = biasMap(aIdx,vIdx);
+Zsolved = biasP_lut;  Zsolved(~plotSolved)  = NaN;
+Zheld   = biasP_lut;  Zheld(~plotHeldTop)   = NaN;
+Zdrag   = biasP_lut;  Zdrag(~plotHeldBot)   = NaN;
 
-hSurf = surf(VVg,AAg,biasGrid);
-set(hSurf,'FaceColor','interp','EdgeColor','k','LineWidth',0.5);
+hSolved = surf(VVlut,AAlut,Zsolved);
+set(hSolved,'FaceColor','interp','EdgeColor',[0.25 0.25 0.25],'EdgeAlpha',0.15);
 hold on;
 
-% trace of the max achievable decel along the surface
-biasAtMax = interp2(VV,AA,biasMap,vGrid,aMax);
-plot3(vGrid,aMax,biasAtMax,'w-','LineWidth',3);
-plot3(vGrid,aMax,biasAtMax,'k--','LineWidth',1.2);
+hHeld = surf(VVlut,AAlut,Zheld);
+set(hHeld,'FaceColor',[0.85 0.10 0.10],'EdgeColor',[0.35 0 0],'EdgeAlpha',0.15);
+
+hDrag = surf(VVlut,AAlut,Zdrag);
+set(hDrag,'FaceColor',[0.95 0.65 0.15],'EdgeColor',[0.40 0.25 0],'EdgeAlpha',0.15);
+
+% edges of the genuinely solved region
+plot3(LUT.v,aHiLut,biasHiLut,'k-','LineWidth',2);
+plot3(LUT.v,aLoLut,biasLoLut,'k--','LineWidth',1.5);
+
+hLeg(1) = plot3(NaN,NaN,NaN,'s','MarkerSize',10, ...
+    'MarkerFaceColor',[0.20 0.50 0.80],'MarkerEdgeColor','none');
+hLeg(2) = plot3(NaN,NaN,NaN,'s','MarkerSize',10, ...
+    'MarkerFaceColor',[0.85 0.10 0.10],'MarkerEdgeColor','none');
+hLeg(3) = plot3(NaN,NaN,NaN,'s','MarkerSize',10, ...
+    'MarkerFaceColor',[0.95 0.65 0.15],'MarkerEdgeColor','none');
+hLeg(4) = plot3(NaN,NaN,NaN,'k-','LineWidth',2);
+
+legend(hLeg, ...
+    {'calculated max decel', ...
+     'we crash and burn here', ...
+     'drag will do the work ', ...
+     'ax max'}, ...
+    'Location','best');
 
 cb = colorbar;
 ylabel(cb,'Pressure bias P_f/(P_f+P_r)');
 xlabel('Speed [m/s]');
 ylabel('Commanded long. decel [m/s^2]');
-zlabel('Brake bias (front share)');
-title('Required brake bias vs speed and longitudinal decel');
+zlabel('Brake bias');
+title('Exported bias LUT: solved region vs held fill');
 grid on;
 view(135,25);
 axis tight;
@@ -259,8 +450,8 @@ aMax_full = computeAMax(P,vGrid,aGrid,1.0);          % rear allowed to lock poin
 aMax_safe = aMax;                                    % current run (P.rearSafety)
 
 figure('Name','Fig 5 - Rear-safety trade-off','Position',[140 140 900 520]);
-plot(vGrid,aMax_full,'k-','LineWidth',1.8); hold on;
-plot(vGrid,aMax_safe,'r-','LineWidth',1.8);
+plot(vGrid,aMax_full,'k-'); hold on;
+plot(vGrid,aMax_safe,'r-');
 grid on;
 xlabel('Speed [m/s]');
 ylabel('Max decel [m/s^2]');
@@ -271,7 +462,7 @@ lossPct = 100*mean((aMax_full-aMax_safe)./max(aMax_full,eps));
 title(sprintf('Peak decel traded for rear margin  (avg loss %.1f%%)',lossPct));
 
 %% stop simulation
-v0 = 70;
+v0 = 100;
 dt = 0.002;
 nStep = round(12/dt);
 
@@ -542,6 +733,195 @@ legend(compose('v = %.0f m/s',vTest), ...
     'Location','best');
 title('First axle to reach its grip or pressure limit');
 
+%% mu / aero-drag sensitivity  (vx vs ax)
+% Conservative bracket for working up to the limit on track: how far does the
+% achievable decel curve fall if the tyres are worse than nominal AND the drag
+% help we are counting on is not really there.
+%
+%   muDrop    absolute reduction applied to both muF and muR, keeping the 0.05
+%             front/rear offset. nominal, -0.2, -0.4, -0.6.
+%   dragKeep  fraction of nominal aero drag retained, 100% down to 0% in 20%
+%             steps. Downforce (ACdLift) is deliberately held at nominal, so
+%             this isolates the "free" decel that drag contributes and does
+%             not also strip out the grip that downforce buys. Scale DF in
+%             computeAMax too if you want a full aero bracket instead.
+muDrop   = 0:0.2:0.6;
+dragKeep = 1:-0.2:0;
+
+nMuS   = numel(muDrop);
+nDragS = numel(dragKeep);
+
+aMaxSens = zeros(nV,nDragS,nMuS);
+
+for im = 1:nMuS
+    for id = 1:nDragS
+        aSens = computeAMax(P,vGrid,aGrid,P.rearSafety, ...
+            P.muF-muDrop(im),P.muR-muDrop(im),dragKeep(id));
+        aMaxSens(:,id,im) = aSens(:);
+    end
+end
+
+%% CSV export: sensitivity envelope, speed vs g
+% Speed on clean 4 m/s increments, snapped inside whatever range vGrid covers
+% so this keeps working if the sweep range moves. Decel in g, which is what you
+% actually read off a trace at the track.
+vExport = ceil(vGrid(1)/4)*4 : 4 : floor(vGrid(end)/4)*4;
+nEx = numel(vExport);
+
+gSens = zeros(nEx,nDragS,nMuS);
+for im = 1:nMuS
+    for id = 1:nDragS
+        gSens(:,id,im) = interp1(vGrid,aMaxSens(:,id,im),vExport(:))/P.g;
+    end
+end
+
+% 1) grid form - one row per speed, one column per (mu, drag) case
+gridData = zeros(nEx,nDragS*nMuS);
+gridVars = strings(1,nDragS*nMuS);
+c = 0;
+for im = 1:nMuS
+    for id = 1:nDragS
+        c = c + 1;
+        gridData(:,c) = gSens(:,id,im);
+        gridVars(c) = sprintf('g_muF%s_drag%d', ...
+            strrep(sprintf('%.2f',P.muF-muDrop(im)),'.','p'), ...
+            round(100*dragKeep(id)));
+    end
+end
+
+sensGridTbl = array2table(gridData,'VariableNames',gridVars);
+sensGridTbl = addvars(sensGridTbl,vExport(:),'Before',1, ...
+    'NewVariableNames','speed_mps');
+writetable(sensGridTbl,fullfile(outDir,'decel_envelope_g_grid.csv'));
+
+% 2) long form - one row per (speed, mu, drag) case
+[VVs,IDs,IMs] = ndgrid(vExport(:),1:nDragS,1:nMuS);
+
+sensLongTbl = table( ...
+    VVs(:), ...
+    VVs(:)*3.6, ...
+    reshape(muDrop(IMs),[],1), ...
+    reshape(P.muF-muDrop(IMs),[],1), ...
+    reshape(P.muR-muDrop(IMs),[],1), ...
+    reshape(100*dragKeep(IDs),[],1), ...
+    gSens(:), ...
+    gSens(:)*P.g, ...
+    'VariableNames',{ ...
+    'speed_mps', ...
+    'speed_kph', ...
+    'mu_drop', ...
+    'muF', ...
+    'muR', ...
+    'aero_drag_pct', ...
+    'a_max_g', ...
+    'a_max_mps2'});
+
+sensLongTbl = sortrows(sensLongTbl, ...
+    {'mu_drop','aero_drag_pct','speed_mps'}, ...
+    {'ascend','descend','ascend'});
+writetable(sensLongTbl,fullfile(outDir,'decel_envelope_g_long.csv'));
+
+fprintf('  decel_envelope_g_grid.csv %d speeds (%g:%g:%g m/s) x %d cases\n', ...
+    nEx,vExport(1),4,vExport(end),nDragS*nMuS);
+fprintf('  decel_envelope_g_long.csv %d rows, %.2f-%.2f g\n', ...
+    height(sensLongTbl),min(gSens(:)),max(gSens(:)));
+
+%% CSV export: one file per aero level, nominal tyre mu
+% Six two-column files - speed and the max decel the car can make at that
+% speed - dropped in their own folder so the set can be handed off as one
+% thing. Grip is held at nominal (muF = 1.1, muR = 1.15) in every file; the
+% only thing that changes file to file is how much aero drag is left, 100%
+% down to 0% in 20% steps. That sweep is already solved above, so this just
+% reads the muDrop = 0 page of aMaxSens and resamples it onto clean speeds.
+vAero = 0:4:72;
+
+aeroDir = fullfile(outDir,'aero_sweep');
+if ~exist(aeroDir,'dir')
+    mkdir(aeroDir);
+end
+
+imNom = find(muDrop == 0,1);
+if isempty(imNom)
+    error('nominal mu case (muDrop = 0) is not in the sweep');
+end
+if vAero(end) > vGrid(end)
+    error('vAero runs to %g m/s but the solver only covers %g m/s', ...
+        vAero(end),vGrid(end));
+end
+
+fprintf('aero sweep CSV written to %s  (muF = %.2f, muR = %.2f)\n', ...
+    aeroDir,P.muF,P.muR);
+
+for id = 1:nDragS
+    aAero = interp1(vGrid,aMaxSens(:,id,imNom),vAero(:));
+
+    aeroTbl = table(vAero(:),aAero, ...
+        'VariableNames',{'speed_mps','a_max_mps2'});
+
+    fName = sprintf('a_max_drag%03d.csv',round(100*dragKeep(id)));
+    writetable(aeroTbl,fullfile(aeroDir,fName));
+
+    fprintf('  %-20s %3.0f%% aero drag, %d speeds, %.2f-%.2f m/s^2\n', ...
+        fName,100*dragKeep(id),numel(vAero),min(aAero),max(aAero));
+end
+
+% Ordinal blue ramp, dark = full drag, light = none. Drag fraction is ordered
+% magnitude, so it takes one hue light->dark and not a rainbow or a red/blue
+% pair - the reader should see the order in the colour itself.
+dragCols = [ ...
+    0.051 0.212 0.420; ...   % 100% drag (nominal)
+    0.063 0.259 0.506; ...   %  80%
+    0.110 0.361 0.671; ...   %  60%
+    0.165 0.471 0.839; ...   %  40%
+    0.333 0.596 0.906; ...   %  20%
+    0.525 0.714 0.937];      %   0%
+
+figure('Name','Fig 9 - mu / aero-drag sensitivity','Position',[120 90 1050 720]);
+tSens = tiledlayout(2,2,'TileSpacing','compact','Padding','compact');
+
+yTop = 1.05*max(aMaxSens(:));
+
+for im = 1:nMuS
+    axS = nexttile;
+    hold(axS,'on');
+
+    hDrag = gobjects(1,nDragS);
+    for id = 1:nDragS
+        hDrag(id) = plot(vGrid,aMaxSens(:,id,im), ...
+            'Color',dragCols(id,:));
+    end
+
+    grid on;
+    axS.GridAlpha = 0.12;      % recessive grid, the curves carry the message
+    axS.Box = 'off';
+    xlim([vGrid(1) vGrid(end)]);
+    ylim([0 yTop]);            % shared scale so the panels are comparable
+
+    ttl = sprintf('\\mu_F = %.2f,  \\mu_R = %.2f', ...
+        P.muF-muDrop(im),P.muR-muDrop(im));
+    if muDrop(im) == 0
+        ttl = [ttl '   (nominal)'];
+    else
+        ttl = sprintf('%s   (nominal - %.1f)',ttl,muDrop(im));
+    end
+    title(ttl);
+
+    if im > nMuS-2
+        xlabel('Speed v_x [m/s]');
+    end
+    if mod(im,2) == 1
+        ylabel('Max decel a_x [m/s^2]');
+    end
+
+    if im == 1
+        legend(hDrag,compose('%.0f%% aero drag',100*dragKeep), ...
+            'Location','northwest','Box','off');
+    end
+end
+
+title(tSens,sprintf(['Achievable decel envelope: tyre \\mu and aero-drag sensitivity' ...
+    '   (P_{max} = %g kPa, rearSafety = %.2f)'],P.Pmax,P.rearSafety));
+
 %% results table
 
 [MU,VT] = ndgrid(muSweep,vTest);
@@ -581,46 +961,50 @@ end
 
 disp(axleLimitTable(reportRows,:));
 
-%% helper: max decel vs speed for a given rear-safety factor
-function aMax = computeAMax(P,vGrid,aGrid,rearSafety)
-    nA = numel(aGrid);
-    nV = numel(vGrid);
+%% helper: max decel vs speed, for a given rear-safety factor, tyre mu and
+%  aero-drag fraction. muF/muR/dragKeep default to the nominal P values, so
+%  the original computeAMax(P,vGrid,aGrid,rearSafety) call still works.
+%
+%  Vectorised over speed rather than looped: the sensitivity sweep calls this
+%  24 times over a 10001-point decel grid, which is too slow element-by-element.
+function aMax = computeAMax(P,vGrid,aGrid,rearSafety,muF,muR,dragKeep)
+    if nargin < 5 || isempty(muF),      muF = P.muF;  end
+    if nargin < 6 || isempty(muR),      muR = P.muR;  end
+    if nargin < 7 || isempty(dragKeep), dragKeep = 1; end
+
+    v = vGrid(:).';
+    nV = numel(v);
+
+    Fd = dragKeep*0.5*P.rho*P.CdA*v.^2;
+    DF = 0.5*P.rho*P.ACdLift*v.^2;
+
+    FxfPress = 2*P.kF*P.Pmax;
+    FxrPress = 2*P.kR*P.Pmax;
+
     aMax = zeros(1,nV);
-    limitFound = false(1,nV);
+    active = true(1,nV);   % speeds still below their limit
 
-    for ia = 1:nA
-        a_cmd = aGrid(ia);
-        for iv = 1:nV
-            if limitFound(iv)
-                continue
-            end
-
-            v = vGrid(iv);
-            Fd = 0.5*P.rho*P.CdA*v^2;
-            DF = 0.5*P.rho*P.ACdLift*v^2;
-
-            Fzf = max(P.mf*P.g + P.m*a_cmd*P.h/P.L + DF*P.aeroBal,0);
-            Fzr = max(P.mr*P.g - P.m*a_cmd*P.h/P.L + DF*(1-P.aeroBal),0);
-
-            Fx_need = P.m*a_cmd - Fd;
-            if Fx_need <= 0
-                aMax(iv) = a_cmd;
-                continue
-            end
-
-            W = Fzf + P.k*Fzr;
-            Fxr_nom = Fx_need*P.k*Fzr/max(W,eps);
-            Fxr_cap = min(rearSafety*P.muR*Fzr,2*P.kR*P.Pmax);
-            Fxr = min(Fxr_nom,Fxr_cap);
-            Fxf = Fx_need - Fxr;
-
-            FxfGrip = P.muF*Fzf;
-            FxfPress = 2*P.kF*P.Pmax;
-            if Fxf <= min(FxfGrip,FxfPress)
-                aMax(iv) = a_cmd;
-            else
-                limitFound(iv) = true;
-            end
+    for ia = 1:numel(aGrid)
+        if ~any(active)
+            break
         end
+        a_cmd = aGrid(ia);
+
+        Fzf = max(P.mf*P.g + P.m*a_cmd*P.h/P.L + DF*P.aeroBal,0);
+        Fzr = max(P.mr*P.g - P.m*a_cmd*P.h/P.L + DF*(1-P.aeroBal),0);
+
+        Fx_need = P.m*a_cmd - Fd;
+
+        W = Fzf + P.k*Fzr;
+        Fxr_nom = Fx_need.*P.k.*Fzr./max(W,eps);
+        Fxr_cap = min(rearSafety*muR*Fzr,FxrPress);
+        Fxf = Fx_need - min(Fxr_nom,Fxr_cap);
+
+        % drag alone covers the demand, or the front can still take its share
+        ok = (Fx_need <= 0) | (Fxf <= min(muF*Fzf,FxfPress));
+
+        good = active & ok;
+        aMax(good) = a_cmd;
+        active = good;
     end
 end
