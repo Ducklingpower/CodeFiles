@@ -32,8 +32,11 @@ P.kR = P.A_caliper_mm2 * 1e-3 * P.mu_k * P.R_lever / P.Rw_r;
 %% tire grip
 %P.muF = 1.1;
 %P.muR = 1.15
-P.muF = 0.85;
+% P.muF = 0.85;
+% P.muR = 0.85;
+P.muF = 0.9;
 P.muR = 0.9;
+
 P.k = 1;
 P.rearSafety = 1;   % rear never uses more than 90% of its grip 
 
@@ -430,7 +433,7 @@ hLeg(4) = plot3(NaN,NaN,NaN,'k-','LineWidth',2);
 
 legend(hLeg, ...
     {'calculated max decel', ...
-     'we crash and burn here', ...
+     'dont ever want to be here ...', ...
      'drag will do the work ', ...
      'ax max'}, ...
     'Location','best');
@@ -440,10 +443,11 @@ ylabel(cb,'Pressure bias P_f/(P_f+P_r)');
 xlabel('Speed [m/s]');
 ylabel('Commanded long. decel [m/s^2]');
 zlabel('Brake bias');
-title('Exported bias LUT: solved region vs held fill');
+title('bias');
 grid on;
 view(135,25);
 axis tight;
+
 
 %% rearSafety trade-off:  full grip (=1) vs margined rear (=0.9)
 aMax_full = computeAMax(P,vGrid,aGrid,1.0);          % rear allowed to lock point
