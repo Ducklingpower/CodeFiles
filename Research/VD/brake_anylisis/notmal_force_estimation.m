@@ -11,20 +11,27 @@ clear
 time_segment = [1910 1920];
 
 time_segment = [740 830];
+
 time_segment = [1450 1460]; % for wheel like on straight
+time_segment = [1700 2150];
+
 time_segment = [1720 1734; 1800 1810; 1907 1916;1977 1986; 2075 2087; 2156 2166];
 
-time_segment = [1700 2150];
-time_segment = [0 inf]
 
 %% opening csv
 
 %data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_28_fastlap_tireLocking_acc/csv_output/2026-07-28_153834_merged.csv"); %% fast lap
 %data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_19_full_test/csv_output/2026-07-19_133128_merged.csv");%% lift up tires
-%data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_28_HardBraking_feedbackcontroller/csv_output/2026-07-28_130732_merged.csv");
-data  = readtable("/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv");
+data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_28_HardBraking_feedbackcontroller/csv_output/2026-07-28_130732_merged.csv");
+%data  = readtable("/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv");
 %data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_26_hard_brake_onstraight/csv_output/2026-07-26_142425_merged.csv");
 %% filtered data
+
+% Where longitudinal acceleration comes from. See "longitudinal acceleration
+% source" below.
+%   "channel"    -> data.a_x as logged
+%   "derivative" -> differentiated from the filtered speed Fvx
+ax_source = "channel";
 
 mm = 20;
 
@@ -41,6 +48,85 @@ gage_zero = [ ...
     movmean(data.rr_load_n, mm)];
 
 gage_zero = gage_zero(min(100, height(data)), :);   % [fl fr rl rr]
+
+%% wheel speed calibration
+% Runs on the FULL recording, before the time window is applied, for the same
+% reason gage_zero does: a time_segment made of hard braking windows may not
+% contain a single free-rolling sample to calibrate on.
+%
+% A free-rolling wheel has slip ratio zero by definition, so in a straight
+% line, at steady speed, with the brakes off, every wheel speed channel must
+% read the ground speed. Whatever it reads instead is a rolling-radius or
+% calibration error, and it lands as a STANDING OFFSET on every slip ratio
+% built from that channel.
+%
+% This replaces the old  ./3.61 - 0.1. That was one common factor applied to
+% all four wheels, and one factor cannot null both axles when the front and
+% rear tires are different sizes. On this recording it nulls the REAR
+% (+0.0007) and leaves the FRONT at +0.0063 - more than twice the front slip
+% actually seen under braking (-0.0028), and opposite in sign, so the front
+% tire curve in measured_slip_ratio_front.csv comes out translated sideways by
+% more than its own amplitude.
+%
+% A SCALE, not an offset: the residual is flat with speed (+0.0055 at 12-18
+% m/s, +0.0071 at 30-36), which is the signature of a radius error. A sensor
+% offset would shrink as speed rises.
+
+wheelCal_brakeMax_kPa = 60;     % both circuits below this counts as brakes off
+wheelCal_axMax        = 0.6;    % m/s^2, near enough to no longitudinal force
+wheelCal_ayMax        = 0.5;    % m/s^2
+wheelCal_steerMax     = 2;      % deg
+wheelCal_vxMin        = 12;     % m/s
+wheelCal_minSamples   = 300;
+
+cal_vx    = movmean(data.oms_vel_x_kmh, mm) ./ 3.6;
+cal_ax    = movmean(data.oms_acc_x_hor_mps2, mm);
+cal_ay    = movmean(data.a_y, mm);
+cal_steer = movmean(data.steer_wheel_ang_deg, mm);
+
+freeRolling = abs(cal_ay)    < wheelCal_ayMax ...
+            & abs(cal_steer) < wheelCal_steerMax ...
+            & abs(cal_ax)    < wheelCal_axMax ...
+            & movmean(data.front_brake_pressure_kpa, mm) < wheelCal_brakeMax_kPa ...
+            & movmean(data.rear_brake_pressure_kpa,  mm) < wheelCal_brakeMax_kPa ...
+            & cal_vx > wheelCal_vxMin ...
+            & isfinite(cal_vx);
+
+wheelSpeed_channels = ["fl_speed_kmh", "fr_speed_kmh", "rl_speed_kmh", "rr_speed_kmh"];
+wheelSpeed_names    = ["FL", "FR", "RL", "RR"];
+wheelSpeedCal       = ones(1,4);
+
+if sum(freeRolling) < wheelCal_minSamples
+
+    warning("notmal_force_estimation:noFreeRolling", ...
+        "Only %d free-rolling samples (need %d); wheel speeds left uncalibrated. " + ...
+        "Every slip ratio below will carry whatever standing offset the channels have.", ...
+        sum(freeRolling), wheelCal_minSamples);
+else
+    fprintf("wheel speed calibration on %d free-rolling samples (straight, brakes off, |a_x|<%.1f):\n", ...
+        sum(freeRolling), wheelCal_axMax);
+
+    for iWheel = 1:4
+
+        vw = movmean(data.(char(wheelSpeed_channels(iWheel))), mm) ./ 3.6;
+        wheelSpeedCal(iWheel) = mean(vw(freeRolling) ./ cal_vx(freeRolling), "omitnan");
+
+        fprintf("  %s reads %+.3f%% against ground speed -> scale %.5f (free-rolling slip %+.5f -> 0)\n", ...
+            wheelSpeed_names(iWheel), 100*(wheelSpeedCal(iWheel)-1), ...
+            1/wheelSpeedCal(iWheel), 1 - 1/wheelSpeedCal(iWheel));
+    end
+end
+
+% Front/rear rolling radius ratio, from the same calibration. v = omega*R, so a
+% channel that over-reads by x% was built with a radius x% larger than the
+% truth, and the ratio of the two axles' errors is the ratio of their radii -
+% PROVIDED the logger used one common radius for all four channels. If it
+% already applies per-wheel radii, this residual is calibration error instead
+% and says nothing about radius. Either way the two cannot both be right, which
+% is the point of printing it.
+rollingRadiusRatio = mean(wheelSpeedCal(1:2)) / mean(wheelSpeedCal(3:4));   % R_r / R_f
+
+fprintf("  implied R_r/R_f = %.4f\n", rollingRadiusRatio);
 
 if isempty(time_segment)
     time_segment = [0 Inf];
@@ -123,7 +209,8 @@ end
 t_plot = t;
 t_plot(seam_idx) = NaN;
 
-Fax = movmean(data.a_x,mm);
+Fax_channel = movmean(data.a_x,mm);   % Fax itself is chosen below by ax_source
+% Fax_channel = movmean( data.oms_acc_x_mps2,mm);
 Fay = movmean(data.a_y,mm);
 Faz = movmean(data.a_z,mm);
 
@@ -138,7 +225,7 @@ Ffz_rr = movmean(data.rr_load_n,mm);
 Ffz_rl = movmean(data.rl_load_n,mm);
 
 Fvx = movmean(data.odom_vx_mps,mm);
-% Fvx = movmean(data.oms_vel_x_kmh, mm) ./ 3.6;
+Fvx = movmean(data.oms_vel_x_kmh, mm) ./ 3.6;
 Fvy = movmean(data.odom_vy_mps,mm);
 
 Frpm = movmean(data.engine_rpm,mm);
@@ -181,6 +268,52 @@ yaw_unwrapped = unwrap(Fyaw);
 
 x_pos = data.odom_px_m;
 y_pos = data.odom_py_m;
+
+%% longitudinal acceleration source
+% ax_source picks what feeds Fax, which sets Fx_total and so every longitudinal
+% force in this script. It has to be chosen here rather than up with the other
+% filtered channels, because the derivative needs Fvx, Fvy and Fwz.
+%
+%   "channel"     data.a_x as logged.
+%
+%   "derivative"  differentiated from the filtered speed, so it inherits
+%                 whatever Fvx is built from. Body-frame kinematics rather than
+%                 a plain derivative: for axes that turn with the car,
+%                 a_x = d(vx)/dt - r*vy. On this recording the r*vy term is
+%                 tiny (p95 about 0.05 m/s^2, ~40 N) because the odometry
+%                 sideslip stays near zero, but it is the correct form and
+%                 costs nothing.
+%
+% The derivative differentiates straight across a section seam. seamValid
+% already vetoes those samples in the results, but the raw trace in fig S0 will
+% show a spike at each join.
+
+ax_dt = gradient(t);
+ax_dt(ax_dt <= 0) = median(ax_dt(ax_dt > 0));
+
+switch lower(string(ax_source))
+
+    case "channel"
+        Fax = Fax_channel;
+        ax_source_label = "logged a_x";
+
+    case "derivative"
+        Fax = movmean(gradient(Fvx) ./ ax_dt, mm) - Fwz .* Fvy;
+        ax_source_label = "d(v_x)/dt - r v_y";
+
+    otherwise
+        error("notmal_force_estimation:badAxSource", ...
+            "ax_source must be ""channel"" or ""derivative"", got ""%s"".", ...
+            ax_source);
+end
+
+axCompare = isfinite(Fax) & isfinite(Fax_channel) & seamValid;
+
+fprintf("a_x source: %s  (vs the logged channel: bias %+.3f, rms %.3f m/s^2, %d samples)\n", ...
+    ax_source_label, ...
+    mean(Fax(axCompare) - Fax_channel(axCompare)), ...
+    std(Fax(axCompare) - Fax_channel(axCompare)), ...
+    sum(axCompare));
 
 %% tire temp
 
@@ -318,28 +451,91 @@ ylabel(cb, "Time [s]");
 %% adjusting strain gage sensors
 
 
-% geometric nmormal forces
+% STATIC CORNER LOADS  [FL FR RL RR], newtons.
+%
+% This is a MEASUREMENT INPUT. Put corner scale readings here. The default
+% below is the old geometric split - 42% front, and left/right assumed equal -
+% which is an assumption, not data, and it is the assumption that a cross-weight
+% violates.
+%
+% Why it matters: the dual-track model splits each axle by these shares, so a
+% cross-weight the car really has but this array does not will land entirely on
+% one tire's mu. With an open diff, where both rear wheels take equal force,
+% that error goes straight into deciding which wheel spins first - the lighter
+% one always lets go first, so getting its load wrong points the blame at the
+% wrong corner.
+%
+% This recording HINTS at a rear cross-weight with RR heavier, but cannot size
+% it. The gages say RR-RL is about +405 N at matched free-rolling conditions and
+% the damper pots say about +171 N - a factor of 2.4 apart - and over the session
+% the two ANTI-correlate (r = -0.88). Meanwhile the gage bias itself wanders 243 N
+% on FR and 189 N on RL at matched conditions, with the four-corner sum moving
+% 462 N when it must be constant. The sign is probably real; the magnitude is
+% inside the noise.
+%
+% GET CORNER SCALES. Nothing in a driving log can separate a real cross-weight
+% from a gage offset - see the zeroing note below.
+staticCornerLoad_N = [1679, 1679, 2318.6, 2318.6];   % [FL FR RL RR]
 
-fz_rr_geo = 2318.6;
-fz_rl_geo = 2318.6;
-fz_fr_geo = 1679;
-fz_fl_geo = 1679;
+fz_fl_geo = staticCornerLoad_N(1);
+fz_fr_geo = staticCornerLoad_N(2);
+fz_rl_geo = staticCornerLoad_N(3);
+fz_rr_geo = staticCornerLoad_N(4);
 
+% Left/right share of each axle, used to split the modelled axle loads per
+% corner. Symmetric corner loads give 0.5 each and reproduce the old /2 exactly,
+% so this changes nothing until real corner weights go in above.
+cornerShare_fl = fz_fl_geo / (fz_fl_geo + fz_fr_geo);
+cornerShare_fr = fz_fr_geo / (fz_fl_geo + fz_fr_geo);
+cornerShare_rl = fz_rl_geo / (fz_rl_geo + fz_rr_geo);
+cornerShare_rr = fz_rr_geo / (fz_rl_geo + fz_rr_geo);
 
+fprintf("static corner shares: front %.3f/%.3f L/R, rear %.3f/%.3f L/R", ...
+    cornerShare_fl, cornerShare_fr, cornerShare_rl, cornerShare_rr);
 
- 
-% gage_zero = [fl fr rl rr] sampled at the start of the full recording
-error_rr = gage_zero(4) - fz_rr_geo;
-Fz_rr_adjusted = Ffz_rr - error_rr;
+if abs(cornerShare_rl - 0.5) < 1e-6 && abs(cornerShare_fl - 0.5) < 1e-6
+    fprintf("   <- SYMMETRIC (assumed, not measured - see staticCornerLoad_N)\n");
+else
+    fprintf("   <- cross-weight carried through to the per-tire loads\n");
+end
 
-error_rl = gage_zero(3) - fz_rl_geo;
-Fz_rl_adjusted = Ffz_rl - error_rl;
+%% zeroing the gages
+%
+% gage_zero comes from the top of the script, sampled on the full recording
+% before the time window is applied.
+%
+% Treat Fz_*_adjusted as a DIAGNOSTIC TRACE, not as truth. The gage bias drifts
+% during a session, up and down, so no single zero - one sample or an average -
+% is correct at every point in the run. That is the whole reason the derivative
+% observer further down exists: it takes only the RATE of the gage signal, where
+% a slowly drifting bias differentiates away, and anchors the absolute level to
+% the dual-track model instead.
+%
+% For context on how unreliable the absolute level is, the four stationary
+% stretches in this recording redistribute by more than 1000 N while their SUM
+% stays put at about 14800:
+%
+%     0-562 s      FL 3666  FR 3574  RL 3586  RR 3990    RR-RL  405
+%     564-698 s    FL 4093  FR 3186  RL 3155  RR 4463    RR-RL 1308
+%     2213-2229 s  FL 3834  FR 3426  RL 3333  RR 4183    RR-RL  850
+%     2538-2548 s  FL 3572  FR 3691  RL 3659  RR 3847    RR-RL  188
+%
+% Constant sum, diagonal redistribution - the car standing on uneven ground with
+% suspension stiction holding whatever state it settled into, on top of whatever
+% the bias is doing. Any of those four windows would give a different zero.
+% Nothing here can separate a real cross-weight from gage bias, which is why
+% staticCornerLoad_N above wants corner scales rather than a number fitted from
+% this data.
 
-error_fr = gage_zero(2) - fz_fr_geo;
-Fz_fr_adjusted = Ffz_fr - error_fr;
+error_fl = gage_zero(1) - fz_fl_geo;   Fz_fl_adjusted = Ffz_fl - error_fl;
+error_fr = gage_zero(2) - fz_fr_geo;   Fz_fr_adjusted = Ffz_fr - error_fr;
+error_rl = gage_zero(3) - fz_rl_geo;   Fz_rl_adjusted = Ffz_rl - error_rl;
+error_rr = gage_zero(4) - fz_rr_geo;   Fz_rr_adjusted = Ffz_rr - error_rr;
 
-error_fl = gage_zero(1) - fz_fl_geo;
-Fz_fl_adjusted = Ffz_fl - error_fl;
+fprintf("  offsets removed [N]: FL %+.0f  FR %+.0f  RL %+.0f  RR %+.0f\n", ...
+    error_fl, error_fr, error_rl, error_rr);
+fprintf("  static corner loads used [N]: FL %.0f  FR %.0f  RL %.0f  RR %.0f  (sum %.0f)\n", ...
+    fz_fl_geo, fz_fr_geo, fz_rl_geo, fz_rr_geo, sum(staticCornerLoad_N));
 
 
 
@@ -405,19 +601,19 @@ vehicleParams.t_r         = 1.5239686;   % rear track (m)   [1523.9686 mm]
 % avg stiffness*(motion_ratio)^2
 
 vehicleParams.wheelRate_f = 2.985553732e5;  % (N/m) was 2.98
-vehicleParams.wheelRate_r = 3.941321827e5;  % (N/m)
+vehicleParams.wheelRate_r = 2.941321827e5;  % (N/m)
 
 vehicleParams.ARB_f       = 0;             % (Nm/deg)  TBD
 vehicleParams.ARB_r       = 0;              % (Nm/deg)  no anti roll bar in rear
 
-vehicleParams.cg_z        = 0.275;          % CG height (m)  [275 mm]
+vehicleParams.cg_z        = 0.575;          % CG height (m)  [275 mm]
 vehicleParams.rc_f        = 0.1202436;      % roll center front (m) 
 vehicleParams.rc_r        = 0.0016628;      % roll center rear  (m) 
 
 vehicleParams.toe_f       = -0.451;         % toe front (deg, - = out) 
 vehicleParams.toe_r       = -0.451;         % toe rear  (deg, - = out)
 
-vehicleParams.m           = 815;            % vehicle mass (kg)  [base vehicle mass]
+vehicleParams.m           = 800;            % vehicle mass (kg)  [base vehicle mass]
 
 vehicleParams.mech_trail_f = 0;             % mech trail front (m) TBD
 vehicleParams.mech_trail_r = 0;             % mech trail rear  (m) TBD
@@ -429,6 +625,51 @@ vehicleParams.ACd         = 0.58;           % Area*coef down force      TBD
 vehicleParams.aeroBalance = .33;            % frontal aero load (-) 33% avg
 vehicleParams.copShift    = 0;              % balance shift with Vx (%/(m/s))TBD
 vehicleParams.inertia     = 1000;           % moment of inertia
+
+% Loaded tire radii. R_f is the anchor and has to come from a measurement -
+% a rolling-circumference check, or the tire data sheet at your hot pressure.
+% Nothing in this log fixes the ABSOLUTE scale: the wheel speed channels give
+% omega*R, and without an independent omega there is no way to separate the two.
+%
+% What the log DOES fix is the RATIO, from the wheel speed calibration above.
+% It reads R_r/R_f = 1.0056, against the 1.0333 that the old hard-coded pair
+% (0.30 / 0.31) implied - six times the difference. R_r is therefore derived
+% rather than typed in, so the radii and the wheel speeds cannot drift apart.
+%
+% Set useMeasuredRadiusRatio = false to go back to a hand-entered R_r.
+useMeasuredRadiusRatio = true;
+
+vehicleParams.R_f         = 0.30;           % front loaded tire radius (m) - MEASURE THIS
+
+if useMeasuredRadiusRatio
+    vehicleParams.R_r     = vehicleParams.R_f * rollingRadiusRatio;
+    radiusSource          = "from wheel speeds";
+else
+    vehicleParams.R_r     = 0.31;           % rear loaded tire radius (m)
+    radiusSource          = "hand-entered";
+end
+
+fprintf("tire radii: R_f %.4f m (anchor), R_r %.4f m (%s), ratio %.4f\n", ...
+    vehicleParams.R_f, vehicleParams.R_r, radiusSource, ...
+    vehicleParams.R_r / vehicleParams.R_f);
+
+% Radius used to turn est_drive_torque_nm into a force at the rear contact
+% patch. This is the weak link in the engine-braking split: a force-balance fit
+% over the no-brake samples of this log put it near 0.356 m, but it was unstable
+% across subsets (0.35 to 0.49 m) and implied a negative rolling resistance, so
+% it is absorbing a bias somewhere. Treat it as a knob to sweep, not a
+% measurement - over that range the rear mu correction runs +8% to +12%.
+vehicleParams.R_driveline = 0.31;           % (m)
+
+% Axle brake torque per unit line pressure: 2 * pad mu * piston area *
+% effective rotor radius, per axle. Only the RATIO of the two matters here, so
+% the units are free and leaving both at 1 says "the two axles have the same
+% brake hardware". That is an assumption, not a measurement - if the front and
+% rear calipers, pads or rotors differ, this is a far bigger lever on the brake
+% split than the tire radii below it, so it is worth filling in from the
+% hardware if you have the numbers.
+vehicleParams.brakeGain_f = 1.0;            % (Nm/kPa, arbitrary matched units)
+vehicleParams.brakeGain_r = 1.0;            % (Nm/kPa, arbitrary matched units)
 
 %% load tranfer calcs (bycicle)
 
@@ -533,11 +774,20 @@ LAT_weightTransferGradient_r = (w/t_r) * ((cg2rollAxis * k_phi_r)/(k_phi_f + k_p
 % legend("front load tranfer in (N)","rear load tranfer N")
 
 
-Fz_fr = fz_f_curvature/2 + LAT_weightTransferGradient_f * (Fay/9.81);
-Fz_fl = fz_f_curvature/2 - LAT_weightTransferGradient_f* (Fay/9.81);
+% Split each axle by its STATIC CORNER SHARE, not by half. With a symmetric
+% staticCornerLoad_N this is identical to the old /2; with corner scales entered
+% it carries the cross-weight through to the per-tire loads.
+%
+% This matters most with the open diff: both rear wheels take equal FORCE, so
+% which one lets go first is decided purely by which one carries less load. If
+% the model says they are equal and they are not, the per-tire mu panels in
+% fig S8 split apart by the cross-weight and the wrong wheel looks like the
+% limiting one.
+Fz_fr = fz_f_curvature .* cornerShare_fr + LAT_weightTransferGradient_f * (Fay/9.81);
+Fz_fl = fz_f_curvature .* cornerShare_fl - LAT_weightTransferGradient_f * (Fay/9.81);
 
-Fz_rr = fz_r_curvature/2 + LAT_weightTransferGradient_r* (Fay/9.81);
-Fz_rl = fz_r_curvature/2 - LAT_weightTransferGradient_r* (Fay/9.81);
+Fz_rr = fz_r_curvature .* cornerShare_rr + LAT_weightTransferGradient_r * (Fay/9.81);
+Fz_rl = fz_r_curvature .* cornerShare_rl - LAT_weightTransferGradient_r * (Fay/9.81);
 
 
 
@@ -589,11 +839,14 @@ linkaxes(axs, 'x')
 
 
 %%
-Fz_fr = fz_f_curvature/2 + LAT_weightTransferGradient_f * (Fay/9.81);
-Fz_fl = fz_f_curvature/2 - LAT_weightTransferGradient_f * (Fay/9.81);
+% NOTE this block, not the earlier one, is what the observer consumes - it is
+% the last assignment to Fz_* before Fz_model is built. Same static corner
+% shares as above.
+Fz_fr = fz_f_curvature .* cornerShare_fr + LAT_weightTransferGradient_f * (Fay/9.81);
+Fz_fl = fz_f_curvature .* cornerShare_fl - LAT_weightTransferGradient_f * (Fay/9.81);
 
-Fz_rr = fz_r_curvature/2 + LAT_weightTransferGradient_r * (Fay/9.81);
-Fz_rl = fz_r_curvature/2 - LAT_weightTransferGradient_r * (Fay/9.81);
+Fz_rr = fz_r_curvature .* cornerShare_rr + LAT_weightTransferGradient_r * (Fay/9.81);
+Fz_rl = fz_r_curvature .* cornerShare_rl - LAT_weightTransferGradient_r * (Fay/9.81);
 
 
 
@@ -824,18 +1077,69 @@ defaultFrontBrakeBias = 0.53;
 maxFrontBrakeBias     = 0.8;   
 minFrontBrakeBias     = 0.2;     
 Fx_deadband_N         = 50;       
-CdA_drag              = 1.33;     
+CdA_drag              = 1.33; %1.33;     
 rho                   = 1.225;   
 g                     = 9.81;    
 Iz                    = vehicleParams.inertia;
 
-useBankCorrection = true;   
-plot_per_tire     = true;   
-use_observed_Fz   = true;  
-slip_ratio_def = "sae"; % or wheel
-fx_split_mode = "load";
+useBankCorrection = false;
+plot_per_tire     = true;
+use_observed_Fz   = true;
+slip_ratio_def = "wheel"; % or wheel
+fx_split_mode = "even";
 
-ay_max_pure_long = 2.0;   % m/s^2
+% Engine braking is a 100%-REAR force. See the F_x split section below for what
+% this changes and why it is not simply "adding a missing force". Set false to
+% recover the old pressure-only split exactly, for an A/B.
+include_engine_braking = true;
+
+% Where the engine brake torque comes from.
+%
+%   "map"             interpolate an engine map on (rpm, throttle). Preferred:
+%                     it is a physical model rather than an estimator output,
+%                     and it extrapolates to runs the estimator was not tuned
+%                     for.
+%   "torque_channel"  est_drive_torque_nm as logged.
+%
+% WHICH MAP. engine_map_boosted_reduced.csv is 3.2x too steep in engine
+% braking. Its zero-throttle column is the straight line -0.033*(rpm-500),
+% which reaches -137 Nm at 4650 rpm - 26% of the 526 Nm peak, where a boosted
+% engine motors at 8-15%. Using it makes the calipers produce +1775 N with the
+% pedal up (see the zero-pressure test below), which is impossible.
+% engine_map_newEnginebrake.csv is -0.0097*rpm, lands at -45 Nm, and leaves a
+% +78 N intercept. That is the one to use. Note it has NO header row, so the
+% throttle breakpoints are supplied here instead.
+engine_brake_source = "map";
+
+engineMapFile = "/home/elijah/code/CodeFiles/Research/VD/data_analisis/putnam_coast_down/engine_map_newEnginebrake.csv";
+
+% Throttle fraction each column of the map stands for. Only read when the file
+% has no header row.
+engineMap_throttleBreaks = [0, 0.3, 1.0];
+
+% Trim on the map's engine-brake torque. Solving "calipers make zero force at
+% zero line pressure" over this log wants 0.91 for newEnginebrake and 0.31 for
+% boosted_reduced - both landing on about -41 Nm at 4650 rpm. Left at 1.0
+% because 0.91 is inside the noise of that fit; set it if you re-run the
+% zero-pressure check on your own data.
+engineMap_scale = 1.0;
+
+% Throttle fraction at or below which the engine is treated as fully closed.
+%
+% These maps jump straight from a 0.0 column to a 0.3 column, so they have NO
+% resolution in between, and a linear interpolation across that gap is
+% meaningless: at 4650 rpm it reads a 2% pedal opening as 7% of the way from
+% -45 Nm to +58 Nm, quietly deleting 15% of the engine braking. The throttle
+% channel makes that worse - it floors at 3.2% and sits at 5.2% (a fraction of
+% 0.021) all the way through hard braking, which is the throttle body's idle
+% position, not the driver asking for torque.
+%
+% So below this fraction the zero-throttle column is used as-is. 0.05 clears
+% the 0.021 median and the 0.027 p95 seen under braking while still letting a
+% genuine trail-brake application (p99 is 0.36) interpolate normally.
+engineMap_closedThrottleFrac = 0.05;
+
+ay_max_pure_long = 30.0;   % m/s^2
 Fwy = -movmean(data.odom_wy_rads,mm);%eport and the sample is
 biasMap_pressureMin_kPa = 400;
 biasMap_climTail        = 0.01;
@@ -848,8 +1152,8 @@ kappaMap_colorGamma =  1.00;                  % < 1 packs the cool hues into sma
 kappaMap_tickStep   =  0.02;                  % colorbar tick spacing
 kappaMap_posColor   = [0.720, 0.720, 0.720];  % flat grey past posLimit
 
-lf = b;   
-lr = a;   
+lf = a;   
+lr = b;   
 
 %% yaw acceleration
 dt_series = gradient(t);
@@ -888,18 +1192,59 @@ Fyr = (m .* lf .* ay_tire - Iz .* rdot) ./ L;
 %% total longitudinal force (force balance along the vehicle x axis)
 Fdrag    = 0.5 .* rho .* CdA_drag .* Fvx .* abs(Fvx);
 Fgrade   = m .* g .* sin(Fpitch);
-Fx_total = m .* Fax + Fdrag + Fgrade + Fyf .* sin(toe_rad); % not adding in lat controbutin
+Fx_total = m .* Fax + Fdrag + Fgrade + Fyf .* sin(toe_rad)*0; % not adding in lat controbutin
 
 %% Fx split front / rear by measured brake bias
+% biasF is a FORCE bias - the share of the braking force at the contact patch
+% that the front axle makes - because that is what Fx_total has to be split by.
+% Line pressure does not give that directly. The chain is
+%
+%   pressure -> axle brake torque -> longitudinal force at the ground
+%   T_axle = brakeGain * P            Fx_axle = T_axle / R_tire
+%
+% so the front share is (gain_f*Pf/R_f) / (gain_f*Pf/R_f + gain_r*Pr/R_r).
+% Splitting on Pf/(Pf+Pr) is that expression with gain_f = gain_r AND
+% R_f = R_r: it assumes matched brake hardware and equal tire radii. The radii
+% are not equal here (0.30 front, 0.31 rear), so a given torque makes about
+% 3.3% more force at the front than the naive split credits it with.
+%
+% Setting R_f = R_r and leaving both gains at 1 recovers the old pressure-ratio
+% behaviour exactly, so this is the switch for comparing the two.
+%
+% Note this is the torque-to-force conversion only. It says nothing about
+% whether an axle can USE that force - a locked wheel makes what friction
+% allows, not what the caliper commands - so these shares are the demand, not a
+% measurement of what the tires did.
+
 Pf = Fbrake;                                       % front brake pressure [kPa]
 Pr = movmean(data.rear_brake_pressure_kpa, mm);    % rear brake pressure  [kPa]
 
 brakePressureTotal = Pf + Pr;
 hasBrakePressure   = brakePressureTotal > brakePressureMin_kPa;
 
+R_f = vehicleParams.R_f;
+R_r = vehicleParams.R_r;
+
+brakeForce_f = vehicleParams.brakeGain_f .* Pf ./ R_f;   % front force demand
+brakeForce_r = vehicleParams.brakeGain_r .* Pr ./ R_r;   % rear force demand
+
+brakeForceTotal = brakeForce_f + brakeForce_r;
+
 biasF = defaultFrontBrakeBias .* ones(size(Fx_total));
-biasF(hasBrakePressure) = Pf(hasBrakePressure) ./ brakePressureTotal(hasBrakePressure);
+biasF(hasBrakePressure) = brakeForce_f(hasBrakePressure) ...
+                       ./ brakeForceTotal(hasBrakePressure);
 biasF = max(0, min(1, biasF));
+
+% Pressure ratio kept alongside, so fig S0 can show what the radii moved and so
+% the bias map below has the raw hardware quantity to draw.
+biasF_pressure = defaultFrontBrakeBias .* ones(size(Fx_total));
+biasF_pressure(hasBrakePressure) = Pf(hasBrakePressure) ...
+                                ./ brakePressureTotal(hasBrakePressure);
+biasF_pressure = max(0, min(1, biasF_pressure));
+
+fprintf("brake split: R_f %.3f m, R_r %.3f m, gain ratio f/r %.3f -> front force bias is %+.4f vs the pressure ratio (median over braking samples)\n", ...
+    R_f, R_r, vehicleParams.brakeGain_f / vehicleParams.brakeGain_r, ...
+    median(biasF(hasBrakePressure) - biasF_pressure(hasBrakePressure)));
 
 
 biasTooHigh = hasBrakePressure & biasF > maxFrontBrakeBias;
@@ -913,15 +1258,182 @@ fprintf("brake bias outside [%.2f %.2f] rejected on %d of %d samples (%.1f%%): %
 driveMode = Fx_total >  Fx_deadband_N;
 brakeMode = Fx_total < -Fx_deadband_N;
 
+% Engine braking, and why this is a SPLIT fix rather than a missing force.
+%
+% Fx_total comes from measured deceleration, so the driveline drag is already
+% inside it - nothing is missing from the total, and adding F_engine on top of
+% Fx_total would double-count it and break the force balance.
+%
+% The error is that biasF is a brake PRESSURE ratio, so the old two lines below
+% divided the whole of Fx_total 53/47 as though every newton of it came out of
+% a caliper. Engine braking comes out of the driveline and is 100% rear, so the
+% front was being credited with biasF of it. The under-count on the rear is
+%
+%     biasF * F_engine
+%
+% and NOT the whole of F_engine. Only the caliper share deserves the pressure
+% split:
+%
+%     F_caliper = Fx_total - F_engine        split by biasF
+%     F_engine  = T_drive / R_driveline      all of it to the rear
+%
+% On this log that is worth +16% to the rear mu at a_x = -5, +11% at -7 and
+% +7% at -9 - the largest single asymmetry between the accel and braking
+% branches, though not the whole of it. Note it fades as the braking gets
+% harder, because the caliper force grows while the engine torque does not.
+
+% Engine torque -> force at the rear contact patch, by POWER BALANCE:
+%
+%     T_engine * omega_engine  =  F_contact * v_wheel_surface
+%     F = T_engine * omega_engine / Vw_rear
+%
+% This needs no gear ratio, no final drive and no tire radius - the measured
+% rpm and the measured wheel speed already carry all of it, and it stays right
+% through a shift. (For reference the ratios implied by this log are 8.70,
+% 5.59 and 4.12 for gears 1-3.) It also handles rear wheel slip correctly,
+% which is why it uses the wheel speed channel and not Fvx: the driveline is
+% tied to the wheel, not to the road.
+%
+% Lossless is assumed. Driveline friction during engine braking acts with the
+% engine, so this slightly UNDER-states the rear force - conservative here.
+
+if include_engine_braking
+
+    switch lower(string(engine_brake_source))
+
+        case "torque_channel"
+            % est_drive_torque_nm is already an axle torque on this log, so it
+            % only needs the loaded radius.
+            Fx_engine = FT_e ./ vehicleParams.R_driveline;
+            engine_brake_label = "est\_drive\_torque\_nm";
+
+        case "map"
+            % Rear wheel surface speed. Deliberately a clean /3.6 rather than
+            % the /3.61 - 0.1 used in the slip-ratio section further down: that
+            % fudge belongs to slip ratio, and letting it into a power balance
+            % would put a false offset on the engine force at every speed.
+            Vw_rear_eng = 0.5 .* (movmean(data.rl_speed_kmh, mm) ...
+                                + movmean(data.rr_speed_kmh, mm)) ./ 3.6;
+
+            % throttle_pct does not read 0 with the pedal up - it floors near
+            % 3% on this log. Feeding the raw percentage into the map
+            % interpolates ~10% toward the 0.3 column and throws away about a
+            % quarter of the engine braking, so the closed reading is measured
+            % off the data and removed.
+            throttle_closed_pct = prctile(throttle, 1);
+            throttle_frac = max(0, (throttle - throttle_closed_pct) ...
+                                 ./ max(100 - throttle_closed_pct, eps));
+
+            % Snap idle-position throttle onto the motoring column rather than
+            % interpolating across the map's unresolved 0-to-0.3 gap. See
+            % engineMap_closedThrottleFrac above.
+            closedThrottle = throttle_frac <= engineMap_closedThrottleFrac;
+            throttle_frac(closedThrottle) = 0;
+
+            T_engine = engineMap_scale .* lookupEngineTorque( ...
+                engineMapFile, engineMap_throttleBreaks, Frpm, throttle_frac);
+
+            % Below a few m/s the power balance divides by a vanishing wheel
+            % speed. Those samples are far outside every mask in this script.
+            Vw_safe = Vw_rear_eng;
+            Vw_safe(abs(Vw_safe) < 2) = NaN;
+
+            Fx_engine = T_engine .* (Frpm .* 2*pi/60) ./ Vw_safe;
+            Fx_engine(~isfinite(Fx_engine)) = 0;
+
+            engine_brake_label = "map: " + string(engineMapFile);
+
+            fprintf("engine map: %s\n", engineMapFile);
+            fprintf("  throttle closed reading %.2f%% removed before lookup; %.1f%% of samples snapped to the motoring column\n", ...
+                throttle_closed_pct, 100*mean(closedThrottle));
+
+        otherwise
+            error("notmal_force_estimation:badEngineBrakeSource", ...
+                "engine_brake_source must be ""map"" or ""torque_channel"", got ""%s"".", ...
+                engine_brake_source);
+    end
+else
+    Fx_engine = zeros(size(Fx_total));
+    engine_brake_label = "none";
+end
+
+Fx_caliper = Fx_total - Fx_engine;
+
+% A caliper can only ever oppose motion. Where the torque estimate is large
+% enough to imply a forward caliper force, trust the measured total instead and
+% hand the whole of it to the driveline, so the two shares always sum back to
+% Fx_total whatever R_driveline is set to.
+engineOvershoot = brakeMode & Fx_caliper > 0;
+
+Fx_caliper(engineOvershoot) = 0;
+Fx_engine(engineOvershoot)  = Fx_total(engineOvershoot);
+
 Fxf = zeros(size(Fx_total));
 Fxr = zeros(size(Fx_total));
 
 % Drive: rear wheel drive, so all of the tractive force sits on the rear axle.
+% The engine term needs no special handling here - it is already all rear.
 Fxr(driveMode) = Fx_total(driveMode);
 
-% Brake: split by the measured brake bias.
-Fxf(brakeMode) = biasF(brakeMode)       .* Fx_total(brakeMode);
-Fxr(brakeMode) = (1 - biasF(brakeMode)) .* Fx_total(brakeMode);
+% Brake: pressure split on the caliper share only, driveline share all rear.
+Fxf(brakeMode) = biasF(brakeMode)       .* Fx_caliper(brakeMode);
+Fxr(brakeMode) = (1 - biasF(brakeMode)) .* Fx_caliper(brakeMode) ...
+               + Fx_engine(brakeMode);
+
+if include_engine_braking
+
+    fprintf("engine braking: source %s, %d braking samples, %d clamped by the caliper-sign guard\n", ...
+        engine_brake_label, sum(brakeMode), sum(engineOvershoot));
+
+    hardBrake = brakeMode & Fax < -4 & isfinite(Fx_engine);
+
+    if any(hardBrake)
+        rear_old = (1 - biasF(hardBrake)) .* Fx_total(hardBrake);
+        rear_new = Fxr(hardBrake);
+
+        fprintf("  a_x < -4: median F_engine %+.0f N, rear F_x %+.0f -> %+.0f N (%+.1f%% on rear mu)\n", ...
+            median(Fx_engine(hardBrake)), median(rear_old), median(rear_new), ...
+            100 * (median(rear_new) / median(rear_old) - 1));
+    end
+
+    % Sanity: the two shares must add back up to the total everywhere.
+    splitErr = max(abs(Fxf(brakeMode) + Fxr(brakeMode) - Fx_total(brakeMode)));
+
+    fprintf("  force balance check: max |Fxf + Fxr - Fx_total| over braking samples = %.3g N\n", splitErr);
+
+    % ZERO-PRESSURE TEST - the thing that tells you whether the engine brake
+    % model is the right SIZE, independent of everything else in the script.
+    %
+    % Regress the caliper share against line pressure over the braking samples.
+    % With the pedal up the calipers make nothing, so the fit must pass through
+    % the origin. Too large an engine brake leaves a POSITIVE intercept, which
+    % says the calipers are pushing the car forward at zero pressure - not a
+    % thing that happens. Too small leaves a negative one, which is the error
+    % the old pressure-only split had.
+    %
+    % On this log: boosted_reduced +1775 N (3.2x too steep), newEnginebrake
+    % +78 N, est_drive_torque_nm -196 N, no engine brake at all -781 N.
+
+    presFloor = prctile(brakePressureTotal, 1);
+    zpValid   = brakeMode & isfinite(Fx_caliper) & isfinite(brakePressureTotal);
+
+    if sum(zpValid) > 100
+
+        Xzp  = [brakePressureTotal(zpValid) - presFloor, ones(sum(zpValid),1)];
+        czp  = Xzp \ Fx_caliper(zpValid);
+
+        fprintf("  zero-pressure test: caliper force = %.3f*P %+.0f N -> intercept %+.0f N", ...
+            czp(1), czp(2), czp(2));
+
+        if abs(czp(2)) < 250
+            fprintf("   (OK)\n");
+        elseif czp(2) > 0
+            fprintf("   (engine brake TOO LARGE - calipers would push forward)\n");
+        else
+            fprintf("   (engine brake TOO SMALL)\n");
+        end
+    end
+end
 
 
 
@@ -931,10 +1443,37 @@ Fy_rl = Fyr ./ 2;   Fy_rr = Fyr ./ 2;
 
 %% wheel speeds and tire-frame velocities
 
-Vw_fl = movmean(data.fl_speed_kmh, mm) ./ 3.61 - 0.1;
-Vw_fr = movmean(data.fr_speed_kmh, mm) ./ 3.61 - 0.1;
-Vw_rl = movmean(data.rl_speed_kmh, mm) ./ 3.61 - 0.1;
-Vw_rr = movmean(data.rr_speed_kmh, mm) ./ 3.61 - 0.1;
+% Per-wheel scale from the free-rolling calibration at the top of the script,
+% replacing the old common  ./3.61 - 0.1. See that section for why one shared
+% factor cannot serve two different tire sizes.
+Vw_fl = movmean(data.fl_speed_kmh, mm) ./ 3.6 ./ wheelSpeedCal(1);
+Vw_fr = movmean(data.fr_speed_kmh, mm) ./ 3.6 ./ wheelSpeedCal(2);
+Vw_rl = movmean(data.rl_speed_kmh, mm) ./ 3.6 ./ wheelSpeedCal(3);
+Vw_rr = movmean(data.rr_speed_kmh, mm) ./ 3.6 ./ wheelSpeedCal(4);
+
+% Residual free-rolling slip inside the analysed window. Every one of these
+% should print as ~0; a number here is a standing bias on that wheel's slip
+% ratio in figs S7/S8 and in the exported CSVs.
+calCheck = abs(Fay) < wheelCal_ayMax & abs(steering_wheel) < wheelCal_steerMax ...
+         & abs(Fax) < wheelCal_axMax & Fbrake < wheelCal_brakeMax_kPa ...
+         & Fvx > wheelCal_vxMin;
+
+if any(calCheck)
+
+    fprintf("wheel speed check inside the window (%d free-rolling samples):", sum(calCheck));
+
+    vwList = {Vw_fl, Vw_fr, Vw_rl, Vw_rr};
+
+    for iWheel = 1:4
+        vw = vwList{iWheel};
+        fprintf("  %s %+.5f", wheelSpeed_names(iWheel), ...
+            mean((vw(calCheck) - Fvx(calCheck)) ./ vw(calCheck), "omitnan"));
+    end
+
+    fprintf("   (all should be ~0)\n");
+else
+    fprintf("wheel speed check: no free-rolling samples inside this time_segment, cannot verify\n");
+end
 
 Vw_front = 0.5 .* (Vw_fl + Vw_fr);
 Vw_rear  = 0.5 .* (Vw_rl + Vw_rr);
@@ -1178,9 +1717,11 @@ legend("front", "rear", "Location", "best");
 title("Brake pressure");
 
 axS0(3) = subplot(5,1,3);
-plot(t_plot, biasF, "DisplayName", "bias used");
+plot(t_plot, biasF, "DisplayName", "force bias used");
 hold on
 plot(t_plot, biasF_measured, "LineWidth", 1.5, "DisplayName", "measured only");
+plot(t_plot, biasF_pressure, ":", "LineWidth", 1.2, ...
+    "DisplayName", "pressure ratio P_f/(P_f+P_r)");
 plot(t(~biasValid), biasF(~biasValid), "rx", "MarkerSize", 5, ...
     "DisplayName", "rejected");
 yline(defaultFrontBrakeBias, "k--", "default", "HandleVisibility", "off");
@@ -1190,7 +1731,7 @@ grid on
 ylim([0 1]);
 ylabel("Front bias [-]");
 legend("Location", "best");
-title("Front brake bias  P_f / (P_f + P_r)");
+title("Front brake bias - force share used to split F_x, against the raw pressure ratio");
 
 axS0(4) = subplot(5,1,4);
 plot(t_plot, Fax);
@@ -1401,100 +1942,137 @@ if plot_per_tire
     sgtitle(sprintf('Slip ratio vs measured longitudinal force / %s   (%s, %s)', ...
         Fz_label, slip_ratio_label, pureLong_label));
 
-    %% fig S8b - fig S8 colored by tire temperature instead of time
-    % Same axes and the same samples as fig S8, but each point is colored by
-    % that tire's own average temperature (tire_temp_mean_f) rather than by when
-    % it happened. Read this way a cold-tire branch separates from a hot-tire
-    % branch that otherwise sit on top of each other in fig S8.
+    %% figs S8b, S8c - fig S8 colored by condition instead of by time
+    % Same axes and the same samples as fig S8; only the color changes. Fig S8
+    % colors by time, which answers "when did this happen". These answer "under
+    % what condition", which is what pulls apart two branches of a tire curve
+    % that otherwise sit on top of each other.
     %
-    % A sample with no live sensor on that tire has a NaN average and cannot be
-    % colored, so those drop out on top of the fig S8 masks. RL and RR only ever
-    % have three live sensors (see the tire temp section), so their counts are
-    % the ones to watch.
+    %   S8b  tire temperature - that tire's own across-tread average
+    %   S8c  speed
+    %   S8d  yaw rate, signed, on a scale centred on zero
     %
-    % The four panels share one color scale. Left to themselves, a tire that
-    % only moved through 5 degC would use the same full ramp as one that moved
-    % through 40, and the panels could not be read against each other.
+    % A sample whose color channel is NaN cannot be drawn and is dropped on top
+    % of the fig S8 masks. That matters for temperature, where RL and RR only
+    % ever have three live sensors (see the tire temp section).
+    %
+    % Within a figure the four panels share one color scale. Left to themselves
+    % a tire that only moved through 5 degC would use the same full ramp as one
+    % that moved through 40, and the panels could not be read against each
+    % other.
 
-    tempS8_valid = { ...
-        validFL_Ln & isfinite(tire_temp_mean_f(:,1)), ...
-        validFR_Ln & isfinite(tire_temp_mean_f(:,2)), ...
-        validRL_Ln & isfinite(tire_temp_mean_f(:,3)), ...
-        validRR_Ln & isfinite(tire_temp_mean_f(:,4))};
+    s8_baseValid = {validFL_Ln, validFR_Ln, validRL_Ln, validRR_Ln};
+    s8_kappa     = {slip_ratio_x_fl, slip_ratio_x_fr, slip_ratio_x_rl, slip_ratio_x_rr};
+    s8_fx        = {fx_fl, fx_fr, fx_rl, fx_rr};
+    s8_fz        = {Fz_fl_norm, Fz_fr_norm, Fz_rl_norm, Fz_rr_norm};
 
-    tempS8_kappa = {slip_ratio_x_fl, slip_ratio_x_fr, slip_ratio_x_rl, slip_ratio_x_rr};
-    tempS8_fx    = {fx_fl, fx_fr, fx_rl, fx_rr};
-    tempS8_fz    = {Fz_fl_norm, Fz_fr_norm, Fz_rl_norm, Fz_rr_norm};
+    s8_colorTags   = ["S8b", "S8c", "S8d"];
+    s8_colorNames  = ["tire temperature", "speed", "yaw rate"];
+    s8_colorBars   = ["Tire temperature [\circC]", "Speed v_x [m/s]", ...
+                      "Yaw rate r [deg/s]"];
+    s8_colorUnits  = ["degC", "m/s", "deg/s"];
 
-    tempS8_all = [];
+    % Smallest color range worth spreading over the whole ramp, in each
+    % channel's own units. Below this the scale is widened to it, so that a run
+    % holding one value does not turn sensor noise into a full sweep of hues.
+    s8_colorMinSpan = [1, 1, 1];
 
-    for tire = 1:4
-        tempS8_all = [tempS8_all; tire_temp_mean_f(tempS8_valid{tire}, tire)];   %#ok<AGROW>
-    end
+    % Signed channels get a color scale centred on zero, so a left and a right
+    % turn of the same magnitude land on mirrored hues instead of the sign being
+    % swallowed by whichever direction the run happened to favour.
+    s8_colorSymmetric = [false, false, true];
 
-    fprintf("fig S8b: FL %d, FR %d, RL %d, RR %d samples have a temperature (fig S8 plots %d, %d, %d, %d)\n", ...
-        sum(tempS8_valid{1}), sum(tempS8_valid{2}), ...
-        sum(tempS8_valid{3}), sum(tempS8_valid{4}), ...
-        sum(validFL_Ln), sum(validFR_Ln), sum(validRL_Ln), sum(validRR_Ln));
+    % One color vector per tire per figure. Temperature is genuinely per tire;
+    % speed and yaw rate are vehicle channels reused four times.
+    s8_colorData = { ...
+        {tire_temp_mean_f(:,1), tire_temp_mean_f(:,2), ...
+         tire_temp_mean_f(:,3), tire_temp_mean_f(:,4)}, ...
+        {Fvx, Fvx, Fvx, Fvx}, ...
+        {rad2deg(Fwz), rad2deg(Fwz), rad2deg(Fwz), rad2deg(Fwz)}};
 
-    figure('Name','Fig S8b - Slip Ratio vs F_x/F_z (per tire, colored by tire temperature)');
+    for iColor = 1:numel(s8_colorTags)
 
-    layoutS8b = tiledlayout(2, 2, "TileSpacing", "compact", "Padding", "compact");
+        colorPerTire = s8_colorData{iColor};
 
-    axS8b = gobjects(4,1);
-
-    for tire = 1:4
-
-        keep = tempS8_valid{tire};
-
-        axS8b(tire) = nexttile;
-
-        scatter(tempS8_kappa{tire}(keep), ...
-                tempS8_fx{tire}(keep) ./ tempS8_fz{tire}(keep), ...
-                18, tire_temp_mean_f(keep, tire), "filled");
-
-        grid on
-        box on
-        xline(0, "k--");
-        yline(0, "k--");
-
-        title(sprintf("%s  (%d samples)", tire_names(tire), sum(keep)));
-        xlabel("\kappa [-]");
-        ylabel("F_x / F_z [-]");
-
-        set(axS8b(tire), "FontSize", 11, "LineWidth", 0.8, "GridAlpha", 0.20);
-    end
-
-    linkaxes(axS8b, "xy");
-
-    if isempty(tempS8_all)
-        warning("notmal_force_estimation:emptyTempS8", ...
-            "Fig S8b has no samples with a live tire temperature.");
-    else
-        tempS8_clim = robustRange(tempS8_all, 0.01);
-
-        % A run that held one temperature would otherwise get a scale of nearly
-        % zero width, which turns sensor noise into a full sweep of the ramp.
-        if tempS8_clim(2) - tempS8_clim(1) < 1
-            tempS8_clim = mean(tempS8_clim) + [-0.5 0.5];
-        end
+        s8_keep     = cell(4,1);
+        s8_colorAll = [];
 
         for tire = 1:4
-            caxis(axS8b(tire), tempS8_clim);
+            s8_keep{tire} = s8_baseValid{tire} & isfinite(colorPerTire{tire});
+            s8_colorAll = [s8_colorAll; colorPerTire{tire}(s8_keep{tire})];   %#ok<AGROW>
         end
 
-        fprintf("  fig S8b temperature color scale: %.1f to %.1f degC\n", ...
-            tempS8_clim(1), tempS8_clim(2));
+        fprintf("fig %s (colored by %s): FL %d, FR %d, RL %d, RR %d samples (fig S8 plots %d, %d, %d, %d)\n", ...
+            s8_colorTags(iColor), s8_colorNames(iColor), ...
+            sum(s8_keep{1}), sum(s8_keep{2}), sum(s8_keep{3}), sum(s8_keep{4}), ...
+            sum(s8_baseValid{1}), sum(s8_baseValid{2}), ...
+            sum(s8_baseValid{3}), sum(s8_baseValid{4}));
+
+        figure('Name', sprintf('Fig %s - Slip Ratio vs F_x/F_z (per tire, colored by %s)', ...
+            s8_colorTags(iColor), s8_colorNames(iColor)));
+
+        layoutS8x = tiledlayout(2, 2, "TileSpacing", "compact", "Padding", "compact");
+
+        axS8x = gobjects(4,1);
+
+        for tire = 1:4
+
+            keep = s8_keep{tire};
+
+            axS8x(tire) = nexttile;
+
+            scatter(s8_kappa{tire}(keep), ...
+                    s8_fx{tire}(keep) ./ s8_fz{tire}(keep), ...
+                    18, colorPerTire{tire}(keep), "filled");
+
+            grid on
+            box on
+            xline(0, "k--");
+            yline(0, "k--");
+
+            title(sprintf("%s  (%d samples)", tire_names(tire), sum(keep)));
+            xlabel("\kappa [-]");
+            ylabel("F_x / F_z [-]");
+
+            set(axS8x(tire), "FontSize", 11, "LineWidth", 0.8, "GridAlpha", 0.20);
+        end
+
+        linkaxes(axS8x, "xy");
+
+        if isempty(s8_colorAll)
+            warning("notmal_force_estimation:emptyS8Color", ...
+                "Fig %s has no samples with a finite %s.", ...
+                s8_colorTags(iColor), s8_colorNames(iColor));
+        else
+            s8_colorLimits = robustRange(s8_colorAll, 0.01);
+
+            if s8_colorSymmetric(iColor)
+                s8_colorLimits = max(abs(s8_colorLimits)) .* [-1 1];
+            end
+
+            if s8_colorLimits(2) - s8_colorLimits(1) < s8_colorMinSpan(iColor)
+                s8_colorLimits = mean(s8_colorLimits) ...
+                    + s8_colorMinSpan(iColor) .* [-0.5 0.5];
+            end
+
+            for tire = 1:4
+                caxis(axS8x(tire), s8_colorLimits);
+            end
+
+            fprintf("  fig %s color scale: %.1f to %.1f %s\n", ...
+                s8_colorTags(iColor), s8_colorLimits(1), s8_colorLimits(2), ...
+                s8_colorUnits(iColor));
+        end
+
+        cbS8x = colorbar(axS8x(1));
+        cbS8x.Layout.Tile = "east";
+        ylabel(cbS8x, s8_colorBars(iColor));
+
+        title(layoutS8x, ...
+            sprintf('Slip ratio vs F_x / %s, colored by %s   (%s, %s)', ...
+            Fz_label, s8_colorNames(iColor), slip_ratio_label, pureLong_label), ...
+            "FontWeight", "bold");
     end
-
-    cbS8b = colorbar(axS8b(1));
-    cbS8b.Layout.Tile = "east";
-    ylabel(cbS8b, "Tire temperature [\circC]");
-
-    title(layoutS8b, ...
-        sprintf('Slip ratio vs F_x / %s, colored by tire temperature   (%s, %s)', ...
-        Fz_label, slip_ratio_label, pureLong_label), ...
-        "FontWeight", "bold");
 
     %% fig S9 - friction circle per tire [N]
     figure('Name','Fig S9 - Friction Circle (per tire, measured)');
@@ -1848,7 +2426,7 @@ title(sprintf("Front brake bias over speed and a_x, braking negative  (%d brakin
 set(axS12, "FontSize", 11, "LineWidth", 0.8, "GridAlpha", 0.20);
 
 cbS12 = colorbar(axS12);
-ylabel(cbS12, "Front brake bias  P_f / (P_f + P_r)  [-]");
+ylabel(cbS12, "Front brake PRESSURE bias  P_f / (P_f + P_r)  [-]");
 
 % Same plane as fig S11, so pan and zoom together.
 linkaxes([axS11(:); axS12], "xy");
@@ -2062,6 +2640,116 @@ end
 function output = clampArray(input, minimum_value, maximum_value)
 
     output = min(max(input, minimum_value), maximum_value);
+end
+
+
+function T = lookupEngineTorque(mapFile, throttleBreaks, rpm, throttleFrac)
+% Engine torque [Nm] interpolated from an engine map on (rpm, throttle).
+%
+% The map is a table whose first column is rpm and whose remaining columns are
+% torque at fixed throttle fractions. Some of the maps in this repo carry a
+% header row naming those fractions (engine_map_boosted_reduced.csv is
+% "rpm,0.0,0.3,1") and some have none at all (engine_map_newEnginebrake.csv
+% starts straight in on data), so the header is used when it is there and
+% throttleBreaks is the fallback when it is not.
+%
+% Both axes are clamped rather than extrapolated. Past the last rpm row a
+% straight-line extrapolation of a torque curve goes somewhere silly quickly,
+% and a throttle outside 0..1 is not a throttle.
+
+    persistent cache
+
+    if isempty(cache)
+        cache = containers.Map('KeyType', 'char', 'ValueType', 'any');
+    end
+
+    key = char(mapFile);
+
+    if isKey(cache, key)
+
+        entry = cache(key);
+
+    else
+        if ~isfile(mapFile)
+            error("notmal_force_estimation:missingEngineMap", ...
+                "Engine map not found: %s", mapFile);
+        end
+
+        raw = readmatrix(mapFile);
+
+        % readmatrix turns a text header into a NaN row; drop any row whose rpm
+        % did not parse, which covers both the header and stray blank lines.
+        raw = raw(isfinite(raw(:,1)), :);
+
+        nCols = size(raw,2) - 1;
+
+        % Recover the throttle breakpoints from the header if the file has one.
+        fid  = fopen(mapFile, 'r');
+        line1 = fgetl(fid);
+        fclose(fid);
+
+        headerVals = str2double(strsplit(strtrim(line1), ','));
+
+        if numel(headerVals) == nCols + 1 && any(isnan(headerVals))
+            % First cell is text ("rpm"), the rest are the throttle fractions.
+            breaks = headerVals(2:end);
+        else
+            breaks = throttleBreaks;
+        end
+
+        if numel(breaks) ~= nCols
+            error("notmal_force_estimation:engineMapShape", ...
+                "%s has %d torque columns but %d throttle breakpoints were given.", ...
+                mapFile, nCols, numel(breaks));
+        end
+
+        % unique rather than sort: interp1 needs strictly monotonic breakpoints,
+        % and a repeated rpm row would throw. Matches loadMapCSV in
+        % data_analisis/engine_map_anylisis.m.
+        [rpmU, order] = unique(raw(:,1));
+
+        entry.rpm    = rpmU;
+        entry.T      = raw(order,2:end);
+        entry.breaks = breaks(:).';
+
+        [entry.breaks, bOrder] = sort(entry.breaks);
+        entry.T = entry.T(:, bOrder);
+
+        cache(key) = entry;
+
+        fprintf("engine map loaded: %s  (%d rpm rows %.0f-%.0f, throttle breakpoints %s)\n", ...
+            mapFile, numel(entry.rpm), entry.rpm(1), entry.rpm(end), ...
+            mat2str(entry.breaks));
+    end
+
+    rpmQ = min(max(rpm(:), entry.rpm(1)), entry.rpm(end));
+    thrQ = min(max(throttleFrac(:), entry.breaks(1)), entry.breaks(end));
+
+    % Interpolate down the rpm axis first, one column at a time, then across
+    % throttle. Two 1-D passes rather than interp2, so a map with only a few
+    % throttle columns needs no gridded-data fuss.
+    nCols = numel(entry.breaks);
+    colT  = zeros(numel(rpmQ), nCols);
+
+    for iCol = 1:nCols
+        colT(:,iCol) = interp1(entry.rpm, entry.T(:,iCol), rpmQ, 'linear');
+    end
+
+    T = zeros(numel(rpmQ), 1);
+
+    for iCol = 1:nCols-1
+
+        inSpan = thrQ >= entry.breaks(iCol) & thrQ <= entry.breaks(iCol+1);
+
+        if ~any(inSpan), continue, end
+
+        w = (thrQ(inSpan) - entry.breaks(iCol)) ...
+          ./ (entry.breaks(iCol+1) - entry.breaks(iCol));
+
+        T(inSpan) = (1-w) .* colT(inSpan,iCol) + w .* colT(inSpan,iCol+1);
+    end
+
+    T = reshape(T, size(rpm));
 end
 
 
