@@ -8,32 +8,85 @@ clear
 
 %% analysis time window
 
-time_segment = [1910 1920];
 
-time_segment = [740 830];
 
 time_segment = [1450 1460]; % for wheel like on straight
-time_segment = [1700 2150];
 
 time_segment = [1720 1734; 1800 1810; 1907 1916;1977 1986; 2075 2087; 2156 2166];
-
-
+time_segment = [256 264;345 350;365 372; 446 452; 464 473; 546 550; 641 644; 658 665; 733 736; 749 756; 823 826; 840 846] % copmp t11 T2
+time_segment = [0 Inf]
 %% opening csv
 
 %data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_28_fastlap_tireLocking_acc/csv_output/2026-07-28_153834_merged.csv"); %% fast lap
 %data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_19_full_test/csv_output/2026-07-19_133128_merged.csv");%% lift up tires
-data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_28_HardBraking_feedbackcontroller/csv_output/2026-07-28_130732_merged.csv");
-%data  = readtable("/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv");
-%data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_26_hard_brake_onstraight/csv_output/2026-07-26_142425_merged.csv");
+%data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_28_HardBraking_feedbackcontroller/csv_output/2026-07-28_130732_merged.csv");
+data  = readtable("/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv");
+%data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_19_full_test/csv_output/2026-07-19_133128_merged.csv");
+%% sensor source
+
+use_oms = false;
+
+% Longitudinal acceleration, both sources. Not part of the switch.
+sensor.ax = "a_x";
+
+if use_oms
+    sensor.vx      = "oms_vel_x_kmh";
+    sensor.vxScale = 1/3.6;                 % km/h -> m/s
+    sensor.vy      = "oms_vel_y_kmh";
+    sensor.vyScale = 1/3.6;
+    sensor.label   = "OMS velocity + logged a_x";
+else
+    sensor.vx      = "odom_vx_mps";
+    sensor.vxScale = 1;
+    sensor.vy      = "odom_vy_mps";
+    sensor.vyScale = 1;
+    sensor.label   = "odometry velocity + logged a_x";
+end
+
+sensor_missing = setdiff([sensor.vx, sensor.vy, sensor.ax], ...
+    string(data.Properties.VariableNames));
+
+if ~isempty(sensor_missing)
+    error("notmal_force_estimation:missingSensorChannel", ...
+        "use_oms = %d asks for %s, which this log does not have. " + ...
+        "Flip use_oms at the top of the script.", ...
+        use_oms, join(sensor_missing, ", "));
+end
+
+fprintf("sensor source: %s   (v_x %s, v_y %s, a_x %s)\n", ...
+    sensor.label, sensor.vx, sensor.vy, sensor.ax);
+
 %% filtered data
 
 % Where longitudinal acceleration comes from. See "longitudinal acceleration
 % source" below.
-%   "channel"    -> data.a_x as logged
+%   "channel"    -> the sensor.ax column chosen above, as logged
 %   "derivative" -> differentiated from the filtered speed Fvx
 ax_source = "channel";
 
-mm = 20;
+mm = 30;
+
+%% FIGURE WINDOWS
+%
+% This script makes 25+ figures. R2025b docks them all into one tab strip in a
+% single window, in creation order, which is unusable for finding the one you
+% want. So instead each figure becomes a TAB inside one of a handful of themed
+% container WINDOWS, grouped by what the plot is actually about.
+%
+% Set figureGrouping = false to go back to one loose figure per plot.
+figureGrouping = true;
+
+% key -> window title. Order here is the order the windows are created in.
+figGroupDefs = { ...
+    "inputs",   "1 - Inputs & Sensors"          ; ...
+    "normal",   "2 - Normal Force & Load Transfer" ; ...
+    "lateral",  "3 - Lateral (slip angle, F_y)" ; ...
+    "long",     "4 - Longitudinal (slip ratio, F_x)" ; ...
+    "circle",   "5 - Friction Circles"          ; ...
+    "maps",     "6 - Operating Maps (speed / a_x planes)" ; ...
+    "envelope", "7 - Acceleration Envelope"     };
+
+FG = makeFigureGroups(figGroupDefs, figureGrouping);
 
 %% applying the time window
 
@@ -79,8 +132,8 @@ wheelCal_steerMax     = 2;      % deg
 wheelCal_vxMin        = 12;     % m/s
 wheelCal_minSamples   = 300;
 
-cal_vx    = movmean(data.oms_vel_x_kmh, mm) ./ 3.6;
-cal_ax    = movmean(data.oms_acc_x_hor_mps2, mm);
+cal_vx    = movmean(data.(char(sensor.vx)), mm) .* sensor.vxScale;
+cal_ax    = movmean(data.(char(sensor.ax)), mm);
 cal_ay    = movmean(data.a_y, mm);
 cal_steer = movmean(data.steer_wheel_ang_deg, mm);
 
@@ -209,8 +262,8 @@ end
 t_plot = t;
 t_plot(seam_idx) = NaN;
 
-Fax_channel = movmean(data.a_x,mm);   % Fax itself is chosen below by ax_source
-% Fax_channel = movmean( data.oms_acc_x_mps2,mm);
+Fax_channel = movmean(data.(char(sensor.ax)), mm);   % Fax itself is chosen
+                                                     % below by ax_source
 Fay = movmean(data.a_y,mm);
 Faz = movmean(data.a_z,mm);
 
@@ -224,9 +277,9 @@ Ffz_fl = movmean(data.fl_load_n,mm);
 Ffz_rr = movmean(data.rr_load_n,mm);
 Ffz_rl = movmean(data.rl_load_n,mm);
 
-Fvx = movmean(data.odom_vx_mps,mm);
-Fvx = movmean(data.oms_vel_x_kmh, mm) ./ 3.6;
-Fvy = movmean(data.odom_vy_mps,mm);
+
+Fvx = movmean(data.(char(sensor.vx)), mm) .* sensor.vxScale;
+Fvy = movmean(data.(char(sensor.vy)), mm) .* sensor.vyScale;
 
 Frpm = movmean(data.engine_rpm,mm);
 throttle = data.throttle_pct;
@@ -274,7 +327,7 @@ y_pos = data.odom_py_m;
 % force in this script. It has to be chosen here rather than up with the other
 % filtered channels, because the derivative needs Fvx, Fvy and Fwz.
 %
-%   "channel"     data.a_x as logged.
+%   "channel"     the sensor.ax column as logged.
 %
 %   "derivative"  differentiated from the filtered speed, so it inherits
 %                 whatever Fvx is built from. Body-frame kinematics rather than
@@ -295,7 +348,7 @@ switch lower(string(ax_source))
 
     case "channel"
         Fax = Fax_channel;
-        ax_source_label = "logged a_x";
+        ax_source_label = "logged " + sensor.ax;
 
     case "derivative"
         Fax = movmean(gradient(Fvx) ./ ax_dt, mm) - Fwz .* Fvy;
@@ -359,15 +412,15 @@ end
 tire_temp_mean_f = movmean(tire_temp_mean, mm, 1, "omitnan");
 
 %% fig T1 - the four sensors and their average, per tire
-figure('Name','Fig T1 - Tire Temperature (sensors and average, per tire)');
+parentT1 = newFigTab(FG, "inputs", 'Fig T1 - Tire Temperature (sensors and average, per tire)');
 
-layoutT1 = tiledlayout(2, 2, "TileSpacing", "compact", "Padding", "compact");
+layoutT1 = tiledlayout(parentT1, 2, 2, "TileSpacing", "compact", "Padding", "compact");
 
 axT1 = gobjects(4,1);
 
 for iTire = 1:4
 
-    axT1(iTire) = nexttile;
+    axT1(iTire) = nexttile(layoutT1);
     hold on
 
     for iSensor = 1:4
@@ -399,9 +452,9 @@ title(layoutT1, "Tire temperature - across-tread sensors and their average", ...
     "FontWeight", "bold");
 
 %% fig T2 - the four tire averages together
-figure('Name','Fig T2 - Tire Temperature (average per tire)');
+parentT2 = newFigTab(FG, "inputs", 'Fig T2 - Tire Temperature (average per tire)');
 
-axT2 = axes();
+axT2 = axes(parentT2);
 
 plot(t_plot, tire_temp_mean_f, "LineWidth", 1.8);
 grid on
@@ -424,7 +477,8 @@ end
 
 pos_valid = isfinite(x_pos) & isfinite(y_pos);
 
-figure('Name','Vehicle Pose (x-y)');
+parentPose = newFigTab(FG, "inputs", 'Vehicle Pose (x-y)');
+axes(parentPose);
 scatter(x_pos(pos_valid), y_pos(pos_valid), 10, t(pos_valid), "filled");
 hold on
 plot(x_pos(find(pos_valid, 1)), y_pos(find(pos_valid, 1)), ...
@@ -539,24 +593,24 @@ fprintf("  static corner loads used [N]: FL %.0f  FR %.0f  RL %.0f  RR %.0f  (su
 
 
 
-figure
-tiledlayout(2,2)
-nexttile
+parentGage = newFigTab(FG, "normal", 'Strain gage F_z, zeroed (per corner)');
+layoutGage = tiledlayout(parentGage,2,2);
+nexttile(layoutGage)
 plot(t_plot,Fz_fr_adjusted);
-grid on 
+grid on
 legend("fr")
 
-nexttile
+nexttile(layoutGage)
 plot(t_plot,Fz_fl_adjusted)
 grid on
 legend("fl")
 
-nexttile
+nexttile(layoutGage)
 plot(t_plot,Fz_rr_adjusted)
 grid on
 legend("rr")
 
-nexttile
+nexttile(layoutGage)
 plot(t_plot,Fz_rl_adjusted)
 grid on
 legend("rl")
@@ -586,8 +640,145 @@ kappa_yaw(curv_valid)   = yaw_dot(curv_valid)   ./ V(curv_valid);
 kappa_pitch(curv_valid) = pitch_dot(curv_valid) ./ V(curv_valid);
 kappa_roll(curv_valid)  = roll_dot(curv_valid)  ./ V(curv_valid);
 
+%% LATERAL ACCELERATION AT THE TIRES
+%
+% ONE lateral acceleration for the whole script. It has to be built here, before
+% the load transfer, because the load transfer and the lateral forces used to be
+% driven by two DIFFERENT accelerations:
+%
+%   lateral load transfer  <- Fay, the logged a_y channel
+%   axle lateral force     <- ay_tire, built from yaw curvature
+%
+% On this recording those agree to corr 0.998, so the split was invisible. The
+% bank correction below breaks that agreement, and then the F_z model and the F_y
+% model disagree about how hard the car is cornering - the two halves of every
+% mu = F_y / F_z. So both now read ay_tire.
+%
+% THE KINEMATIC TERM. a_y in a frame that turns with the car is
+%
+%     a_y = d(v_y)/dt + r*v_x
+%
+% The old form was V^2 * kappa_yaw, which reduces to V*r, and dropped d(v_y)/dt
+% entirely. Two changes:
+%
+%   - V*r -> v_x*r. Worth nothing on this log (p95 of the difference is
+%     0.002 m/s^2, the sideslip is tiny) but it is the correct term, and writing
+%     it directly avoids dividing by V and multiplying it back.
+%   - d(v_y)/dt is restored. p95 0.60 m/s^2, max 4.41 - up to 3600 N of axle
+%     force, and it is concentrated in corner entry and exit, which is exactly
+%     where the peak of the tire curve gets read.
+%
+% Writing it as v_x*r also removes the need for the curv_valid gate: there is no
+% division by V any more, so ay_body is finite at every speed. That matters
+% because the load transfer must not go NaN at low speed - it would take the
+% observer and everything downstream with it.
 
+% Road bank / crossfall handling. See the validation note below before changing.
+useBankCorrection = true;
 
+% Constant roll offset to remove before the bank correction, degrees, positive
+% in the same sense as Froll.
+%
+% On straights (|a_y| < 1, |r| < 0.03) this log reads a MEDIAN roll of -1.43 deg.
+% That is either genuine consistent crossfall or an IMU mounting offset, and
+% nothing in a driving log can separate the two. Left at 0 so the default does
+% not silently subtract a real road feature.
+%
+% It is worth measuring, because a constant roll offset is a CONSTANT phantom
+% lateral force - 1.43 deg is m*g*sin(1.43) = 203 N always pushing the same way,
+% which biases left-hand against right-hand corners and shows up as a left/right
+% asymmetry in the per-tire mu. To measure it: park on known-flat ground and read
+% Froll.
+rollBias_deg = 0.0;
+
+ay_dt = gradient(t);
+ay_dt(ay_dt <= 0) = median(ay_dt(ay_dt > 0));
+
+dvy_dt  = movmean(gradient(Fvy) ./ ay_dt, mm);
+ay_body = Fvx .* Fwz + dvy_dt;          % kinematic, gravity-free, finite at all speeds
+
+% GRAVITY ALONG THE BODY y AXIS.
+%
+% Fax, Fay and Faz are all gravity-COMPENSATED kinematic channels, not raw
+% accelerometers - checked three ways on this log: corr(a_y, v_x*r) = 0.998 at
+% slope 1.007, a_x - (dv_x/dt - r*v_y) has p95 0.68 m/s^2 with ZERO correlation
+% against g*sin(pitch), and median a_z is +0.26 rather than +-9.81. So gravity is
+% absent from every one of them and has to be added back by hand wherever a TIRE
+% force is wanted. That is what this term does laterally, and what Fgrade does
+% longitudinally.
+%
+% For ZYX with the script's negated pitch, g in body axes is
+% [-g sin(Fpitch), -g cos(Fpitch) sin(Froll), -g cos(Fpitch) cos(Froll)], so the
+% tires must supply m*ay_body - m*g_y_body.
+Froll_corrected = Froll - deg2rad(rollBias_deg);
+
+g_y_body = -9.81 .* cos(Fpitch) .* sin(Froll_corrected);
+
+% IS Froll ACTUALLY THE ROAD BANK? Yes on this log, and the obvious test says no,
+% so this is worth writing down.
+%
+% Froll regresses against a_y at -3.47 deg/g. That looks exactly like an INS
+% leveling leak - an attitude filter letting lateral specific force tilt its
+% gravity estimate - and the tempting fix is to detrend Froll against a_y. THAT
+% WOULD BE WRONG. Binning the log into 8x8 m track cells revisited 20+ times:
+%
+%     within-cell std of Froll         0.10 deg   <- same place, same reading, every lap
+%     across-cell std of mean Froll    2.82 deg   <- Froll is a function of PLACE
+%     within-cell std of a_y           0.87 m/s^2 <- a_y moves; Froll does not follow
+%
+% Roll repeats to a tenth of a degree at a given point on track while a_y swings
+% almost 1 m/s^2 there. The -3.47 deg/g is CONFOUNDING, not causation: the car
+% corners in the same banked places every lap, so a_y and bank correlate through
+% track geometry. Detrending destroys real signal - it cuts the place-dependent
+% part from 2.82 to 1.76 deg and triples within-cell scatter to 0.35 deg.
+% Independent confirmation: on straights, with no lateral acceleration to explain
+% it, Froll still reads -1.43 deg median and 4.08 deg max.
+%
+% SIGN, checked physically rather than by inspection. Over the cornering samples
+% (|a_y| > 4 m/s^2, V > 10, 43k samples) corr(g_y_body, ay_body) = +0.774: the
+% bank is favourable, as a real track's is, and subtracting g_y_body correctly
+% SHRINKS the demand on the tires by 7.0%. Adding it would grow it by the same
+% 7.0%, so the sign here is load-bearing.
+if useBankCorrection
+    ay_tire_full = ay_body - g_y_body;
+    ay_source_label = "v_x r + dv_y/dt, bank corrected";
+else
+    ay_tire_full = ay_body;
+    ay_source_label = "v_x r + dv_y/dt, flat-road";
+end
+
+% Gated copy, for the slip/force figures and the pureLong mask, which have always
+% dropped unresolved-curvature samples. ay_tire_full stays gap-free for the load
+% transfer.
+ay_tire = ay_tire_full;
+ay_tire(~curv_valid) = NaN;
+
+banked = isfinite(ay_body) & abs(ay_body) > 4 & V > 10;
+
+% Reported as accelerations because the vehicle mass is not set until the params
+% block below. Multiply by vehicleParams.m for the axle force.
+fprintf("a_y source: %s\n", ay_source_label);
+fprintf("  bank term g_y: median %.3f m/s^2 over cornering samples, p95 %.3f, max %.3f\n", ...
+    median(abs(g_y_body(banked)), "omitnan"), ...
+    prctile(abs(g_y_body), 95), max(abs(g_y_body)));
+
+if any(banked)
+    fprintf("  bank shifts the cornering demand by %+.1f%% (mean over %d cornering samples)\n", ...
+        100 * mean(abs(ay_tire_full(banked)) - abs(ay_body(banked))) ...
+            / mean(abs(ay_body(banked))), sum(banked));
+end
+
+fprintf("  dv_y/dt term: p95 %.2f m/s^2, max %.2f m/s^2\n", ...
+    prctile(abs(dvy_dt), 95), max(abs(dvy_dt)));
+
+% Straight-line roll diagnostic - the number rollBias_deg above wants.
+straightish = isfinite(Fvy) & abs(ay_body) < 1.0 & abs(Fwz) < 0.03 & V > 8;
+
+if any(straightish)
+    fprintf("  roll on straights (%d samples): median %+.2f deg, max %.2f deg  <- rollBias_deg candidate\n", ...
+        sum(straightish), rad2deg(median(Froll(straightish), "omitnan")), ...
+        rad2deg(max(abs(Froll(straightish)))));
+end
 
 
 
@@ -606,14 +797,32 @@ vehicleParams.wheelRate_r = 2.941321827e5;  % (N/m)
 vehicleParams.ARB_f       = 0;             % (Nm/deg)  TBD
 vehicleParams.ARB_r       = 0;              % (Nm/deg)  no anti roll bar in rear
 
-vehicleParams.cg_z        = 0.575;          % CG height (m)  [275 mm]
+% CG height (m). This sets the longitudinal load transfer, so it moves every
+% F_z in this script, the mu that comes out of dividing by them, and the
+% envelope at the end - it is not a detail.
+%
+% Was 0.575 with a comment reading [275 mm], which cannot both be right. 0.35
+% is what brake_bias_schedule.m uses, so the two files now agree.
+%
+% It is worth knowing what the choice does to the answer. Under braking a
+% higher cg_z hands load to the front, so it makes the front tire look grippier
+% and the rear look weaker, and past about 0.5 it flips WHICH AXLE runs out of
+% grip first - a stability conclusion, not a 10% number. Two consistency checks
+% on this log bracket it: front and rear peak mu come out equal at about 0.28,
+% and the rear's mu on power matches its mu on the brakes at about 0.47.
+% Neither is clean, because both are divided by the measured brake bias.
+% MEASURE THIS.
+vehicleParams.cg_z        = 0.35;           % CG height (m)
 vehicleParams.rc_f        = 0.1202436;      % roll center front (m) 
 vehicleParams.rc_r        = 0.0016628;      % roll center rear  (m) 
 
 vehicleParams.toe_f       = -0.451;         % toe front (deg, - = out) 
 vehicleParams.toe_r       = -0.451;         % toe rear  (deg, - = out)
 
-vehicleParams.m           = 800;            % vehicle mass (kg)  [base vehicle mass]
+% Vehicle mass (kg). 815 matches both the corner loads in staticCornerLoad_N,
+% which sum to 7995 N, and P.m in brake_bias_schedule.m. It was 800, which
+% agreed with neither.
+vehicleParams.m           = 815;
 
 vehicleParams.mech_trail_f = 0;             % mech trail front (m) TBD
 vehicleParams.mech_trail_r = 0;             % mech trail rear  (m) TBD
@@ -675,8 +884,29 @@ vehicleParams.brakeGain_r = 1.0;            % (Nm/kPa, arbitrary matched units)
 
 
 L  = vehicleParams.wheelbase;
-a  = vehicleParams.w_dist_f * L;        
-b  = L - a;            
+
+% a and b are the AXLE LOAD SHARES as lengths, not lf and lr.
+%
+%   a = w_dist_f * L        -> multiplies m*g/L to give the FRONT static load
+%   b = L - a               -> gives the REAR
+%
+% In the standard bicycle notation, static front load = m*g*lr/L, so
+%
+%       a is l_r   (CG -> REAR axle)
+%       b is l_f   (CG -> FRONT axle)
+%
+% which is the opposite of what the names suggest. This car is REAR-HEAVY -
+% w_dist_f = 0.42, so 42% of the static weight is on the front and the CG sits
+% closer to the rear axle. That makes l_r the SHORT one:
+%
+%       l_r = 0.42 * 2.9718 = 1.2482 m
+%       l_f = 0.58 * 2.9718 = 1.7236 m
+%
+% Checks out against staticCornerLoad_N (front 3358 N of 7995 N = 42%) and
+% against P.lf / P.lr in brake_bias_schedule.m, which carries the same geometry
+% under the correct names.
+a  = vehicleParams.w_dist_f * L;        % = l_r, CG -> rear axle
+b  = L - a;                             % = l_f, CG -> front axle
 m  = vehicleParams.m;
 cgh = vehicleParams.cg_z;
 
@@ -689,17 +919,102 @@ rear_axle = (Fz_rr_adjusted + Fz_rl_adjusted);
 
 
 
-% CONSIDER CURVATURE 
+% CONSIDER CURVATURE
 aero_balance = 0.33;
-scalar = 0.0;
 down_force = 0.5 * 0.58 * 1.225 .* Fvx.^2;
 
 front_aero = aero_balance .* down_force;
 rear_aero  = (1 - aero_balance) .* down_force;
 
-L = a + b;   % assuming a = lf, b = lr
+L = a + b;   % a + b is the wheelbase either way round - see the note above,
+             % where a is l_r and b is l_f, not the other way about.
 
-az_road = 9.81 .* cos(Fpitch) .* cos(Froll) + Fvx .* Fwz .* sin(Froll) + Fvx .* Fwy*scalar;
+%% ROAD-NORMAL ACCELERATION - the crest/dip term
+%
+% az_road is the total normal load per unit mass, so m*az_road is what the four
+% tires carry before aero. The balance along the body z axis is
+%
+%     m*a_z_kinematic = sum(F_z) + m*g_z_body     g_z_body = -g cos(th) cos(ph)
+%     sum(F_z) = m*a_z_kinematic + m*g cos(th) cos(ph)
+%
+% The gravity half was always here. The KINEMATIC half - the vertical
+% acceleration from driving over a crest or through a dip - was written as
+% Fvx.*Fwy*scalar with scalar = 0.0, so it was deleted, and on a track with real
+% elevation change it is the biggest single term in this file: m*Fvx.*Fwy reaches
+% p95 2092 N and max 6008 N against 7995 N of static weight. Crests unload all
+% four tires, dips load them, and every mu = F_y/F_z downstream inherited the
+% error - including through the observer, which anchors its absolute level to
+% fz_*_curvature.
+%
+% WHY NOT JUST SET scalar = 1. Because Fvx.*Fwy OVERSHOOTS the measured vertical
+% acceleration badly: corr(a_z, Fvx.*Fwy) is only +0.427, the regression slope is
+% 0.553, and the residual has p95 2.88 m/s^2. The reason is physical - pitch RATE
+% mixes the road's vertical curvature with SUSPENSION pitch from braking and
+% acceleration, and suspension pitch does not unload the tires. A rate-based
+% reconstruction cannot tell the two apart.
+%
+% So the default reads the a_z channel, which is a direct measurement of exactly
+% this quantity and is already gravity-compensated (median +0.26 m/s^2, not
+% +-9.81 - see the note on Fax/Fay/Faz in the lateral acceleration block).
+%
+%   "channel"  a_z, smoothed over az_smooth_samples. Preferred.
+%   "rates"    the old reconstruction, Fvx.*Fwz.*sin(Froll) + Fvx.*Fwy scaled by
+%              az_rateScale. Kept for an A/B against the channel.
+%   "none"     flat road, gravity only - reproduces the old scalar = 0 behaviour.
+az_source = "channel";
+
+az_rateScale = 0.553;   % only read when az_source == "rates"; the a_z regression slope
+
+% Smoothing window for the a_z channel, in samples. NOT the script-wide mm.
+%
+% This one is measured, not guessed. Testing the model against the MEASURED
+% four-corner gage sum - where the longitudinal transfer cancels exactly, so the
+% comparison isolates this term - over the moving samples of this log:
+%
+%     az_source          RMS error   corr
+%     none                  1052 N   +0.688
+%     rates, scale 1.0       1018 N   +0.677
+%     channel at mm = 30     1121 N   +0.573   <- WORSE than flat road
+%     channel at 90          863 N    +0.683   <- best
+%     channel at 300         882 N    +0.644
+%     channel at 900         903 N    +0.646
+%
+% At the script's mm = 30 (0.3 s at this log's 100 Hz) the raw channel makes the
+% fit WORSE than assuming a flat road, because a_z at the IMU is dominated by
+% wheel hop and chassis vibration - its max is 15.9 m/s^2, which is 13 kN of
+% apparent load change on a 8 kN car and is plainly not the road. Smoothed to
+% 0.9 s it becomes the best estimate available, an 18% RMS improvement on
+% flat-road. 0.9 s is about 27 m of track at 30 m/s, which is the length scale a
+% real vertical curve actually has; 3 s over-smooths and starts losing it again.
+%
+% Re-check this if you change logs, sample rate, or mm.
+az_smooth_samples = 90;
+
+switch lower(string(az_source))
+
+    case "channel"
+        az_kinematic = movmean(data.a_z, az_smooth_samples);
+        az_source_label = sprintf("logged a_z, smoothed %d samples", az_smooth_samples);
+
+    case "rates"
+        az_kinematic = Fvx .* Fwz .* sin(Froll) + Fvx .* Fwy .* az_rateScale;
+        az_source_label = sprintf("rates, scale %.3f", az_rateScale);
+
+    case "none"
+        az_kinematic = zeros(size(Fvx));
+        az_source_label = "none (flat road)";
+
+    otherwise
+        error("notmal_force_estimation:badAzSource", ...
+            "az_source must be ""channel"", ""rates"" or ""none"", got ""%s"".", ...
+            az_source);
+end
+
+az_road = 9.81 .* cos(Fpitch) .* cos(Froll) + az_kinematic;
+
+fprintf("a_z source: %s  (crest/dip term p95 %.0f N, max %.0f N on %.0f N static)\n", ...
+    az_source_label, prctile(abs(m .* az_kinematic), 95), ...
+    max(abs(m .* az_kinematic)), sum(staticCornerLoad_N));
 
 long_transfer_accel = ...
     Fax + 9.81 .* sin(Fpitch);
@@ -714,9 +1029,9 @@ fz_r_curvature = ...
     + (m .* long_transfer_accel .* cgh) ./ L ...
     + rear_aero;
 
-figure 
-tiledlayout(3,1)
-nexttile
+parentAxle = newFigTab(FG, "normal", 'Axle load - measured vs bicycle vs 3D model');
+layoutAxle = tiledlayout(parentAxle,3,1);
+nexttile(layoutAxle)
 plot(t_plot,front_axle)
 hold on
 plot(t_plot,fz_f_basic)
@@ -726,7 +1041,7 @@ plot(t_plot,fz_f_curvature,LineWidth=2)
 legend("front measured","front basic calc","front 3D calc")
 
 
-nexttile
+nexttile(layoutAxle)
 plot(t_plot,rear_axle)
 hold on
 plot(t_plot,fz_r_basic)
@@ -734,7 +1049,7 @@ hold on
 plot(t_plot,fz_r_curvature,LineWidth=2)
 legend("rear measured","rear basic calc","rear 3D calc")
 
-nexttile
+nexttile(layoutAxle)
 plot(t_plot,Ffz_fr)
 hold on
 plot(t_plot,Ffz_fl)
@@ -783,21 +1098,32 @@ LAT_weightTransferGradient_r = (w/t_r) * ((cg2rollAxis * k_phi_r)/(k_phi_f + k_p
 % the model says they are equal and they are not, the per-tire mu panels in
 % fig S8 split apart by the cross-weight and the wrong wheel looks like the
 % limiting one.
-Fz_fr = fz_f_curvature .* cornerShare_fr + LAT_weightTransferGradient_f * (Fay/9.81);
-Fz_fl = fz_f_curvature .* cornerShare_fl - LAT_weightTransferGradient_f * (Fay/9.81);
+%
+% ay_tire, not Fay. Lateral load transfer is driven by the lateral force the
+% TIRES make, which is m*ay_tire including the bank term - the same number the
+% axle lateral forces are built from further down. Using the raw Fay channel here
+% while F_y used ay_tire left the two halves of every mu disagreeing about how
+% hard the car was cornering. ay_tire_full is the gap-free copy, so this stays
+% finite at low speed and cannot NaN out the observer.
+lat_transfer_g = ay_tire_full ./ 9.81;
 
-Fz_rr = fz_r_curvature .* cornerShare_rr + LAT_weightTransferGradient_r * (Fay/9.81);
-Fz_rl = fz_r_curvature .* cornerShare_rl - LAT_weightTransferGradient_r * (Fay/9.81);
+Fz_fr = fz_f_curvature .* cornerShare_fr + LAT_weightTransferGradient_f * lat_transfer_g;
+Fz_fl = fz_f_curvature .* cornerShare_fl - LAT_weightTransferGradient_f * lat_transfer_g;
+
+Fz_rr = fz_r_curvature .* cornerShare_rr + LAT_weightTransferGradient_r * lat_transfer_g;
+Fz_rl = fz_r_curvature .* cornerShare_rl - LAT_weightTransferGradient_r * lat_transfer_g;
+
+fprintf("lateral load transfer from ay_tire (was the raw a_y channel): front %.0f N/g, rear %.0f N/g\n", ...
+    LAT_weightTransferGradient_f, LAT_weightTransferGradient_r);
 
 
 
-
-figure
-tiledlayout(2,2)
+parentCorner = newFigTab(FG, "normal", 'Per-corner F_z - measured vs dual-track model');
+layoutCorner = tiledlayout(parentCorner,2,2);
 
 axs = gobjects(4,1);
 
-axs(1) = nexttile;
+axs(1) = nexttile(layoutCorner);
 plot(t_plot, Fz_fl_adjusted);
 hold on
 plot(t_plot, Fz_fl, 'LineWidth', 2);
@@ -805,7 +1131,7 @@ legend("Fl measured","Fl est")
 title("Front Left")
 grid on
 
-axs(2) = nexttile;
+axs(2) = nexttile(layoutCorner);
 plot(t_plot, Fz_fr_adjusted);
 hold on
 plot(t_plot, Fz_fr, 'LineWidth', 2);
@@ -813,7 +1139,7 @@ legend("Fr measured","Fr est")
 title("Front Right")
 grid on
 
-axs(3) = nexttile;
+axs(3) = nexttile(layoutCorner);
 plot(t_plot, Fz_rl_adjusted);
 hold on
 plot(t_plot, Fz_rl, 'LineWidth', 2);
@@ -822,7 +1148,7 @@ title("Rear Left")
 grid on
 xlabel("Time [s]")
 
-axs(4) = nexttile;
+axs(4) = nexttile(layoutCorner);
 plot(t_plot, Fz_rr_adjusted);
 hold on
 plot(t_plot, Fz_rr, 'LineWidth', 2);
@@ -841,12 +1167,13 @@ linkaxes(axs, 'x')
 %%
 % NOTE this block, not the earlier one, is what the observer consumes - it is
 % the last assignment to Fz_* before Fz_model is built. Same static corner
-% shares as above.
-Fz_fr = fz_f_curvature .* cornerShare_fr + LAT_weightTransferGradient_f * (Fay/9.81);
-Fz_fl = fz_f_curvature .* cornerShare_fl - LAT_weightTransferGradient_f * (Fay/9.81);
+% shares, and the same ay_tire-driven lateral transfer, as above. It is a
+% verbatim repeat of that block; if you change one, change both.
+Fz_fr = fz_f_curvature .* cornerShare_fr + LAT_weightTransferGradient_f * lat_transfer_g;
+Fz_fl = fz_f_curvature .* cornerShare_fl - LAT_weightTransferGradient_f * lat_transfer_g;
 
-Fz_rr = fz_r_curvature .* cornerShare_rr + LAT_weightTransferGradient_r * (Fay/9.81);
-Fz_rl = fz_r_curvature .* cornerShare_rl - LAT_weightTransferGradient_r * (Fay/9.81);
+Fz_rr = fz_r_curvature .* cornerShare_rr + LAT_weightTransferGradient_r * lat_transfer_g;
+Fz_rl = fz_r_curvature .* cornerShare_rl - LAT_weightTransferGradient_r * lat_transfer_g;
 
 
 
@@ -901,7 +1228,6 @@ for k = 1:N
     Fz_observer(k,:) = output.Fz_hat;
     Fz_dynamic_correction(k,:) = output.dynamic_correction;
 
-Fwy = -movmean(data.odom_wy_rads,mm);
     dFz_measured_log(k,:) = output.dFz_measured;
     dFz_model_log(k,:) = output.dFz_model;
     rate_error_log(k,:) = output.rate_error;
@@ -950,9 +1276,9 @@ tire_colors = [
 
 %% Measured, observer, and model comparison
 
-figure();
+parentObs = newFigTab(FG, "normal", 'Normal Force Observer Comparison');
 
-layout = tiledlayout(2, 2, ...
+layout = tiledlayout(parentObs, 2, 2, ...
     "TileSpacing", "compact", ...
     "Padding", "compact");
 
@@ -963,7 +1289,7 @@ observer_axes = gobjects(4,1);
 
 for tire = 1:4
 
-    observer_axes(tire) = nexttile;
+    observer_axes(tire) = nexttile(layout);
     hold on
 
     plot(t_plot, Fz_measured_aligned(:,tire), ...
@@ -1009,16 +1335,16 @@ linkaxes(observer_axes, "x");
 
 %% Observer correction and rate error
 
-figure();
+parentObsDiag = newFigTab(FG, "normal", 'Observer Correction Diagnostics');
 
-layout = tiledlayout(2, 1, ...
+layout = tiledlayout(parentObsDiag, 2, 1, ...
     "TileSpacing", "compact", ...
     "Padding", "compact");
 
 title(layout, "Observer Correction Diagnostics", ...
     "FontWeight", "bold");
 
-ax1 = nexttile;
+ax1 = nexttile(layout);
 set(ax1, "ColorOrder", tire_colors, "NextPlot", "replacechildren");
 
 plot(t_plot, Fz_dynamic_correction, "LineWidth", 1.6);
@@ -1039,7 +1365,7 @@ set(ax1, ...
     "GridAlpha", 0.20);
 
 
-ax2 = nexttile;
+ax2 = nexttile(layout);
 set(ax2, "ColorOrder", tire_colors, "NextPlot", "replacechildren");
 
 plot(t_plot, rate_error_log, "LineWidth", 1.6);
@@ -1055,7 +1381,6 @@ legend("FL", "FR", "RL", "RR", ...
     "Location", "best", ...
     "NumColumns", 4);
 
-Fwy = -movmean(data.odom_wy_rads,mm);
 set(ax2, ...
     "FontSize", 11, ...
     "LineWidth", 0.8, ...
@@ -1068,7 +1393,7 @@ linkaxes([ax1, ax2], "x");
 
 %% slip / force params
 vx_min_slip_angle     = 4;        
-vx_min_slip_ratio     = 15;    
+vx_min_slip_ratio     = 4;    
 vx_max_slip_ratio     = Inf;      
 alpha_max_deg         = 20;       
 slip_ratio_max        = 100;     
@@ -1082,11 +1407,43 @@ rho                   = 1.225;
 g                     = 9.81;    
 Iz                    = vehicleParams.inertia;
 
-useBankCorrection = false;
+% useBankCorrection now lives with the lateral acceleration it controls, up in
+% the LATERAL ACCELERATION AT THE TIRES block, because the load transfer consumes
+% ay_tire and runs long before this point.
 plot_per_tire     = true;
 use_observed_Fz   = true;
 slip_ratio_def = "wheel"; % or wheel
 fx_split_mode = "even";
+
+% Per-tire lateral force split, same two modes as fx_split_mode.
+%
+%   "even"  axle/2, what this script always did
+%   "load"  in proportion to each tire's normal force
+%
+% "load" is the default because "even" is at its worst exactly where the lateral
+% forces are largest. The front lateral transfer gradient below works out to
+% 1032 N/g on a 1679 N static front corner, so at 1 g the front tires carry
+% 2711 N and 647 N - a 4:1 ratio - while an even split hands them identical
+% lateral force. That puts the inside tire's mu about 4x the outside tire's in
+% figs S7/S8, as a pure artifact of the split.
+%
+% WHY THIS DIFFERS FROM fx_split_mode, deliberately. Leaving F_x on "even" while
+% F_y goes "load" is not an inconsistency - the hardware constrains the two
+% differently:
+%
+%   F_x  the open diff forces both rear wheels to take equal FORCE whatever their
+%        loads, and both front calipers see the same line pressure, so equal
+%        torque and equal force - until a wheel locks. "even" IS the physical
+%        constraint, which is why it is the default there.
+%   F_y  nothing couples the two sides laterally. Lateral force follows load, so
+%        "load" is the physical answer.
+%
+% Set "even" to reproduce the old per-tire figures.
+fy_split_mode = "load";
+
+% Resolve the front axle lateral force into the TIRE frame rather than the
+% vehicle frame. See the per-tire lateral force section for the algebra.
+use_tire_frame_front = true;
 
 % Engine braking is a 100%-REAR force. See the F_x split section below for what
 % this changes and why it is not simply "adding a missing force". Set false to
@@ -1139,8 +1496,18 @@ engineMap_scale = 1.0;
 % genuine trail-brake application (p99 is 0.36) interpolate normally.
 engineMap_closedThrottleFrac = 0.05;
 
-ay_max_pure_long = 30.0;   % m/s^2
-Fwy = -movmean(data.odom_wy_rads,mm);%eport and the sample is
+% Lateral-acceleration ceiling for a sample to count as "pure longitudinal" in
+% figs S3, S4, S7 and S8.
+%
+% This was 30.0 m/s^2, which is 3.06 g. Peak |a_y| on this recording is 1.68 g,
+% so the gate never excluded a single sample and those figures were showing
+% fully-cornering data as though it were pure braking and traction. 3.0 m/s^2 is
+% about 0.3 g, small enough that the lateral demand is a few percent of the
+% friction circle. The keep-count is printed below - if it drops too low to plot,
+% raise this rather than switching it off, because a disabled gate is what
+% produced the old curves.
+ay_max_pure_long = 3.0;   % m/s^2
+
 biasMap_pressureMin_kPa = 400;
 biasMap_climTail        = 0.01;
 biasMap_greyColor       = [0.72, 0.72, 0.72];
@@ -1152,25 +1519,44 @@ kappaMap_colorGamma =  1.00;                  % < 1 packs the cool hues into sma
 kappaMap_tickStep   =  0.02;                  % colorbar tick spacing
 kappaMap_posColor   = [0.720, 0.720, 0.720];  % flat grey past posLimit
 
-lf = a;   
-lr = b;   
+% CG to each axle, for the bicycle model below.
+%
+% WAS "lf = a; lr = b", which had them the wrong way round. a is the FRONT LOAD
+% SHARE as a length, which in bicycle notation is l_r, not l_f - see the note
+% where a and b are defined. The car is rear-heavy, so l_r is the SHORT one
+% (1.248 m) and l_f the long one (1.724 m); the old assignment gave the CG a
+% front-heavy position this car does not have.
+%
+% What it cost, since these feed the F_y calc directly:
+%
+%   Fyf = m*ay*l_r/L   should be 0.420*m*ay, was 0.580*m*ay   (+38%)
+%   Fyr = m*ay*l_f/L   should be 0.580*m*ay, was 0.420*m*ay   (-28%)
+%
+% At 1.5 g that is 5037 N on the front axle against 6956 N as it was computed.
+% It also shifted both slip angles, through vy_front / vy_rear below, so it
+% moved BOTH axes of figs S1, S2 and S13.
+%
+% The tell that this was a slip rather than a convention: the lateral load
+% transfer block above already gets it right, building l_a = (1-w_dist_f)*L and
+% pairing l_b with rc_f and l_a with rc_r. The file was internally inconsistent -
+% geometric jacking correct, bicycle model inverted.
+%
+% brake_bias_schedule.m has the same geometry under the correct names
+% (P.lf = 1.723644, P.lr = 1.248156) and needs no change.
+lf = b;   % CG -> front axle, 1.7236 m
+lr = a;   % CG -> rear  axle, 1.2482 m
+
+fprintf("bicycle geometry: l_f %.4f m, l_r %.4f m, front static share %.1f%% (rear-heavy)\n", ...
+    lf, lr, 100 * lr / L);
 
 %% yaw acceleration
-dt_series = gradient(t);
-dt_series(dt_series <= 0) = median(dt_series(dt_series > 0));
+dt_series = ay_dt;      % same guarded gradient(t) built with the lateral accel
 rdot = movmean(gradient(Fwz) ./ dt_series, mm);
 
-%% lateral acceleration at the tires (curvature based, bank corrected)
-ay_inertial = V.^2 .* kappa_yaw;
-g_y_body    = -g .* cos(Fpitch) .* sin(Froll);
-
-if useBankCorrection
-    ay_tire = ay_inertial - g_y_body;
-else
-    ay_tire = ay_inertial;
-end
-
-ay_tire(~curv_valid) = NaN;
+%% lateral acceleration at the tires
+% ay_tire is built in the LATERAL ACCELERATION AT THE TIRES block near the top,
+% before the load transfer, so that the F_z model and the F_y model below are
+% driven by the same number. Nothing to compute here.
 
 %% slip angles (bicycle, per axle)
 vx_safe_angle = Fvx;
@@ -1192,7 +1578,20 @@ Fyr = (m .* lf .* ay_tire - Iz .* rdot) ./ L;
 %% total longitudinal force (force balance along the vehicle x axis)
 Fdrag    = 0.5 .* rho .* CdA_drag .* Fvx .* abs(Fvx);
 Fgrade   = m .* g .* sin(Fpitch);
-Fx_total = m .* Fax + Fdrag + Fgrade + Fyf .* sin(toe_rad)*0; % not adding in lat controbutin
+% The steered-front coupling term is still zeroed here, but deliberately and not
+% for the old reason. Its partner - rotating Fyf into the tire frame - is now
+% applied further down, after the F_x split. Enabling BOTH makes the system
+% circular: Fx_total would need Fy_tire_f, which needs Fxf, which comes from
+% Fx_total. It is solvable in one or two fixed-point passes, and worth doing if
+% you want the front friction circle exact in combined braking-and-cornering,
+% where this term is a few hundred newtons. Until then the rotation is applied on
+% the F_y side only, which is where it matters for reading the tire curve.
+%
+% Fgrade is correct as written despite Fax being a kinematic channel: gravity is
+% absent from Fax, so it has to be added back to get a TIRE force. Verified -
+% Fax - (dv_x/dt - r*v_y) has p95 0.68 m/s^2 and zero correlation against
+% g*sin(pitch), so the channel carries no grade component of its own.
+Fx_total = m .* Fax + Fdrag + Fgrade + Fyf .* sin(toe_rad)*0;
 
 %% Fx split front / rear by measured brake bias
 % biasF is a FORCE bias - the share of the braking force at the contact patch
@@ -1437,9 +1836,10 @@ end
 
 
 
-%% per-tire lateral forces 
-Fy_fl = Fyf ./ 2;   Fy_fr = Fyf ./ 2;
-Fy_rl = Fyr ./ 2;   Fy_rr = Fyr ./ 2;
+%% per-tire lateral forces
+% MOVED. The per-tire split needs Fz_*_norm to weight by load, and Fxf to rotate
+% the front axle into the tire frame, and neither exists yet at this point in the
+% script. It now sits with the per-tire LONGITUDINAL split, after both.
 
 %% wheel speeds and tire-frame velocities
 
@@ -1603,6 +2003,83 @@ end
 
 fprintf("per-tire Fx split: %s\n", fx_split_label);
 
+%% front axle lateral force in the TIRE frame
+%
+% Fyf out of the yaw moment balance is the front axle's contribution along the
+% VEHICLE y axis. The tire makes its lateral force perpendicular to ITSELF, and
+% its longitudinal force along itself, so at road wheel angle delta
+%
+%     Fy_vehicle = Fy_tire*cos(delta) + Fx_tire*sin(delta)
+%
+% and solving the bicycle balance actually gives that whole combination, not
+% Fy_tire alone. Inverting:
+%
+%     Fy_tire = (Fyf - Fxf*sin(delta)) / cos(delta)
+%
+% Size on this log: p95 delta is 5.2 deg and max 11.8 deg, so sin(delta) reaches
+% 0.20, and with Fxf in the kN under braking this is 200-600 N on the front axle
+% in combined braking and cornering. It is also the missing half of a pair - line
+% "Fx_total = ... + Fyf.*sin(toe_rad)*0" zeroed the reciprocal coupling with the
+% comment "not adding in lat contribution". Both halves belong in together, or
+% the friction circles in figs S5/S6 are plotting two different frames on one set
+% of axes.
+%
+% The rear axle is unsteered, so Fyr is already in the tire frame.
+if use_tire_frame_front
+
+    Fyf_vehicle = Fyf;
+    Fyf = (Fyf_vehicle - Fxf .* sin(toe_rad)) ./ cos(toe_rad);
+
+    frameShift = isfinite(Fyf) & isfinite(Fyf_vehicle);
+
+    fprintf("front F_y rotated into the tire frame: median |change| %.0f N, p95 %.0f N, max %.0f N\n", ...
+        median(abs(Fyf(frameShift) - Fyf_vehicle(frameShift))), ...
+        prctile(abs(Fyf(frameShift) - Fyf_vehicle(frameShift)), 95), ...
+        max(abs(Fyf(frameShift) - Fyf_vehicle(frameShift))));
+else
+    Fyf_vehicle = Fyf;
+    fprintf("front F_y left in the vehicle frame (use_tire_frame_front = false)\n");
+end
+
+%% per-tire lateral forces
+% Same two modes as the F_x split above, and the same reason for preferring
+% "load": see fy_split_mode where it is set.
+
+switch lower(string(fy_split_mode))
+
+    case "even"
+        Fy_fl = Fyf ./ 2;   Fy_fr = Fyf ./ 2;
+        Fy_rl = Fyr ./ 2;   Fy_rr = Fyr ./ 2;
+
+        fy_split_label = "axle/2";
+
+    case "load"
+        % Fall back to the even split wherever the measured load cannot weight
+        % it, so an axle with no valid F_z gives the old answer instead of NaN.
+        Fy_fl = Fyf ./ 2;   Fy_fr = Fyf ./ 2;
+        Fy_rl = Fyr ./ 2;   Fy_rr = Fyr ./ 2;
+
+        shareF_y = Fz_front_norm > 0 & Fz_fl_norm >= 0 & Fz_fr_norm >= 0;
+        shareR_y = Fz_rear_norm  > 0 & Fz_rl_norm >= 0 & Fz_rr_norm >= 0;
+
+        Fy_fl(shareF_y) = Fyf(shareF_y) .* Fz_fl_norm(shareF_y) ./ Fz_front_norm(shareF_y);
+        Fy_fr(shareF_y) = Fyf(shareF_y) .* Fz_fr_norm(shareF_y) ./ Fz_front_norm(shareF_y);
+        Fy_rl(shareR_y) = Fyr(shareR_y) .* Fz_rl_norm(shareR_y) ./ Fz_rear_norm(shareR_y);
+        Fy_rr(shareR_y) = Fyr(shareR_y) .* Fz_rr_norm(shareR_y) ./ Fz_rear_norm(shareR_y);
+
+        fy_split_label = "load-weighted";
+
+        fprintf("per-tire Fy split: load-weighted on %d of %d front and %d of %d rear samples (rest fell back to axle/2)\n", ...
+            sum(shareF_y), numel(shareF_y), sum(shareR_y), numel(shareR_y));
+
+    otherwise
+        error("notmal_force_estimation:badFySplitMode", ...
+            "fy_split_mode must be ""even"" or ""load"", got ""%s"".", ...
+            fy_split_mode);
+end
+
+fprintf("per-tire Fy split: %s\n", fy_split_label);
+
 %% validity masks
 
 speedValid = abs(Fvx) > vx_min_slip_angle & abs(Fvx) < vx_max_slip_ratio;
@@ -1692,11 +2169,13 @@ end
 biasF_measured = biasF;
 biasF_measured(~hasBrakePressure) = NaN;
 
-figure('Name','Fig S0 - Wheel Speeds / Brake Pressure / Bias / a_x / Slip Ratio');
+parentS0 = newFigTab(FG, "inputs", 'Fig S0 - Wheel Speeds / Brake Pressure / Bias / a_x / a_y');
+
+layoutS0 = tiledlayout(parentS0, 5, 1, "TileSpacing", "compact", "Padding", "compact");
 
 axS0 = gobjects(5,1);
 
-axS0(1) = subplot(5,1,1);
+axS0(1) = nexttile(layoutS0);
 plot(t_plot, Vw_fl);
 hold on
 plot(t_plot, Vw_fr);
@@ -1707,7 +2186,7 @@ ylabel("Wheel speed [m/s]");
 legend("FL", "FR", "RL", "RR", "Location", "best");
 title("Wheel speeds");
 
-axS0(2) = subplot(5,1,2);
+axS0(2) = nexttile(layoutS0);
 plot(t_plot, Pf);
 hold on
 plot(t_plot, Pr);
@@ -1716,7 +2195,7 @@ ylabel("Pressure [kPa]");
 legend("front", "rear", "Location", "best");
 title("Brake pressure");
 
-axS0(3) = subplot(5,1,3);
+axS0(3) = nexttile(layoutS0);
 plot(t_plot, biasF, "DisplayName", "force bias used");
 hold on
 plot(t_plot, biasF_measured, "LineWidth", 1.5, "DisplayName", "measured only");
@@ -1733,37 +2212,40 @@ ylabel("Front bias [-]");
 legend("Location", "best");
 title("Front brake bias - force share used to split F_x, against the raw pressure ratio");
 
-axS0(4) = subplot(5,1,4);
+axS0(4) = nexttile(layoutS0);
 plot(t_plot, Fax);
 yline(0, "k--");
 grid on
 ylabel("a_x [m/s^2]");
 title("Longitudinal acceleration");
 
-kappa_all = abs([slip_ratio_x_fl; slip_ratio_x_fr; slip_ratio_x_rl; slip_ratio_x_rr]);
-kappa_all = sort(kappa_all(isfinite(kappa_all)));
-
-if isempty(kappa_all)
-    kappa_lim = 1;
-else
-    kappa_lim = kappa_all(max(1, round(0.995 * numel(kappa_all))));
-end
-
-kappa_lim = min(max(kappa_lim, 0.05), 2);   % keep the axis readable
-
-axS0(5) = subplot(5,1,5);
-plot(t_plot, slip_ratio_x_fl);
+% Lateral acceleration, replacing the slip-ratio panel this figure used to end
+% on. Slip ratio has four dedicated figures of its own (S7, S8, S8b-d) plus the
+% per-axle pair S3/S4, so it was the one channel here that was already well
+% covered elsewhere - and a_y was not shown anywhere in the time domain at all,
+% despite three different definitions of it now driving the analysis.
+%
+% Both traces, because the difference between them is the point:
+%
+%   a_y channel   the logged a_y, the direct measurement. Pairs with the a_x
+%                 panel above, which is also the logged channel.
+%   ay_tire       what the TIRES have to make - the same kinematic acceleration
+%                 with the bank's gravity assist taken out. This is what Fyf and
+%                 Fyr are built from.
+%
+% They sit on top of each other on flat ground and separate on the banked
+% sections, so the gap between them IS the bank, plotted against time. Worth
+% about 7% of the cornering demand on this track.
+axS0(5) = nexttile(layoutS0);
+plot(t_plot, Fay, "LineWidth", 1.0);
 hold on
-plot(t_plot, slip_ratio_x_fr);
-plot(t_plot, slip_ratio_x_rl);
-plot(t_plot, slip_ratio_x_rr);
-yline(0, "k--");
+plot(t_plot, ay_tire, "LineWidth", 1.4);
+yline(0, "k--", "HandleVisibility", "off");
 grid on
-ylim(1.1 * [-kappa_lim kappa_lim]);
 xlabel("Time [s]");
-ylabel("\kappa [-]");
-legend("FL", "FR", "RL", "RR", "Location", "best");
-title("Slip ratio");
+ylabel("a_y [m/s^2]");
+legend("a_y channel", "a_y at the tires (bank corrected)", "Location", "best");
+title("Lateral acceleration");
 
 % Mark the joins between time_segment sections on every panel.
 for iAx = 1:numel(axS0)
@@ -1776,26 +2258,30 @@ end
 linkaxes(axS0, "x");
 
 %% fig S1 - slip angle vs axle lateral force [N]
-figure('Name','Fig S1 - Slip Angle vs F_y (per axle, measured)');
+parentS1 = newFigTab(FG, "lateral", 'Fig S1 - Slip Angle vs F_y (per axle, measured)');
 
-subplot(1,2,1)
+layoutS1 = tiledlayout(parentS1, 1, 2, "TileSpacing", "compact", "Padding", "compact");
+
+nexttile(layoutS1)
 scatterTime(alpha_f_deg(validFront), Fyf(validFront), tAbs(validFront));
 xlabel('Front slip angle \alpha_f [deg]');
 ylabel('Front lateral force F_{y,f} [N]');
 title('Front axle');
 
-subplot(1,2,2)
+nexttile(layoutS1)
 scatterTime(alpha_r_deg(validRear), Fyr(validRear), tAbs(validRear));
 xlabel('Rear slip angle \alpha_r [deg]');
 ylabel('Rear lateral force F_{y,r} [N]');
 title('Rear axle');
 
-sgtitle('Slip angle vs measured lateral force');
+title(layoutS1, 'Slip angle vs measured lateral force');
 
 %% fig S2 - slip angle vs axle Fy / Fz [-]
-figure('Name','Fig S2 - Slip Angle vs F_y/F_z (per axle, observed F_z)');
+parentS2 = newFigTab(FG, "lateral", 'Fig S2 - Slip Angle vs F_y/F_z (per axle, observed F_z)');
 
-subplot(1,2,1)
+layoutS2 = tiledlayout(parentS2, 1, 2, "TileSpacing", "compact", "Padding", "compact");
+
+nexttile(layoutS2)
 scatterTime(alpha_f_deg(validFront_n), ...
             Fyf(validFront_n) ./ Fz_front_norm(validFront_n), ...
             tAbs(validFront_n));
@@ -1803,7 +2289,7 @@ xlabel('Front slip angle \alpha_f [deg]');
 ylabel('F_{y,f} / F_{z,f} [-]');
 title('Front axle');
 
-subplot(1,2,2)
+nexttile(layoutS2)
 scatterTime(alpha_r_deg(validRear_n), ...
             Fyr(validRear_n) ./ Fz_rear_norm(validRear_n), ...
             tAbs(validRear_n));
@@ -1811,30 +2297,34 @@ xlabel('Rear slip angle \alpha_r [deg]');
 ylabel('F_{y,r} / F_{z,r} [-]');
 title('Rear axle');
 
-sgtitle(sprintf('Slip angle vs measured lateral force / %s', Fz_label));
+title(layoutS2, sprintf('Slip angle vs measured lateral force / %s', Fz_label));
 
 %% fig S3 - slip ratio vs axle longitudinal force [N]
-figure('Name','Fig S3 - Slip Ratio vs F_x (per axle, measured)');
+parentS3 = newFigTab(FG, "long", 'Fig S3 - Slip Ratio vs F_x (per axle, measured)');
 
-subplot(1,2,1)
+layoutS3 = tiledlayout(parentS3, 1, 2, "TileSpacing", "compact", "Padding", "compact");
+
+nexttile(layoutS3)
 scatterTime(slip_ratio_f(validFront_L), Fxf(validFront_L), tAbs(validFront_L));
 xlabel('Front slip ratio \kappa_f [-]');
 ylabel('Front longitudinal force F_{x,f} [N]');
 title('Front axle');
 
-subplot(1,2,2)
+nexttile(layoutS3)
 scatterTime(slip_ratio_r(validRear_L), Fxr(validRear_L), tAbs(validRear_L));
 xlabel('Rear slip ratio \kappa_r [-]');
 ylabel('Rear longitudinal force F_{x,r} [N]');
 title('Rear axle');
 
-sgtitle(sprintf('Slip ratio vs measured longitudinal force   (%s, %s)', ...
+title(layoutS3, sprintf('Slip ratio vs measured longitudinal force   (%s, %s)', ...
     slip_ratio_label, pureLong_label));
 
 %% fig S4 - slip ratio vs axle Fx / Fz [-]
-figure('Name','Fig S4 - Slip Ratio vs F_x/F_z (per axle, observed F_z)');
+parentS4 = newFigTab(FG, "long", 'Fig S4 - Slip Ratio vs F_x/F_z (per axle, observed F_z)');
 
-subplot(1,2,1)
+layoutS4 = tiledlayout(parentS4, 1, 2, "TileSpacing", "compact", "Padding", "compact");
+
+nexttile(layoutS4)
 scatterTime(slip_ratio_f(validFront_Ln), ...
             Fxf(validFront_Ln) ./ Fz_front_norm(validFront_Ln), ...
             tAbs(validFront_Ln));
@@ -1842,7 +2332,7 @@ xlabel('Front slip ratio \kappa_f [-]');
 ylabel('F_{x,f} / F_{z,f} [-]');
 title('Front axle');
 
-subplot(1,2,2)
+nexttile(layoutS4)
 scatterTime(slip_ratio_r(validRear_Ln), ...
             Fxr(validRear_Ln) ./ Fz_rear_norm(validRear_Ln), ...
             tAbs(validRear_Ln));
@@ -1850,30 +2340,34 @@ xlabel('Rear slip ratio \kappa_r [-]');
 ylabel('F_{x,r} / F_{z,r} [-]');
 title('Rear axle');
 
-sgtitle(sprintf('Slip ratio vs measured longitudinal force / %s   (%s, %s)', ...
+title(layoutS4, sprintf('Slip ratio vs measured longitudinal force / %s   (%s, %s)', ...
     Fz_label, slip_ratio_label, pureLong_label));
 
 %% fig S5 - friction circle per axle [N]
-figure('Name','Fig S5 - Friction Circle (per axle, measured)');
+parentS5 = newFigTab(FG, "circle", 'Fig S5 - Friction Circle (per axle, measured)');
 
-subplot(1,2,1)
+layoutS5 = tiledlayout(parentS5, 1, 2, "TileSpacing", "compact", "Padding", "compact");
+
+nexttile(layoutS5)
 scatterTime(Fxf(validFront), Fyf(validFront), tAbs(validFront));
 axis equal;
 xlabel('F_{x,f} [N]'); ylabel('F_{y,f} [N]');
 title('Front axle');
 
-subplot(1,2,2)
+nexttile(layoutS5)
 scatterTime(Fxr(validRear), Fyr(validRear), tAbs(validRear));
 axis equal;
 xlabel('F_{x,r} [N]'); ylabel('F_{y,r} [N]');
 title('Rear axle');
 
-sgtitle('Friction circle - measured force');
+title(layoutS5, 'Friction circle - measured force');
 
 %% fig S6 - friction circle per axle, normalized [-]
-figure('Name','Fig S6 - Friction Circle (per axle, observed F_z)');
+parentS6 = newFigTab(FG, "circle", 'Fig S6 - Friction Circle (per axle, observed F_z)');
 
-subplot(1,2,1)
+layoutS6 = tiledlayout(parentS6, 1, 2, "TileSpacing", "compact", "Padding", "compact");
+
+nexttile(layoutS6)
 scatterTime(Fxf(validFront_n) ./ Fz_front_norm(validFront_n), ...
             Fyf(validFront_n) ./ Fz_front_norm(validFront_n), ...
             tAbs(validFront_n));
@@ -1881,7 +2375,7 @@ muCircle(1.0); axis equal;
 xlabel('F_{x,f} / F_{z,f} [-]'); ylabel('F_{y,f} / F_{z,f} [-]');
 title('Front axle');
 
-subplot(1,2,2)
+nexttile(layoutS6)
 scatterTime(Fxr(validRear_n) ./ Fz_rear_norm(validRear_n), ...
             Fyr(validRear_n) ./ Fz_rear_norm(validRear_n), ...
             tAbs(validRear_n));
@@ -1889,57 +2383,61 @@ muCircle(1.0); axis equal;
 xlabel('F_{x,r} / F_{z,r} [-]'); ylabel('F_{y,r} / F_{z,r} [-]');
 title('Rear axle');
 
-sgtitle(sprintf('Friction circle - measured force / %s (dashed = \\mu 1.0)', Fz_label));
+title(layoutS6, sprintf('Friction circle - measured force / %s (dashed = \\mu 1.0)', Fz_label));
 
 %% per-tire figures
 if plot_per_tire
 
     %% fig S7 - slip ratio vs Fx per tire [N]
-    figure('Name','Fig S7 - Slip Ratio vs F_x (per tire, measured)');
+    parentS7 = newFigTab(FG, "long", 'Fig S7 - Slip Ratio vs F_x (per tire, measured)');
 
-    subplot(2,2,1)
+layoutS7 = tiledlayout(parentS7, 2, 2, "TileSpacing", "compact", "Padding", "compact");
+
+    nexttile(layoutS7)
     scatterTime(slip_ratio_x_fl(validFL_L), fx_fl(validFL_L), tAbs(validFL_L));
     xlabel('\kappa_{fl} [-]'); ylabel('F_{x,fl} [N]'); title('Front Left');
 
-    subplot(2,2,2)
+    nexttile(layoutS7)
     scatterTime(slip_ratio_x_fr(validFR_L), fx_fr(validFR_L), tAbs(validFR_L));
     xlabel('\kappa_{fr} [-]'); ylabel('F_{x,fr} [N]'); title('Front Right');
 
-    subplot(2,2,3)
+    nexttile(layoutS7)
     scatterTime(slip_ratio_x_rl(validRL_L), fx_rl(validRL_L), tAbs(validRL_L));
     xlabel('\kappa_{rl} [-]'); ylabel('F_{x,rl} [N]'); title('Rear Left');
 
-    subplot(2,2,4)
+    nexttile(layoutS7)
     scatterTime(slip_ratio_x_rr(validRR_L), fx_rr(validRR_L), tAbs(validRR_L));
     xlabel('\kappa_{rr} [-]'); ylabel('F_{x,rr} [N]'); title('Rear Right');
 
-    sgtitle(sprintf('Slip ratio vs measured longitudinal force (per-tire split: %s)   (%s, %s)', ...
+    title(layoutS7, sprintf('Slip ratio vs measured longitudinal force (per-tire split: %s)   (%s, %s)', ...
         fx_split_label, slip_ratio_label, pureLong_label));
 
     %% fig S8 - slip ratio vs Fx / Fz per tire [-]
-    figure('Name','Fig S8 - Slip Ratio vs F_x/F_z (per tire, observed F_z)');
+    parentS8 = newFigTab(FG, "long", 'Fig S8 - Slip Ratio vs F_x/F_z (per tire, observed F_z)');
 
-    subplot(2,2,1)
+layoutS8 = tiledlayout(parentS8, 2, 2, "TileSpacing", "compact", "Padding", "compact");
+
+    nexttile(layoutS8)
     scatterTime(slip_ratio_x_fl(validFL_Ln), ...
                 fx_fl(validFL_Ln) ./ Fz_fl_norm(validFL_Ln), tAbs(validFL_Ln));
     xlabel('\kappa_{fl} [-]'); ylabel('F_{x,fl} / F_{z,fl} [-]'); title('Front Left');
 
-    subplot(2,2,2)
+    nexttile(layoutS8)
     scatterTime(slip_ratio_x_fr(validFR_Ln), ...
                 fx_fr(validFR_Ln) ./ Fz_fr_norm(validFR_Ln), tAbs(validFR_Ln));
     xlabel('\kappa_{fr} [-]'); ylabel('F_{x,fr} / F_{z,fr} [-]'); title('Front Right');
 
-    subplot(2,2,3)
+    nexttile(layoutS8)
     scatterTime(slip_ratio_x_rl(validRL_Ln), ...
                 fx_rl(validRL_Ln) ./ Fz_rl_norm(validRL_Ln), tAbs(validRL_Ln));
     xlabel('\kappa_{rl} [-]'); ylabel('F_{x,rl} / F_{z,rl} [-]'); title('Rear Left');
 
-    subplot(2,2,4)
+    nexttile(layoutS8)
     scatterTime(slip_ratio_x_rr(validRR_Ln), ...
                 fx_rr(validRR_Ln) ./ Fz_rr_norm(validRR_Ln), tAbs(validRR_Ln));
     xlabel('\kappa_{rr} [-]'); ylabel('F_{x,rr} / F_{z,rr} [-]'); title('Rear Right');
 
-    sgtitle(sprintf('Slip ratio vs measured longitudinal force / %s   (%s, %s)', ...
+    title(layoutS8, sprintf('Slip ratio vs measured longitudinal force / %s   (%s, %s)', ...
         Fz_label, slip_ratio_label, pureLong_label));
 
     %% figs S8b, S8c - fig S8 colored by condition instead of by time
@@ -2008,10 +2506,10 @@ if plot_per_tire
             sum(s8_baseValid{1}), sum(s8_baseValid{2}), ...
             sum(s8_baseValid{3}), sum(s8_baseValid{4}));
 
-        figure('Name', sprintf('Fig %s - Slip Ratio vs F_x/F_z (per tire, colored by %s)', ...
+        parentS8x = newFigTab(FG, "long", sprintf('Fig %s - Slip Ratio vs F_x/F_z (per tire, colored by %s)', ...
             s8_colorTags(iColor), s8_colorNames(iColor)));
 
-        layoutS8x = tiledlayout(2, 2, "TileSpacing", "compact", "Padding", "compact");
+        layoutS8x = tiledlayout(parentS8x, 2, 2, "TileSpacing", "compact", "Padding", "compact");
 
         axS8x = gobjects(4,1);
 
@@ -2019,7 +2517,7 @@ if plot_per_tire
 
             keep = s8_keep{tire};
 
-            axS8x(tire) = nexttile;
+            axS8x(tire) = nexttile(layoutS8x);
 
             scatter(s8_kappa{tire}(keep), ...
                     s8_fx{tire}(keep) ./ s8_fz{tire}(keep), ...
@@ -2075,55 +2573,59 @@ if plot_per_tire
     end
 
     %% fig S9 - friction circle per tire [N]
-    figure('Name','Fig S9 - Friction Circle (per tire, measured)');
+    parentS9 = newFigTab(FG, "circle", 'Fig S9 - Friction Circle (per tire, measured)');
 
-    subplot(2,2,1)
+layoutS9 = tiledlayout(parentS9, 2, 2, "TileSpacing", "compact", "Padding", "compact");
+
+    nexttile(layoutS9)
     scatterTime(fx_fl(validFL), Fy_fl(validFL), tAbs(validFL));
     axis equal; xlabel('F_{x,fl} [N]'); ylabel('F_{y,fl} [N]'); title('Front Left');
 
-    subplot(2,2,2)
+    nexttile(layoutS9)
     scatterTime(fx_fr(validFR), Fy_fr(validFR), tAbs(validFR));
     axis equal; xlabel('F_{x,fr} [N]'); ylabel('F_{y,fr} [N]'); title('Front Right');
 
-    subplot(2,2,3)
+    nexttile(layoutS9)
     scatterTime(fx_rl(validRL), Fy_rl(validRL), tAbs(validRL));
     axis equal; xlabel('F_{x,rl} [N]'); ylabel('F_{y,rl} [N]'); title('Rear Left');
 
-    subplot(2,2,4)
+    nexttile(layoutS9)
     scatterTime(fx_rr(validRR), Fy_rr(validRR), tAbs(validRR));
     axis equal; xlabel('F_{x,rr} [N]'); ylabel('F_{y,rr} [N]'); title('Rear Right');
 
-    sgtitle(sprintf('Friction circle per tire - measured force (per-tire split: %s)', ...
+    title(layoutS9, sprintf('Friction circle per tire - measured force (per-tire split: %s)', ...
         fx_split_label));
 
     %% fig S10 - friction circle per tire, normalized [-]
-    figure('Name','Fig S10 - Friction Circle (per tire, observed F_z)');
+    parentS10 = newFigTab(FG, "circle", 'Fig S10 - Friction Circle (per tire, observed F_z)');
 
-    subplot(2,2,1)
+layoutS10 = tiledlayout(parentS10, 2, 2, "TileSpacing", "compact", "Padding", "compact");
+
+    nexttile(layoutS10)
     scatterTime(fx_fl(validFL_n) ./ Fz_fl_norm(validFL_n), ...
                 Fy_fl(validFL_n) ./ Fz_fl_norm(validFL_n), tAbs(validFL_n));
     muCircle(1.0); axis equal;
     xlabel('F_{x,fl} / F_{z,fl} [-]'); ylabel('F_{y,fl} / F_{z,fl} [-]'); title('Front Left');
 
-    subplot(2,2,2)
+    nexttile(layoutS10)
     scatterTime(fx_fr(validFR_n) ./ Fz_fr_norm(validFR_n), ...
                 Fy_fr(validFR_n) ./ Fz_fr_norm(validFR_n), tAbs(validFR_n));
     muCircle(1.0); axis equal;
     xlabel('F_{x,fr} / F_{z,fr} [-]'); ylabel('F_{y,fr} / F_{z,fr} [-]'); title('Front Right');
 
-    subplot(2,2,3)
+    nexttile(layoutS10)
     scatterTime(fx_rl(validRL_n) ./ Fz_rl_norm(validRL_n), ...
                 Fy_rl(validRL_n) ./ Fz_rl_norm(validRL_n), tAbs(validRL_n));
     muCircle(1.0); axis equal;
     xlabel('F_{x,rl} / F_{z,rl} [-]'); ylabel('F_{y,rl} / F_{z,rl} [-]'); title('Rear Left');
 
-    subplot(2,2,4)
+    nexttile(layoutS10)
     scatterTime(fx_rr(validRR_n) ./ Fz_rr_norm(validRR_n), ...
                 Fy_rr(validRR_n) ./ Fz_rr_norm(validRR_n), tAbs(validRR_n));
     muCircle(1.0); axis equal;
     xlabel('F_{x,rr} / F_{z,rr} [-]'); ylabel('F_{y,rr} / F_{z,rr} [-]'); title('Rear Right');
 
-    sgtitle(sprintf('Friction circle per tire - measured force / %s (dashed = \\mu 1.0)', Fz_label));
+    title(layoutS10, sprintf('Friction circle per tire - measured force / %s (dashed = \\mu 1.0)', Fz_label));
 end
 
 %% export the fig S8 longitudinal slip data, one CSV per axle
@@ -2302,9 +2804,9 @@ if ~any(kappaMapAnyValid)
 end
 
 %% fig S11 - slip ratio vs speed and a_x, every sample
-figure('Name','Fig S11 - Slip Ratio vs Speed and a_x (per tire, samples)');
+parentS11 = newFigTab(FG, "maps", 'Fig S11 - Slip Ratio vs Speed and a_x (per tire, samples)');
 
-layoutS11 = tiledlayout(2, 2, ...
+layoutS11 = tiledlayout(parentS11, 2, 2, ...
     "TileSpacing", "compact", ...
     "Padding", "compact");
 
@@ -2314,7 +2816,7 @@ for tire = 1:4
 
     keep = kappa_map_keep{tire};
 
-    axS11(tire) = nexttile;
+    axS11(tire) = nexttile(layoutS11);
     scatter(Fvx(keep), Fax(keep), 14, kappa_per_tire{tire}(keep), "filled");
     grid on
     box on
@@ -2376,9 +2878,9 @@ fprintf("bias map: %d of %d plotted samples are braking above %g kPa total (%.1f
     sum(biasMapColor), sum(biasMapBase), biasMap_pressureMin_kPa, ...
     100 * sum(biasMapColor) / max(1, sum(biasMapBase)), sum(biasMapGrey));
 
-figure('Name','Fig S12 - Front Brake Bias vs Speed and a_x');
+parentS12 = newFigTab(FG, "maps", 'Fig S12 - Front Brake Bias vs Speed and a_x');
 
-axS12 = axes();
+axS12 = axes(parentS12);
 
 hold on
 
@@ -2430,6 +2932,1366 @@ ylabel(cbS12, "Front brake PRESSURE bias  P_f / (P_f + P_r)  [-]");
 
 % Same plane as fig S11, so pan and zoom together.
 linkaxes([axS11(:); axS12], "xy");
+
+%% modelled lateral envelope, from brake_bias_schedule.m
+% The a_y counterpart of the tire accel / decel curves that the longitudinal
+% envelope reads back further down, and it is drawn over fig S13 for the same
+% reason: the model says what the tires ALLOW at each speed, the scatter shows
+% what the car DID, and the gap between them is the useful quantity.
+%
+% Written by the "max lateral acceleration vs speed" section of
+% brake_bias_schedule.m on the same 0:4:100 m/s grid as max_accel_vs_speed.csv.
+% THREE columns, not two, so the two-column loader used for the a_x curves below
+% would reject it:
+%
+%   v_mps, ay_max_mps2, ay_max_holding_speed_mps2
+%
+% The second is pure cornering. The third also makes the rear push through drag
+% to hold speed, which eats its friction circle - the two are identical up to
+% about 65 m/s and only separate above that.
+%
+% The lut directory is worked out again here rather than reusing envelope_dir,
+% which is not defined until the envelope section much further down.
+% Grip level to overlay, matching the suffixes brake_bias_schedule.m writes:
+% mu100 is the ultimate tire limit, mu095/090/085/080 are that scaled down by
+% fixed fractions of nominal. mu100 is the right default here - this figure is
+% asking whether the car ever exceeded what the tires allow, and the answer is
+% only meaningful against the ultimate number.
+envelope_gripLevel = "mu100";
+
+latEnv_file = "max_lat_accel_vs_speed_" + envelope_gripLevel + ".csv";
+
+latEnv_scriptDir = fileparts(mfilename('fullpath'));
+
+if isempty(latEnv_scriptDir)
+    latEnv_scriptDir = pwd;     % running the cell by hand rather than the file
+end
+
+latEnv_path   = fullfile(latEnv_scriptDir, "lut", latEnv_file);
+latEnv_loaded = false;
+
+if ~isfile(latEnv_path)
+    warning("notmal_force_estimation:missingLatEnvelope", ...
+        "%s not found; fig S13 is drawn without the modelled envelope. " + ...
+        "Run brake_bias_schedule.m to write it.", latEnv_path);
+else
+    latEnv_tbl  = readtable(latEnv_path);
+    latEnv_vars = string(latEnv_tbl.Properties.VariableNames);
+
+    if ~all(ismember(["v_mps", "ay_max_mps2"], latEnv_vars))
+        warning("notmal_force_estimation:latEnvelopeShape", ...
+            "%s has columns %s, expected v_mps and ay_max_mps2. Envelope left off.", ...
+            latEnv_path, join(latEnv_vars, ", "));
+    else
+        latEnv_v  = latEnv_tbl.v_mps;
+        latEnv_ay = latEnv_tbl.ay_max_mps2;
+
+        % The holding-speed column is optional, so an older file still draws.
+        if any(latEnv_vars == "ay_max_holding_speed_mps2")
+            latEnv_ayTrim = latEnv_tbl.ay_max_holding_speed_mps2;
+        else
+            latEnv_ayTrim = nan(size(latEnv_v));
+        end
+
+        latEnv_keep = isfinite(latEnv_v) & isfinite(latEnv_ay);
+
+        if ~any(latEnv_keep)
+            warning("notmal_force_estimation:emptyLatEnvelope", ...
+                "%s has no usable rows; envelope left off.", latEnv_path);
+        else
+            latEnv_v      = latEnv_v(latEnv_keep);
+            latEnv_ay     = latEnv_ay(latEnv_keep);
+            latEnv_ayTrim = latEnv_ayTrim(latEnv_keep);
+            latEnv_loaded = true;
+
+            fprintf("lateral envelope: %s  (%d speeds, %.1f-%.1f m/s, a_y %.2f to %.2f m/s^2)\n", ...
+                latEnv_path, sum(latEnv_keep), min(latEnv_v), max(latEnv_v), ...
+                min(latEnv_ay), max(latEnv_ay));
+        end
+    end
+end
+
+%% fig S13 - lateral acceleration vs speed, coloured by slip angle
+%
+% The cornering envelope: what a_y the car actually reached at each speed, and
+% how much slip angle the tires were carrying to get there. One panel per axle,
+% because the front and rear slip angles are what tell you WHICH end ran out.
+%
+% Reading it. The outer edge of the cloud is the grip limit at that speed. Points
+% on that edge with LARGE slip angle are the axle that is saturated; if the front
+% edge is deep red/blue while the rear edge is still pale at the same speed and
+% a_y, the car is understeering there, and the other way round for oversteer.
+% A colour that keeps growing while a_y stops growing is the signature of an axle
+% past its peak - the tire is giving up more angle for no more force.
+%
+% a_y is ay_tire, so it is the bank-corrected lateral acceleration the TIRES have
+% to make, not the raw sensor channel - see the LATERAL ACCELERATION block. On a
+% banked track those differ by about 7%, and it is the tire number that belongs
+% on an axis next to slip angle.
+%
+% Signed, not absolute, on both axes. Left and right corners land on opposite
+% halves, so an asymmetric cloud is real information - track layout, aero, or a
+% cross-weight - and taking abs() would hide it. The diverging colormap is
+% centred on zero slip so the neutral band really is alpha = 0.
+
+% Margin past the fastest sample for the fig S13 x limit. This was the width of
+% the binned p99 envelope that used to be drawn over the scatter; that line is
+% gone, but the margin is still what keeps the rightmost points off the axis.
+ayvx_speedBinWidth = 2.0;    % m/s
+
+% Percentile used for the envelope, per speed bin. NOT max/min: a raw max traces
+% the single noisiest sample in each bin, and the dv_y/dt term in ay_tire has a
+% max of 4.4 m/s^2 against a p95 of 0.5, so one differentiated glitch drags the
+% boundary up by a third of a g. 99 follows the real edge of the cloud.
+% Percentile used for the a_y statistics printed to the console for fig S13.
+% It no longer drives a plotted line - the binned envelope that used to be drawn
+% over the scatter has been removed - but the "% of the modelled limit" numbers
+% still need a robust top-of-the-data figure, and a raw max is not one: the
+% dv_y/dt term in ay_tire has a max of 4.41 m/s^2 against a p95 of 0.50, so a
+% single differentiated glitch would set the answer.
+ayvx_envelopePct = 99;
+
+% RETIRED, kept at 0 so the three a_y tabs share one sample population.
+%
+% This was 4.0 m/s^2, gating the flat-road tab to cornering samples to suppress a
+% crest-driven spike on the straights. The tightened ratio band below removes
+% that spike at its source, and the gate turned out to have its own bias: cutting
+% the low-|a_y| samples shortens the population, which RAISES the rank a p99
+% lands on. At 14-16 m/s it inflated the envelope from 11.60 to 13.98 m/s^2, and
+% it applied to only one of the three tabs - so S13c was not comparable with
+% S13a/S13b, which is precisely the comparison the tabs exist to support.
+ayvx_flatMinAy = 0;   % m/s^2
+
+% PURE-LATERAL GATE for fig S13, [a_x_min a_x_max] in m/s^2.
+%
+% The mirror of ay_max_pure_long, which isolates pure braking and traction for
+% figs S3/S4/S7/S8. This one isolates pure CORNERING.
+%
+% Why it belongs on S13 specifically. The modelled limit that S13 draws comes
+% from the "max lateral acceleration" section of brake_bias_schedule.m, and that
+% is a PURE cornering solve - a_x is taken as zero, so no longitudinal transfer
+% and, more importantly, no share of the friction circle spent on F_x. A measured
+% sample taken while braking or accelerating hard is using part of its grip
+% longitudinally and physically CANNOT reach the lateral limit the model draws.
+% Leaving those samples in makes the car look further from its lateral limit than
+% it is, and the gap is combined-slip, not a tire shortfall.
+%
+% [-2 2] keeps roughly a quarter g of longitudinal, which spends under 3% of the
+% friction circle by the ellipse - small enough to call pure lateral. Widen it to
+% [-Inf Inf] to switch the gate off and get every sample back.
+%
+% This gates fig S13 only. The other figures keep their own masks; in particular
+% the raw a_y trace in fig S0 is deliberately ungated, so the full time history
+% is still visible somewhere.
+ayvx_axPureLatRange = [-50 50];   % m/s^2
+
+pureLat = Fax >= ayvx_axPureLatRange(1) & Fax <= ayvx_axPureLatRange(2);
+
+if all(isfinite(ayvx_axPureLatRange))
+    pureLat_label = sprintf("a_x in [%.3g %.3g] m/s^2", ...
+        ayvx_axPureLatRange(1), ayvx_axPureLatRange(2));
+else
+    pureLat_label = "no a_x gate";
+end
+
+fprintf("pure-lateral gate %s keeps %d of %d samples (%.1f%%)\n", ...
+    pureLat_label, sum(pureLat), numel(pureLat), ...
+    100 * sum(pureLat) / numel(pureLat));
+
+% Bound on the road-geometry load ratio Fz_geo/Fz_flat before the flat-road
+% equivalent is treated as meaningless.
+%
+% The correction divides by this ratio, so a small ratio is a large
+% amplification. The old guard only rejected below 0.25, which still allows 4x -
+% and that produced a streak of samples at 23 m/s reaching -29 m/s^2, or 3 g of
+% "flat-road equivalent" lateral, which no tire on this car makes. Those are
+% single crest events where az_road briefly collapses, and at that point the car
+% is close enough to unloaded that the quasi-static framing behind the whole
+% correction has stopped being true.
+%
+% The band is MEASURED, not picked for looks. Binning the log into 8x8 m track
+% cells revisited 20+ times separates the ratio's real content from its noise:
+%
+%     within-cell std  0.037   scatter at one fixed place - a_z noise
+%     across-cell std  0.094   genuine place-to-place road geometry
+%
+% So the real geometry is about +-0.19 at 2 sigma, i.e. a ratio between 0.81 and
+% 1.19, and anything outside that is the a_z channel's noise rather than the
+% road. (For contrast the same test on roll gives 0.109 deg against 2.994 deg -
+% roll is 25:1 signal to noise, this ratio only 2.5:1, which is why it needs a
+% band at all.)
+%
+% WHY A LOOSE BAND IS ACTIVELY WRONG HERE, not just imprecise. The correction
+% DIVIDES by this ratio, and the envelope then takes a p99 of the result. That
+% multiplies two independent tails - the tail of a_y and the tail of 1/ratio -
+% so a p99 preferentially selects "the sample that had high a_y AND happened to
+% read a low az_road". With the old [0.6 1.6] the 14-16 m/s envelope came out at
+% 15.76 m/s^2 against a raw p99 of 11.92, a 32% inflation that is pure noise
+% selection. Tightening the band collapses it: 11.60 at [0.8 1.25], 11.03 at
+% [0.9 1.11]. A number that moves that much with the guard was never a
+% measurement.
+%
+% Samples outside the band are dropped rather than clipped, because a clipped
+% value would still be plotted as though it meant something.
+ayvx_flatRatioRange = [0.80 1.25];
+
+% Slip angle colour limits for fig S13, degrees, symmetric about zero.
+%
+% Symmetric and shared across BOTH panels, so front and rear are directly
+% comparable by eye - the whole point of putting them side by side.
+%
+% FIXED rather than fitted. It was max(abs(robustRange(alpha, 0.01))), which on
+% this log lands at 3.04 deg. That auto-scales, which sounds helpful and is not:
+% the scale then moves whenever the time window, the log or the validity masks
+% change, so the same colour means a different slip angle from one run to the
+% next and two figures cannot be compared. A fixed range makes the colour mean
+% one thing always.
+%
+% Samples beyond it saturate at the end colours rather than being dropped; the
+% fraction that clips is printed below so a range that is hiding data is visible.
+ayvx_alphaLim = 6;   % deg
+
+alphaLim = ayvx_alphaLim;
+
+%% FLAT-ROAD EQUIVALENT a_y
+%
+% What this is for. The modelled limit is computed on FLAT LEVEL ground - in
+% brake_bias_schedule.m the axle loads are m*g shares plus downforce, nothing
+% else. The measured a_y is not on that basis, so the two are not directly
+% comparable until the road geometry is taken out of the measurement.
+%
+% ay_tire already removes HALF the bank effect: it subtracts the gravity assist,
+% the g*cos(pitch)*sin(roll) that a banked corner contributes to turning the car.
+% What it does NOT remove is the other half - a bank also presses the car INTO
+% the road, raising every F_z and so raising the force the tires can make. Same
+% for vertical curvature: a dip loads the car, a crest unloads it, and neither
+% appears in a flat-road model.
+%
+% So a measured point on a banked corner can sit above the modelled line without
+% the tire having done anything the model says is impossible - it simply had more
+% normal load than the model assumes.
+%
+% THE CORRECTION. Scale the measured demand by how much the road geometry changed
+% the normal load:
+%
+%       a_y,flat = a_y,tire * Fz_axle_flat / Fz_axle_actual
+%
+% Fz_axle_actual is the modelled/observed load the tire really had - it carries
+% az_road, so it already contains BOTH the gravity projection (bank, pitch) and
+% the a_z crest/dip term. Fz_axle_flat is that same axle on flat level ground:
+% the m*g share plus the same aero. The ratio is therefore exactly the road
+% geometry, and dividing by it asks "what a_y would this tire utilisation have
+% produced on the flat?"
+%
+% Direction check: on a favourable bank Fz_actual > Fz_flat, so a_y,flat is LOWER
+% than measured - the bank's help is removed. Over a crest Fz_actual < Fz_flat
+% and a_y,flat is HIGHER - the tire was working harder than the raw number looks.
+%
+% ROAD GEOMETRY ONLY, deliberately - longitudinal transfer is left alone.
+%
+% The first version of this used the full observed axle load, which also carries
+% the m*a_x*h/L transfer term, and that was wrong in a way worth recording. On a
+% straight at full throttle the front axle is unloaded, the ratio drops well
+% below 1, and every small a_y in that bin gets scaled UP. Worse, a p99 envelope
+% then preferentially selects exactly those samples - the most unloaded ones -
+% so the corrected envelope spiked to 19 m/s^2 at 62 m/s where the car was going
+% in a straight line. A selection artifact, not a tire limit.
+%
+% So the ratio below is built from az_road and aero only. az_road is 9.81 on flat
+% level ground and departs from it exactly through the gravity projection (bank
+% and pitch) and the a_z crest/dip term - which is precisely the pair being
+% stripped, and nothing else.
+%
+% WHAT THIS STILL DOES NOT FIX. Simultaneous F_x eats the friction circle, and no
+% F_z scaling undoes that, so trail-braking and corner-exit samples still sit
+% below their pure-lateral potential. And a few turn-in transients sit above the
+% model because it assumes a balanced yaw moment while Iz*rdot is real. Those are
+% the residual, not something this correction is meant to remove.
+
+Fz_f_flat = a .* (m * 9.81) ./ L + front_aero;
+Fz_r_flat = b .* (m * 9.81) ./ L + rear_aero;
+
+Fz_f_geo  = a .* (m .* az_road) ./ L + front_aero;
+Fz_r_geo  = b .* (m .* az_road) ./ L + rear_aero;
+
+%% fig S13 - one tab per a_y definition
+%
+% Three separate tabs rather than three curves on one pair of axes. They are the
+% SAME measurement with successively more of the road taken out, so overlaying
+% them buried the scatter under near-parallel lines and made the one comparison
+% that matters - measured against the modelled tire limit - hard to read. Each
+% tab now carries its own scatter, its own envelope, and the model.
+%
+%   a       ay_body   raw kinematic. The gravity ASSIST is still in it, so a
+%                     banked corner flatters the car. This is what the car pulled.
+%   b       ay_tire   assist removed. The lateral force the TIRES actually make.
+%   c       ay_flat   assist AND the bank's normal-load boost removed, so it is
+%                     on the same flat-road basis as the model. The like-for-like
+%                     comparison, and the only one where sitting above the green
+%                     line means the model is wrong.
+%
+% The console prints the p99 of all three against the model, so the tabs and the
+% numbers agree.
+
+ayvx_axles = { ...
+    "Front", alpha_f_deg, validFront, "\alpha_f", Fz_f_flat, Fz_f_geo; ...
+    "Rear",  alpha_r_deg, validRear,  "\alpha_r", Fz_r_flat, Fz_r_geo};
+
+% key, tab title, y label, whether to gate to cornering samples
+ayvx_variants = { ...
+    "body", 'Fig S13a - a_y vs Speed (with gravity assist)', ...
+        "a_y with gravity assist [m/s^2]", false; ...
+    "tire", 'Fig S13b - a_y vs Speed (gravity assist removed)', ...
+        "a_y at the tires [m/s^2]", false; ...
+    "flat", 'Fig S13c - a_y vs Speed (flat-road equivalent)', ...
+        "a_y, flat-road equivalent [m/s^2]", true};
+
+nAyVar = size(ayvx_variants, 1);
+axS13  = gobjects(2, nAyVar);
+
+for iVar = 1:nAyVar
+
+    varKey   = ayvx_variants{iVar,1};
+    varTitle = ayvx_variants{iVar,2};
+    varYLab  = ayvx_variants{iVar,3};
+    varGate  = ayvx_variants{iVar,4};
+
+    parentS13v = newFigTab(FG, "maps", varTitle);
+
+    layoutS13v = tiledlayout(parentS13v, 1, 2, ...
+        "TileSpacing", "compact", "Padding", "compact");
+
+    for iAxle = 1:2
+
+        axleName   = ayvx_axles{iAxle,1};
+        alphaDeg   = ayvx_axles{iAxle,2};
+        axleValid  = ayvx_axles{iAxle,3};
+        alphaSym   = ayvx_axles{iAxle,4};
+        FzFlat     = ayvx_axles{iAxle,5};
+        FzGeo      = ayvx_axles{iAxle,6};
+
+        % Guarded: an axle momentarily near zero load would otherwise send the
+        % flat-equivalent to infinity.
+        roadRatio = FzGeo ./ FzFlat;
+        roadRatio(~isfinite(roadRatio) ...
+            | roadRatio < ayvx_flatRatioRange(1) ...
+            | roadRatio > ayvx_flatRatioRange(2)) = NaN;
+
+        switch varKey
+            case "body",  ayVar = ay_body;
+            case "tire",  ayVar = ay_tire;
+            case "flat",  ayVar = ay_tire ./ roadRatio;
+        end
+
+        keep = axleValid & isfinite(Fvx) & isfinite(ayVar) & isfinite(alphaDeg) ...
+             & pureLat;
+
+        % The flat-road variant divides by the road-geometry ratio, so a sample
+        % taken over a crest gets scaled up hard. Harmless in itself, but a p99
+        % then preferentially picks exactly those, and on a straight that grows
+        % a spike where the car was not cornering. Only that variant is gated.
+        if varGate && ayvx_flatMinAy > 0
+            keep = keep & abs(ay_tire) > ayvx_flatMinAy;
+        end
+
+        axS13(iAxle,iVar) = nexttile(layoutS13v);
+
+        scatter(Fvx(keep), ayVar(keep), 14, alphaDeg(keep), "filled", ...
+            "HandleVisibility", "off");
+        hold on
+
+        yline(0, "k--", "HandleVisibility", "off");
+
+        yline(g,  ":", "1 g", "Color", [0.35 0.35 0.35], ...
+            "LabelHorizontalAlignment", "left", "HandleVisibility", "off");
+        yline(-g, ":", "-1 g", "Color", [0.35 0.35 0.35], ...
+            "LabelHorizontalAlignment", "left", "HandleVisibility", "off");
+
+        hModel     = gobjects(0);
+        hModelTrim = gobjects(0);
+
+        if latEnv_loaded
+
+            % Clipped to the speed the car actually reached. The CSV runs to
+            % 100 m/s because brake_bias_schedule.m sweeps that far, but this
+            % log tops out near 65, and letting the model set the x limit
+            % squashes every measured point into the left of the panel.
+            envDraw = latEnv_v <= max(Fvx(keep)) + ayvx_speedBinWidth;
+
+            hModel = plot(latEnv_v(envDraw),  latEnv_ay(envDraw), ...
+                "-", "LineWidth", 2.0, "Color", [0.00 0.50 0.25]);
+            plot(latEnv_v(envDraw), -latEnv_ay(envDraw), ...
+                "-", "LineWidth", 2.0, "Color", [0.00 0.50 0.25], ...
+                "HandleVisibility", "off");
+
+            if any(isfinite(latEnv_ayTrim))
+                hModelTrim = plot(latEnv_v(envDraw),  latEnv_ayTrim(envDraw), ...
+                    "--", "LineWidth", 1.5, "Color", [0.85 0.45 0.10]);
+                plot(latEnv_v(envDraw), -latEnv_ayTrim(envDraw), ...
+                    "--", "LineWidth", 1.5, "Color", [0.85 0.45 0.10], ...
+                    "HandleVisibility", "off");
+            end
+        end
+
+        xlim(axS13(iAxle,iVar), [0 max(Fvx(keep)) + ayvx_speedBinWidth]);
+
+        grid on
+        box on
+
+        xlabel("Speed v_x [m/s]");
+        ylabel(varYLab);
+        title(sprintf("%s axle - coloured by %s", axleName, alphaSym), ...
+            "FontWeight", "bold");
+
+        colormap(axS13(iAxle,iVar), slipAngleColormap(256));
+        clim(axS13(iAxle,iVar), [-alphaLim alphaLim]);
+
+        set(axS13(iAxle,iVar), "FontSize", 11, "LineWidth", 0.8, "GridAlpha", 0.20);
+
+        % Handle/label pairs built together, so they cannot drift apart.
+        % Letting legend pick up whatever is visible silently mislabels every
+        % curve the moment the number of objects and the number of strings
+        % disagree, which is how the model lines got swapped once already.
+        legHandles = gobjects(0);
+        legLabels  = strings(0);
+
+        if ~isempty(hModel)
+            legHandles = [legHandles, hModel];
+            legLabels  = [legLabels, "model: tire limit"];
+        end
+
+        if ~isempty(hModelTrim)
+            legHandles = [legHandles, hModelTrim];
+            legLabels  = [legLabels, "model: holding speed"];
+        end
+
+        if iAxle == 1 && ~isempty(legHandles)
+            lgdS13 = legend(legHandles, legLabels, "Orientation", "horizontal");
+            lgdS13.Layout.Tile = "south";
+        end
+    end
+
+    cbS13 = colorbar(axS13(2,iVar));
+    cbS13.Layout.Tile = "east";
+    ylabel(cbS13, "Slip angle [deg]");
+    cbS13.Ticks = round(linspace(-alphaLim, alphaLim, 9), 2);
+
+    title(layoutS13v, sprintf("%s   (%s)", varTitle(11:end), pureLat_label), ...
+        "FontWeight", "bold");
+
+    linkaxes(axS13(:,iVar), "xy");
+end
+
+% How much of the modelled limit the car actually used, per speed bin. This is
+% the number the figure exists to produce - the same "% used" the longitudinal
+% envelope reports in fig E1.
+if latEnv_loaded
+
+    % Front axle, on both bases. The flat-road-equivalent row is the meaningful
+    % comparison - the raw row is kept alongside so the size of the road-geometry
+    % correction is visible rather than silently applied.
+    ayUse_ratio = Fz_f_geo ./ Fz_f_flat;
+    ayUse_ratio(~isfinite(ayUse_ratio) ...
+        | ayUse_ratio < ayvx_flatRatioRange(1) ...
+        | ayUse_ratio > ayvx_flatRatioRange(2)) = NaN;
+
+    ayUse_flat = ay_tire ./ ayUse_ratio;
+
+    ayUse_valid = validFront & isfinite(Fvx) & isfinite(ay_tire) & Fvx > 10 & pureLat;
+
+    ayUse_model = interp1(latEnv_v, latEnv_ay, Fvx(ayUse_valid), "linear", NaN);
+    ayUse_raw   = abs(ay_tire(ayUse_valid));
+    ayUse_flatV = abs(ayUse_flat(ayUse_valid));
+
+    ayUse_ok = isfinite(ayUse_model) & ayUse_model > 0 & isfinite(ayUse_flatV);
+
+    % Same population as the other two tabs; see ayvx_flatMinAy.
+    ayUse_corner = ayUse_ok & ayUse_raw > ayvx_flatMinAy;
+
+    fprintf("lateral envelope usage (front axle, %d samples):\n", sum(ayUse_ok));
+    fprintf("  as measured           p99 %.0f%%  peak %.0f%%  of the modelled limit\n", ...
+        100 * prctile(ayUse_raw(ayUse_ok) ./ ayUse_model(ayUse_ok), ayvx_envelopePct), ...
+        100 * max(ayUse_raw(ayUse_ok) ./ ayUse_model(ayUse_ok)));
+    fprintf("  flat-road equivalent  p99 %.0f%%  peak %.0f%%   <- the like-for-like number\n", ...
+        100 * prctile(ayUse_flatV(ayUse_corner) ./ ayUse_model(ayUse_corner), ayvx_envelopePct), ...
+        100 * max(ayUse_flatV(ayUse_corner) ./ ayUse_model(ayUse_corner)));
+    fprintf("    (cornering samples only, |a_y| > %.1f m/s^2: %d of %d)\n", ...
+        ayvx_flatMinAy, sum(ayUse_corner), sum(ayUse_ok));
+    fprintf("  road geometry was worth a median %+.1f%% of normal load on the front axle\n", ...
+        100 * (median(ayUse_ratio(ayUse_valid), "omitnan") - 1));
+
+    % THE TWO HALVES OF THE BANK CORRECTION, separated.
+    %
+    % A bank helps the car twice and they are removed at different places, so it
+    % is worth showing them apart rather than as one lump:
+    %
+    %   1. the gravity ASSIST - g*cos(pitch)*sin(roll) turning the car for free.
+    %      Removed by useBankCorrection when ay_tire is built, far above.
+    %   2. the normal-load BOOST - the same bank pressing the car into the road,
+    %      raising F_z and so raising the force the tires can make. Removed by
+    %      the flat-road-equivalent scaling here.
+    %
+    % Neither alone is the whole road effect, and on this log they are close to
+    % the same size, so stripping only the assist leaves most of the job undone.
+    ayHalf_raw  = abs(ay_body(ayUse_valid));
+    ayHalf_tire = abs(ay_tire(ayUse_valid));
+    ayHalf_flat = abs(ayUse_flat(ayUse_valid));
+
+    ayHalf_ok = ayUse_corner;
+
+    fprintf("  the road's two halves, p99 a_y over cornering samples:\n");
+    fprintf("    raw kinematic (nothing removed)   %5.2f m/s^2  %3.0f%% of model\n", ...
+        prctile(ayHalf_raw(ayHalf_ok), ayvx_envelopePct), ...
+        100 * prctile(ayHalf_raw(ayHalf_ok) ./ ayUse_model(ayHalf_ok), ayvx_envelopePct));
+    fprintf("    gravity assist removed            %5.2f m/s^2  %3.0f%%\n", ...
+        prctile(ayHalf_tire(ayHalf_ok), ayvx_envelopePct), ...
+        100 * prctile(ayHalf_tire(ayHalf_ok) ./ ayUse_model(ayHalf_ok), ayvx_envelopePct));
+    fprintf("    + normal-load boost removed       %5.2f m/s^2  %3.0f%%\n", ...
+        prctile(ayHalf_flat(ayHalf_ok), ayvx_envelopePct), ...
+        100 * prctile(ayHalf_flat(ayHalf_ok) ./ ayUse_model(ayHalf_ok), ayvx_envelopePct));
+end
+
+fprintf("fig S13 (a_y vs v_x, %s): front %d, rear %d samples, slip angle colour scale +/-%.2f deg\n", ...
+    pureLat_label, ...
+    sum(validFront & isfinite(Fvx) & isfinite(ay_tire) & pureLat), ...
+    sum(validRear  & isfinite(Fvx) & isfinite(ay_tire) & pureLat), alphaLim);
+
+% A fixed colour range can hide data by saturating it, so say how much it hides.
+alphaClipF = validFront & isfinite(alpha_f_deg) & abs(alpha_f_deg) > alphaLim;
+alphaClipR = validRear  & isfinite(alpha_r_deg) & abs(alpha_r_deg) > alphaLim;
+
+fprintf("  clipped at the colour limits: front %.2f%%, rear %.2f%% of samples " + ...
+    "(p99 |alpha| front %.2f deg, rear %.2f deg)\n", ...
+    100 * sum(alphaClipF) / max(sum(validFront & isfinite(alpha_f_deg)), 1), ...
+    100 * sum(alphaClipR) / max(sum(validRear  & isfinite(alpha_r_deg)), 1), ...
+    prctile(abs(alpha_f_deg(validFront)), 99), ...
+    prctile(abs(alpha_r_deg(validRear)),  99));
+
+%% TIRE-LIMITED LONGITUDINAL ACCELERATION ENVELOPE
+%
+% What this is: the a_x the TIRES allow at a given speed, for both signs. It is
+% not what the car will do - the engine limit is well below this in first and
+% second gear, and the brake hardware may not reach the bias the decel side
+% wants - so it is a ceiling to be intersected with those, not a prediction.
+%
+% MU IS AN INPUT HERE, not something this section fits. The measured slip curve
+% is still drawn - fig E1's left panel - so you can see what these numbers are
+% being set against, but nothing reads a percentile off it any more. Set them
+% by eye from that panel, or from a rig, and keep them in step with P.muF /
+% P.muR / P.muR_drive in brake_bias_schedule.m, which are the same three
+% quantities used by the same physics.
+%
+% Three, not two, because the rear tire does not read the same on power as on
+% the brakes and each regime should use its own number:
+%
+%   drive, rear    the car is RWD, so the whole of Fx is rear and no brake
+%                  split divides into it. The trustworthy one.
+%
+%   brake, front   only ever seen through the measured brake bias, which the
+%                  Fx-split section flags as the weak link.
+%
+%   brake, rear    same caveat.
+%
+% F_z comes from the same load model the slip curve was normalised by - static
+% split, longitudinal transfer m*a*cg_z/L, and aero - so the mu you read off
+% that panel is being divided and multiplied by consistent loads.
+%
+% The solve is implicit: grip depends on load, load depends on a_x, a_x depends
+% on grip. Fixed-point iteration, which converges because each pass multiplies
+% the error by mu*cg_z/L (driving) or (mu_f-mu_r)*cg_z/L (braking), both well
+% inside 1.
+%
+% Deceleration is distributed the way the car really distributes it, and only
+% that way: the front/rear split comes from the bias the controller will
+% command, read out of lut/brake_bias_map_grid.csv at this speed and decel, and
+% engine braking is added at the REAR because that is where the driveline puts
+% it. Whichever axle that combination saturates first caps the car; the other
+% is left with grip on the table.
+%
+% There is deliberately no ideal-bias curve. That one answers "what could the
+% tires do if the bias were free", which is a different question from "what
+% will this car do", and mixing the two on one plot only invites reading the
+% optimistic line as the answer.
+
+mu_rear_drive_peak  = 1.35;   % P.muR_drive in brake_bias_schedule.m
+mu_front_brake_peak = 0.95;    % P.muF
+mu_rear_brake_peak  = 1.35;    % P.muR
+
+envelope_speedStep_mps  = 4;
+envelope_speedMax_mps   = 88;
+envelope_maxIter        = 200;
+envelope_tol            = 1e-9;
+
+% Brake bias for the second decel curve comes from the schedule the car
+% actually runs - lut/brake_bias_map_grid.csv, written by brake_bias_schedule.m
+% - rather than a single held number. The file is PRESSURE bias on a
+% (decel, speed) grid; it is converted to the FORCE bias this solve needs by
+% the same gain-and-radius chain the Fx split section uses. The fallback is
+% only reached if the file is missing.
+envelope_biasLutFile  = "brake_bias_map_grid.csv";
+envelope_biasFallback = defaultFrontBrakeBias;
+envelope_biasRelax    = 0.5;   % damping on the coupled bias/decel iteration
+
+% Engine braking. A closed throttle retards through the driveline, which on a
+% RWD car is a REAR-ONLY force, so it does not add to the tire limit - it
+% SPENDS rear grip that the calipers would otherwise have had. That makes it
+% invisible in the ideal-bias curve and costly in the scheduled one, because
+% the bias schedule does not know the driveline is already using part of the
+% rear.
+%
+% Which gear the car is in sets how much of it there is, so the shift schedule
+% is needed. These are pasted straight from the vehicle config, which counts
+% gear 0 first - entry g+1 is gear g. Only the lower bounds are read here: a
+% car that is slowing crosses the DOWNSHIFT bound, never the upshift one.
+envelope_engineBraking = true;
+
+envelope_gearRatio    = [2.9167; 1.8667; 1.3750; 1.1111; 0.9524; 0.8889];
+envelope_finalDrive   = 3.0;
+
+envelope_lbRpm = [0.0, 0.0, 3780.0, 4460.0, 4960.0, 5080.0, 5290.0];   % lb_rpm, 30 psi
+envelope_ubRpm = [0.0, 7000.0, 7000.0, 7000.0, 6750.0, 6420.0, 7000.0]; % ub_rpm, kept for reference
+
+envelope_export = true;
+envelope_file   = "tire_limit_ax_vs_speed.csv";
+
+% Curves computed elsewhere, drawn on the envelope panel. All three are the
+% same shape - v_mps in the first column, an a_x in the second, signed as
+% plotted - so one loader reads all of them and a missing file just leaves that
+% curve off.
+%
+%   tire accel / decel   brake_bias_schedule.m, from lut/. Grip and F = ma.
+%
+%   engine accel         what the DRIVELINE can deliver, from the GGV
+%                        engine-potential sweep. Independent of the tires
+%                        entirely, so where it sits below the tire curve the
+%                        car is torque-limited rather than grip-limited, and
+%                        that is the whole point of putting them together.
+% Suffixed by grip level - see envelope_gripLevel where the lateral envelope is
+% loaded. brake_bias_schedule.m no longer writes unsuffixed versions of these.
+envelope_compareAccelFile = "max_accel_vs_speed_" + envelope_gripLevel + ".csv";
+envelope_compareDecelFile = "max_decel_vs_speed_" + envelope_gripLevel + ".csv";
+envelope_compareEngineFile = ...
+    "/home/elijah/PurdueRacing/GGV_stuff/Engine_potential/ax_max_engine30_vs_speed.csv";
+
+envelope_scriptDir = fileparts(mfilename('fullpath'));
+
+if isempty(envelope_scriptDir)
+    envelope_scriptDir = pwd;   % running the cell by hand rather than the file
+end
+
+envelope_dir = fullfile(envelope_scriptDir, "lut");
+
+%% measured mu samples, for the slip curve in fig E1
+% Only the scatter. Nothing here is fitted and nothing feeds the envelope - the
+% mu it runs on are the constants set above. This is the picture those
+% constants get drawn over.
+
+Fz_axle_total = Fz_front_norm + Fz_rear_norm;
+
+% Same samples the exported slip curve is built from. lowSpeedMask matters:
+% below vx_min_slip_ratio the wheel-speed channels are too noisy to divide by,
+% which is exactly the regime a slip ratio is most sensitive to.
+muBase = pureLong & seamValid & speedValid & biasValid & ~lowSpeedMask;
+
+mu_rearDrive  =  Fxr      ./ Fz_rear_norm;
+mu_frontBrake = -Fxf      ./ Fz_front_norm;
+mu_rearBrake  = -Fxr      ./ Fz_rear_norm;
+
+keep_rearDrive  = muBase & driveMode & Fz_rear_norm  > 0 ...
+                & isfinite(mu_rearDrive);
+keep_frontBrake = muBase & brakeMode & Fz_front_norm > 0 ...
+                & isfinite(mu_frontBrake);
+keep_rearBrake  = muBase & brakeMode & Fz_rear_norm  > 0 ...
+                & isfinite(mu_rearBrake);
+
+fprintf("\nENVELOPE MU (set by hand, not fitted)\n");
+fprintf("  drive rear %.3f | brake front %.3f | brake rear %.3f\n", ...
+    mu_rear_drive_peak, mu_front_brake_peak, mu_rear_brake_peak);
+fprintf("  slip curve drawn from %d drive, %d front-brake, %d rear-brake samples\n", ...
+    sum(keep_rearDrive), sum(keep_frontBrake), sum(keep_rearBrake));
+
+%% brake bias schedule
+% Read the same way lookupEngineTorque reads an engine map: the header row by
+% hand for the speed breakpoints, the body through readmatrix. Rows are the
+% commanded decel, columns are speed, cells are the front PRESSURE bias.
+%
+% Two things about this file are worth knowing before its numbers are trusted.
+% It was solved with its own grip assumption (P.muF/P.muR in
+% brake_bias_schedule.m), so if that does not match the mu measured above, the
+% schedule is distributing brake force by the wrong ratio and the decel curve
+% it produces will sit below the ideal-bias one. And it already holds its edge
+% values past a_max and below the drag cut-in, so clamping onto the grid
+% continues the file's own convention rather than inventing an extrapolation.
+
+biasLut_path   = fullfile(envelope_dir, envelope_biasLutFile);
+biasLut_loaded = isfile(biasLut_path);
+
+if biasLut_loaded
+
+    fid = fopen(biasLut_path, 'r');
+    biasLut_headerLine = fgetl(fid);
+    fclose(fid);
+
+    biasLut_speed = str2double(strsplit(strtrim(biasLut_headerLine), ','));
+    biasLut_speed = biasLut_speed(2:end);   % first cell names the decel column
+
+    biasLut_raw = readmatrix(biasLut_path);
+    biasLut_raw = biasLut_raw(isfinite(biasLut_raw(:,1)), :);
+
+    biasLut_decel = biasLut_raw(:,1);
+    biasLut_press = biasLut_raw(:,2:end);
+
+    if numel(biasLut_speed) ~= size(biasLut_press, 2)
+        error("notmal_force_estimation:biasLutShape", ...
+            "%s has %d bias columns but %d speed breakpoints in its header.", ...
+            biasLut_path, size(biasLut_press,2), numel(biasLut_speed));
+    end
+
+    % Pressure bias -> force bias. A pressure makes torque through the caliper
+    % gain and a force through the tire radius, so the axle with the smaller
+    % radius makes more force per kPa and the force bias is not the pressure
+    % bias. Same expression as the Fx split section, and it collapses to the
+    % identity when the gains and radii match.
+    brakeGainRatio = (vehicleParams.brakeGain_f / R_f) ...
+                   / (vehicleParams.brakeGain_r / R_r);
+
+    biasLut_force = brakeGainRatio .* biasLut_press ...
+        ./ (brakeGainRatio .* biasLut_press + (1 - biasLut_press));
+
+    fprintf("\nbrake bias schedule: %s\n", biasLut_path);
+    fprintf("  %d decel x %d speed breakpoints, decel %.3g-%.3g m/s^2, speed %.3g-%.3g m/s\n", ...
+        numel(biasLut_decel), numel(biasLut_speed), ...
+        min(biasLut_decel), max(biasLut_decel), ...
+        min(biasLut_speed), max(biasLut_speed));
+    fprintf("  pressure bias %.3f-%.3f -> force bias %.3f-%.3f (gain/radius ratio %.4f)\n", ...
+        min(biasLut_press(:)), max(biasLut_press(:)), ...
+        min(biasLut_force(:)), max(biasLut_force(:)), brakeGainRatio);
+
+else
+    % A degenerate two-by-two grid, so the solve below takes one code path
+    % whether or not the schedule was found.
+    warning("notmal_force_estimation:noBiasLut", ...
+        "%s not found; the scheduled-bias decel curve falls back to a held %.3f. " + ...
+        "Run brake_bias_schedule.m to generate it.", ...
+        biasLut_path, envelope_biasFallback);
+
+    biasLut_speed = [0 1000];
+    biasLut_decel = [0; 1000];
+    biasLut_force = envelope_biasFallback * ones(2,2);
+end
+
+%% downshift speeds
+% The speed at which each gear hands down to the one below, from its lower rpm
+% bound. Coming down the speed range the car is in the highest gear whose
+% downshift speed it is still above.
+
+num_envelope_gears = numel(envelope_gearRatio);
+
+if numel(envelope_lbRpm) ~= num_envelope_gears + 1
+    error("notmal_force_estimation:gearScheduleShape", ...
+        "envelope_lbRpm has %d entries; %d gears plus the leading gear-0 slot needs %d.", ...
+        numel(envelope_lbRpm), num_envelope_gears, num_envelope_gears + 1);
+end
+
+envelope_downshiftSpeed = nan(num_envelope_gears, 1);
+
+for gear = 1:num_envelope_gears
+    envelope_downshiftSpeed(gear) = envelope_lbRpm(gear+1) ...
+        / (envelope_gearRatio(gear) * envelope_finalDrive) ...
+        * (2*pi/60) * vehicleParams.R_r;
+end
+
+if envelope_engineBraking
+    fprintf("\ndownshift speeds [m/s]:");
+
+    for gear = 2:num_envelope_gears
+        fprintf("  %d->%d at %.1f", gear, gear-1, envelope_downshiftSpeed(gear));
+    end
+
+    fprintf("\n");
+end
+
+%% curves computed elsewhere, for comparison
+% Two from brake_bias_schedule.m and one from the engine-potential sweep. Two
+% columns each: v_mps first, an a_x second.
+
+envelopeCompare_paths = [fullfile(envelope_dir, envelope_compareAccelFile), ...
+                         fullfile(envelope_dir, envelope_compareDecelFile), ...
+                         envelope_compareEngineFile];
+
+envelopeCompare_names = ["tire accel", "tire decel", "engine accel"];
+
+nCompare = numel(envelopeCompare_paths);
+
+envelopeCompare_speed  = cell(1,nCompare);
+envelopeCompare_ax     = cell(1,nCompare);
+envelopeCompare_loaded = false(1,nCompare);
+
+for iCmp = 1:nCompare
+
+    cmpPath = envelopeCompare_paths(iCmp);
+
+    if ~isfile(cmpPath)
+        warning("notmal_force_estimation:missingCompareCurve", ...
+            "%s not found; the %s curve is left off.", ...
+            cmpPath, envelopeCompare_names(iCmp));
+        continue
+    end
+
+    cmpTbl  = readtable(cmpPath);
+    cmpVars = string(cmpTbl.Properties.VariableNames);
+
+    % The speed column is checked by NAME and the a_x column is taken as the
+    % only other one. Older runs of brake_bias_schedule.m wrote these files with
+    % speed_kph second, and taking column 2 on faith would draw a speed as
+    % though it were an acceleration - hence the width check rather than a
+    % blind index.
+    if numel(cmpVars) ~= 2 || cmpVars(1) ~= "v_mps"
+        warning("notmal_force_estimation:compareCurveShape", ...
+            "%s is not a two-column v_mps/a_x file (has %s). That curve is left off.", ...
+            cmpPath, join(cmpVars, ", "));
+        continue
+    end
+
+    cmpSpeed = cmpTbl.(char(cmpVars(1)));
+    cmpAx    = cmpTbl.(char(cmpVars(2)));
+
+    cmpKeep  = isfinite(cmpSpeed) & isfinite(cmpAx);
+
+    if ~any(cmpKeep)
+        warning("notmal_force_estimation:emptyCompareCurve", ...
+            "%s has no usable rows; that curve is left off.", cmpPath);
+        continue
+    end
+
+    envelopeCompare_speed{iCmp}  = cmpSpeed(cmpKeep);
+    envelopeCompare_ax{iCmp}     = cmpAx(cmpKeep);
+    envelopeCompare_loaded(iCmp) = true;
+
+    fprintf("comparison %s curve: %s  (%d speeds, %.1f-%.1f m/s, a_x %.2f to %.2f)\n", ...
+        envelopeCompare_names(iCmp), cmpPath, sum(cmpKeep), ...
+        min(cmpSpeed(cmpKeep)), max(cmpSpeed(cmpKeep)), ...
+        min(cmpAx(cmpKeep)), max(cmpAx(cmpKeep)));
+end
+
+%% envelope solve
+
+envelope_speed_mps = (0 : envelope_speedStep_mps : envelope_speedMax_mps)';
+nEnvelope          = numel(envelope_speed_mps);
+
+env_axMax        = nan(nEnvelope,1);
+env_axMin        = nan(nEnvelope,1);
+env_downforce    = nan(nEnvelope,1);
+env_FzRearDrive  = nan(nEnvelope,1);
+env_FzFront      = nan(nEnvelope,1);
+env_FzRear       = nan(nEnvelope,1);
+env_gear         = nan(nEnvelope,1);
+env_engineRpm    = nan(nEnvelope,1);
+env_engineForce  = nan(nEnvelope,1);
+env_biasSched    = nan(nEnvelope,1);
+env_schedLimit   = strings(nEnvelope,1);
+env_schedConverged = true(nEnvelope,1);
+
+% Static axle loads from the same weight distribution the load transfer uses.
+W_front = vehicleParams.w_dist_f       * m * g;
+W_rear  = (1 - vehicleParams.w_dist_f) * m * g;
+
+for iEnv = 1:nEnvelope
+
+    speed = envelope_speed_mps(iEnv);
+
+    F_drag = 0.5 * rho * CdA_drag          * speed^2;
+    F_down = 0.5 * rho * vehicleParams.ACd * speed^2;
+
+    F_down_f = aero_balance       * F_down;
+    F_down_r = (1 - aero_balance) * F_down;
+
+    % Drive: rear axle only. Two things load the driven axle beyond its static
+    % share - longitudinal transfer, which ADDS here because the car is
+    % squatting, and the rear share of the downforce. Drag is the only term
+    % working against it, and with this car's CdA against its ACd the drag wins
+    % as speed rises, so the drive limit falls with speed even though the rear
+    % tires are being pushed down harder.
+    accel = 0;
+
+    for iter = 1:envelope_maxIter
+        Fz_rear_drive = max(W_rear + m * accel * cgh / L + F_down_r, 0);
+        accel_next    = (mu_rear_drive_peak * Fz_rear_drive - F_drag) / m;
+
+        if abs(accel_next - accel) < envelope_tol
+            accel = accel_next;
+            break
+        end
+
+        accel = accel_next;
+    end
+
+    % Engine braking at this speed, in whatever gear the downshift schedule
+    % leaves the car. Force by power balance, T*omega_engine / v_wheel, which
+    % with no slip is just the ratio over the radius. Losses are left out, the
+    % same assumption the log-side engine split makes; carrying them would make
+    % this force slightly LARGER, so the rear cost below is a floor.
+    if envelope_engineBraking
+
+        gearDecel = 1;
+
+        for gearTry = num_envelope_gears:-1:2
+            if speed >= envelope_downshiftSpeed(gearTry)
+                gearDecel = gearTry;
+                break
+            end
+        end
+
+        rpmDecel = speed / vehicleParams.R_r * (60/(2*pi)) ...
+                 * envelope_gearRatio(gearDecel) * envelope_finalDrive;
+
+        T_engineBrake = engineMap_scale * lookupEngineTorque( ...
+            engineMapFile, engineMap_throttleBreaks, rpmDecel, 0);
+
+        % Closed-throttle torque is negative; keep it as a positive retarding
+        % force and never let a positive map value push the car along.
+        F_engineBrake = max(-T_engineBrake * envelope_gearRatio(gearDecel) ...
+            * envelope_finalDrive / vehicleParams.R_driveline, 0);
+    else
+        gearDecel     = NaN;
+        rpmDecel      = NaN;
+        F_engineBrake = 0;
+    end
+
+
+    % Brake, scheduled bias: the split the car will actually command at this
+    % speed and decel, so whichever axle the schedule overworks caps the car
+    % and the other one is left with grip on the table. The bias depends on the
+    % decel and the decel depends on the bias, so the lookup sits inside the
+    % same fixed point. Damped, because the LUT is piecewise linear and an
+    % undamped step can hop back and forth across a breakpoint forever.
+    decelSched    = 0;
+    schedSettled  = false;
+
+    for iter = 1:envelope_maxIter
+
+        Fz_f_sched = max(W_front + m * decelSched * cgh / L + F_down_f, 0);
+        Fz_r_sched = max(W_rear  - m * decelSched * cgh / L + F_down_r, 0);
+
+        biasSched = scheduledFrontBias(biasLut_speed, biasLut_decel, ...
+            biasLut_force, speed, decelSched);
+
+        % The schedule splits CALIPER force, so the rear's share is capped by
+        % what the driveline has left it, not by the whole rear grip.
+        brakeForce = min(mu_front_brake_peak * Fz_f_sched / biasSched, ...
+            max(mu_rear_brake_peak * Fz_r_sched - F_engineBrake, 0) / (1 - biasSched));
+
+        decelSched_next = decelSched + envelope_biasRelax ...
+            * ((brakeForce + F_engineBrake + F_drag) / m - decelSched);
+
+        if abs(decelSched_next - decelSched) < envelope_tol
+            decelSched   = decelSched_next;
+            schedSettled = true;
+            break
+        end
+
+        decelSched = decelSched_next;
+    end
+
+    Fz_f_sched = max(W_front + m * decelSched * cgh / L + F_down_f, 0);
+    Fz_r_sched = max(W_rear  - m * decelSched * cgh / L + F_down_r, 0);
+
+    biasSched = scheduledFrontBias(biasLut_speed, biasLut_decel, ...
+        biasLut_force, speed, decelSched);
+
+    if mu_front_brake_peak * Fz_f_sched / biasSched ...
+            <= max(mu_rear_brake_peak * Fz_r_sched - F_engineBrake, 0) / (1 - biasSched)
+        env_schedLimit(iEnv) = "front";
+    else
+        env_schedLimit(iEnv) = "rear";
+    end
+
+    if F_engineBrake > mu_rear_brake_peak * Fz_r_sched
+        warning("notmal_force_estimation:engineBrakeOverRear", ...
+            "At %.0f m/s engine braking alone (%.0f N) exceeds the rear grip " + ...
+            "(%.0f N); the rear locks on a closed throttle before any brake is applied.", ...
+            speed, F_engineBrake, mu_rear_brake_peak * Fz_r_sched);
+    end
+
+    env_axMax(iEnv)          =  accel;
+    env_axMin(iEnv)          = -decelSched;
+    env_downforce(iEnv)      =  F_down;
+    env_FzRearDrive(iEnv)    =  max(W_rear + m * accel * cgh / L + F_down_r, 0);
+    env_FzFront(iEnv)        =  Fz_f_sched;
+    env_FzRear(iEnv)         =  Fz_r_sched;
+    env_gear(iEnv)           =  gearDecel;
+    env_engineRpm(iEnv)      =  rpmDecel;
+    env_engineForce(iEnv)    =  F_engineBrake;
+    env_biasSched(iEnv)      =  biasSched;
+    env_schedConverged(iEnv) =  schedSettled;
+end
+
+if ~all(env_schedConverged)
+    warning("notmal_force_estimation:biasSolveNotConverged", ...
+        "The scheduled-bias decel solve hit %d iterations at %d of %d speeds; " + ...
+        "lower envelope_biasRelax.", ...
+        envelope_maxIter, sum(~env_schedConverged), nEnvelope);
+end
+
+envelope_table = table(envelope_speed_mps, ...
+    round(env_axMax, 3), ...
+    round(env_axMin, 3), ...
+    round(env_downforce), ...
+    round(env_FzRearDrive), ...
+    round(env_FzFront), ...
+    round(env_FzRear), ...
+    env_gear, ...
+    round(env_engineRpm), ...
+    round(env_engineForce), ...
+    round(env_biasSched, 4), ...
+    env_schedLimit, ...
+    'VariableNames', {'v_mps','ax_max_mps2','ax_min_mps2', ...
+                      'downforce_N','Fz_rear_drive_N','Fz_front_brake_N','Fz_rear_brake_N', ...
+                      'gear','engine_rpm','F_engine_brake_N', ...
+                      'biasF_sched','limited_by'});
+
+fprintf("\nTIRE-LIMITED a_x ENVELOPE  (drive mu_r %.3f | brake mu_f %.3f mu_r %.3f | " + ...
+    "m %.0f kg, cg_z %.3f m, ACd %.2f, CdA %.2f)\n", ...
+    mu_rear_drive_peak, mu_front_brake_peak, mu_rear_brake_peak, ...
+    m, cgh, vehicleParams.ACd, CdA_drag);
+fprintf("Decel is on the commanded bias schedule with engine braking at the rear;\n");
+fprintf("Fz_rear_drive is the load at the DRIVE limit, Fz_*_brake at the DECEL limit\n");
+disp(envelope_table)
+
+for axleName = ["front", "rear"]
+    nAxle = sum(env_schedLimit == axleName);
+
+    if nAxle > 0
+        fprintf("  the %s axle saturates first at %d of %d speeds\n", ...
+            axleName, nAxle, nEnvelope);
+    end
+end
+
+if envelope_engineBraking
+    % The driveline takes this share of the rear before the calipers get any,
+    % which is why the rear is usually the axle that gives out first.
+    engShareRear = 100 * env_engineForce ./ max(mu_rear_brake_peak * env_FzRear, eps);
+
+    fprintf("engine braking: %.0f-%.0f N through the rear, %.0f-%.0f%% of the rear grip, gears %d-%d\n", ...
+        min(env_engineForce), max(env_engineForce), ...
+        min(engShareRear), max(engShareRear), ...
+        min(env_gear), max(env_gear));
+end
+
+% What the log actually reached, against the envelope at that same speed. The
+% envelope is a percentile of the mu scatter, so a best-ever sample sitting
+% above it is expected - a whole cloud sitting above it is not.
+envCompare = isfinite(Fvx) & isfinite(Fax) & seamValid & Fvx > 0;
+
+% Slip ratio behind those samples, so the cloud says not only where the car got
+% to but how much the tires had to slide to do it. A point near the envelope at
+% small slip is grip in hand; the same point at large slip is a tire already
+% past its peak and on the way to locking or spinning.
+%
+%   "worst"  the axle slipping most, keeping its sign - answers "was anything
+%            close to letting go", which is what a limit plot is for
+%   "front"  / "rear"  that axle only
+%
+% Signed, on this script's convention kappa = (Vw - Vx)/Vw: positive is the
+% wheel outrunning the road (driving), negative is the wheel held back
+% (braking). That is why this gets a symmetric two-sided scale rather than the
+% braking-only ramp figs S11 and S12 use - here both signs are in play.
+envelope_slipColor = "worst";     % "worst" | "front" | "rear"
+
+switch lower(string(envelope_slipColor))
+
+    case "front"
+        envSlip      = slip_ratio_f;
+        envSlipLabel = "Front slip ratio \kappa_f [-]";
+
+    case "rear"
+        envSlip      = slip_ratio_r;
+        envSlipLabel = "Rear slip ratio \kappa_r [-]";
+
+    case "worst"
+        % Pick by magnitude, but fall to whichever axle actually resolved when
+        % the other is NaN - abs(NaN) >= x is false and would silently keep the
+        % NaN.
+        takeFront = (abs(slip_ratio_f) >= abs(slip_ratio_r)) ...
+                  | (~isfinite(slip_ratio_r) & isfinite(slip_ratio_f));
+
+        envSlip            = slip_ratio_r;
+        envSlip(takeFront) = slip_ratio_f(takeFront);
+        envSlipLabel       = "Slip ratio \kappa of the axle slipping most [-]";
+
+    otherwise
+        error("notmal_force_estimation:badEnvelopeSlipColor", ...
+            "envelope_slipColor must be ""worst"", ""front"" or ""rear"", got ""%s"".", ...
+            envelope_slipColor);
+end
+
+envSlipValid = envCompare & isfinite(envSlip);
+
+% Symmetric limits so zero slip sits on the neutral middle of the colormap and
+% a drive and a brake sample of the same size mirror each other.
+%
+% Fixed rather than fitted to the run, so the same colour means the same slip
+% from one log to the next. +/-0.07 covers where the data actually sits - p99
+% of |kappa| is about 0.034 on this log - so the ramp is spent on the range
+% that matters and anything past it clamps to the ends. Set
+% envelope_slipColorLimit = [] to go back to a robust auto-scale off the data.
+envelope_slipColorLimit = 0.07;
+
+if isempty(envelope_slipColorLimit)
+    envSlipLimit = robustRange(envSlip(envSlipValid), 0.02);
+    envSlipLimit = max(abs(envSlipLimit)) * [-1 1];
+else
+    envSlipLimit = abs(envelope_slipColorLimit) * [-1 1];
+end
+
+if ~(envSlipLimit(2) > 0)
+    envSlipLimit = [-0.01 0.01];
+end
+
+fprintf("envelope slip colouring: %s, %d samples, scale +/-%.3f (|kappa| median %.4f, max %.3f)\n", ...
+    envelope_slipColor, sum(envSlipValid), envSlipLimit(2), ...
+    median(abs(envSlip(envSlipValid)), "omitnan"), max(abs(envSlip(envSlipValid))));
+
+[axPeakDrive, iPeakDrive] = max(Fax(envCompare));
+[axPeakBrake, iPeakBrake] = min(Fax(envCompare));
+
+vxCompare = Fvx(envCompare);
+
+fprintf("measured peak drive  %+.2f m/s^2 at %.1f m/s, envelope there %+.2f  (%.0f%% used)\n", ...
+    axPeakDrive, vxCompare(iPeakDrive), ...
+    interp1(envelope_speed_mps, env_axMax, vxCompare(iPeakDrive), "linear", "extrap"), ...
+    100 * axPeakDrive / interp1(envelope_speed_mps, env_axMax, vxCompare(iPeakDrive), "linear", "extrap"));
+
+fprintf("measured peak brake  %+.2f m/s^2 at %.1f m/s, envelope there %+.2f  (%.0f%% used)\n", ...
+    axPeakBrake, vxCompare(iPeakBrake), ...
+    interp1(envelope_speed_mps, env_axMin, vxCompare(iPeakBrake), "linear", "extrap"), ...
+    100 * axPeakBrake / interp1(envelope_speed_mps, env_axMin, vxCompare(iPeakBrake), "linear", "extrap"));
+
+if envelope_export
+
+    if ~isfolder(envelope_dir)
+        mkdir(envelope_dir);
+    end
+
+    envelope_path = fullfile(envelope_dir, envelope_file);
+
+    writetable(envelope_table(:, {'v_mps','ax_max_mps2','ax_min_mps2'}), ...
+        envelope_path);
+
+    fprintf("wrote %s\n", envelope_path);
+end
+
+%% fig E1 - where the mu came from, and the envelope it produces
+
+parentE1 = newFigTab(FG, "envelope", 'Fig E1 - Tire-Limited Longitudinal Acceleration Envelope');
+
+layoutE1 = tiledlayout(parentE1, 1, 2, "TileSpacing", "compact", "Padding", "compact");
+
+% Left: the measured slip curve, as measured. Both signs folded into the
+% positive quadrant so the drive and brake branches can be compared directly.
+axE1(1) = nexttile(layoutE1);
+hold on
+
+plot(abs(slip_ratio_r(keep_rearDrive)),  abs(mu_rearDrive(keep_rearDrive)), ...
+    ".", "MarkerSize", 6, "Color", [0.10 0.45 0.70]);
+plot(abs(slip_ratio_r(keep_rearBrake)),  abs(mu_rearBrake(keep_rearBrake)), ...
+    ".", "MarkerSize", 6, "Color", [0.16 0.47 0.39]);
+plot(abs(slip_ratio_f(keep_frontBrake)), abs(mu_frontBrake(keep_frontBrake)), ...
+    ".", "MarkerSize", 6, "Color", [0.67 0.23 0.30]);
+
+grid on
+box on
+xlim([0 0.08])
+xlabel("|\kappa| [-]");
+ylabel("|F_x / F_z| [-]");
+title("Longitudinal slip vs friction, measured");
+legend("rear, on power", "rear, on brakes", "front, on brakes", "Location", "southeast");
+
+set(axE1(1), "FontSize", 11, "LineWidth", 0.8, "GridAlpha", 0.20);
+
+% Right: the envelope, with every sample of this run behind it.
+axE1(2) = nexttile(layoutE1);
+hold on
+
+% Samples first so the limit curves draw over them. Coloured by slip ratio,
+% and the samples whose slip never resolved are drawn in grey underneath
+% rather than dropped, so the cloud keeps its true shape.
+envSlipGrey = envCompare & ~isfinite(envSlip);
+
+if any(envSlipGrey)
+    plot(Fvx(envSlipGrey), Fax(envSlipGrey), ".", "MarkerSize", 4, ...
+        "Color", [0.85 0.85 0.85], "HandleVisibility", "off");
+end
+
+scatter(Fvx(envSlipValid), Fax(envSlipValid), 12, envSlip(envSlipValid), "filled");
+
+colormap(axE1(2), slipDivergingColormap(256));
+caxis(axE1(2), envSlipLimit);
+
+envLegend = "this run, coloured by slip";
+
+% The curves are all computed elsewhere and read back from CSV. This script's
+% own envelope is still solved, printed and exported below - it is just not
+% plotted here.
+%
+% Tire accel and decel in blue and red, engine accel in dark green. The two
+% acceleration curves are the interesting pair: the lower of them is what the
+% car can actually do, and which one that is changes with speed.
+%
+% Drawn with a marker on every row of the CSV, so the dots are the data and the
+% line between them is straight-line interpolation and nothing more. These
+% files are on a 4 m/s grid, which is coarse enough that the difference matters
+% - a peak between two breakpoints is not in the file and the line will cut
+% straight across it.
+envelopeCompare_colour = {[0.10 0.45 0.70], [0.67 0.23 0.30], [0.00 0.35 0.15]};
+
+for iCmp = 1:nCompare
+    if envelopeCompare_loaded(iCmp)
+
+        plot(envelopeCompare_speed{iCmp}, envelopeCompare_ax{iCmp}, "-o", ...
+            "LineWidth", 2.2, "Color", envelopeCompare_colour{iCmp}, ...
+            "MarkerFaceColor", envelopeCompare_colour{iCmp}, ...
+            "MarkerEdgeColor", "none", "MarkerSize", 7);
+
+        envLegend(end+1) = envelopeCompare_names(iCmp); %#ok<SAGROW>
+    end
+end
+
+yline(0, "-", "", "Color", [0.5 0.5 0.5], "HandleVisibility", "off");
+
+grid on
+box on
+xlabel("Speed v_x [m/s]");
+ylabel("a_x [m/s^2]");
+title("Measured a_x against the brake\_bias\_schedule limits");
+
+legend(envLegend, "Location", "east");
+
+set(axE1(2), "FontSize", 11, "LineWidth", 0.8, "GridAlpha", 0.20);
+
+cbE1 = colorbar(axE1(2));
+cbE1.Layout.Tile = "east";
+ylabel(cbE1, envSlipLabel);
+
+title(layoutE1, sprintf("Tire-limited a_x envelope   (drive \\mu_r %.3f, " + ...
+    "brake \\mu_f %.3f / \\mu_r %.3f)", ...
+    mu_rear_drive_peak, mu_front_brake_peak, mu_rear_brake_peak), ...
+    "FontWeight", "bold");
+
+%% fig E2 - the same envelope, one panel per tire
+% Same axes and the same limit curves as fig E1's right panel, but each panel
+% is coloured by that ONE tire's slip ratio instead of the worst of the two
+% axles. That is what separates a car sliding evenly from one dragging a single
+% corner: a locked front left shows up here and nowhere else, because the
+% axle-level view averages it away with its partner.
+%
+% The engine curve is drawn on the REAR panels only. It is a driveline limit,
+% and on a RWD car the front tires have no part in putting that torque down -
+% plotting it against a front slip ratio would invite reading a relationship
+% that is not there.
+%
+% One colour scale across all four, so the panels can be read against each
+% other rather than each one auto-scaling to its own worst corner.
+
+parentE2 = newFigTab(FG, "envelope", 'Fig E2 - Envelope per tire, coloured by that tire''s slip');
+
+layoutE2 = tiledlayout(parentE2, 2, 2, "TileSpacing", "compact", "Padding", "compact");
+
+axE2     = gobjects(4,1);
+hE2      = gobjects(0);
+labelsE2 = strings(0);
+
+for tire = 1:4
+
+    isRearTire = tire >= 3;
+
+    kappaTire = kappa_per_tire{tire};
+    keepTire  = envCompare & isfinite(kappaTire);
+
+    axE2(tire) = nexttile(layoutE2);
+    hold on
+
+    hSamplesE2 = scatter(Fvx(keepTire), Fax(keepTire), 10, ...
+        kappaTire(keepTire), "filled");
+
+    colormap(axE2(tire), slipDivergingColormap(256));
+    caxis(axE2(tire), envSlipLimit);
+
+    for iCmp = 1:nCompare
+
+        % Index 3 is the engine curve: rear panels only.
+        if ~envelopeCompare_loaded(iCmp) || (iCmp == 3 && ~isRearTire)
+            continue
+        end
+
+        hCurveE2 = plot(envelopeCompare_speed{iCmp}, envelopeCompare_ax{iCmp}, ...
+            "-o", "LineWidth", 1.8, "Color", envelopeCompare_colour{iCmp}, ...
+            "MarkerFaceColor", envelopeCompare_colour{iCmp}, ...
+            "MarkerEdgeColor", "none", "MarkerSize", 4);
+
+        % The legend is built off the last rear panel, which is the one that
+        % carries every curve appearing anywhere in the figure.
+        if tire == 4
+            hE2(end+1)      = hCurveE2;                       %#ok<SAGROW>
+            labelsE2(end+1) = envelopeCompare_names(iCmp);    %#ok<SAGROW>
+        end
+    end
+
+    if tire == 4
+        hE2      = [hSamplesE2, hE2];
+        labelsE2 = ["this run, coloured by slip", labelsE2];
+    end
+
+    yline(0, "-", "", "Color", [0.5 0.5 0.5], "HandleVisibility", "off");
+
+    grid on
+    box on
+    title(tire_names(tire));
+
+    if isRearTire
+        xlabel("Speed v_x [m/s]");
+    end
+
+    if mod(tire, 2) == 1
+        ylabel("a_x [m/s^2]");
+    end
+
+    set(axE2(tire), "FontSize", 10, "LineWidth", 0.8, "GridAlpha", 0.20);
+end
+
+linkaxes(axE2, "xy");
+
+cbE2 = colorbar(axE2(4));
+cbE2.Layout.Tile = "east";
+ylabel(cbE2, "Slip ratio \kappa [-]");
+
+if ~isempty(hE2)
+    lgdE2 = legend(hE2, labelsE2, "Orientation", "horizontal");
+    lgdE2.Layout.Tile = "south";
+end
+
+title(layoutE2, "Vehicle Limit", "FontWeight", "bold");
+
+%% tidy the figure windows
+% Close any group that ended up with no tabs (plot_per_tire = false leaves the
+% per-tire groups empty), then bring the first window forward.
+pruneEmptyFigureGroups(FG);
+
+if figureGrouping
+    fprintf("\nfigure windows:\n");
+
+    for iGroup = 1:numel(FG.keys)
+
+        if isgraphics(FG.tabgroup(iGroup))
+            fprintf("  %-40s %d tabs\n", FG.titles(iGroup), ...
+                numel(FG.tabgroup(iGroup).Children));
+        end
+    end
+
+    if isgraphics(FG.figure(1))
+        figure(FG.figure(1));
+    end
+end
 
 
 function observer = initDualTrackFzDerivativeObserver()
@@ -2776,6 +4638,56 @@ function muCircle(mu)
 end
 
 
+function cmap = slipDivergingColormap(n)
+% Two-sided map for SIGNED slip ratio: blue where the wheel is held back
+% (braking slip), near-neutral at zero, red where it is outrunning the road
+% (drive slip). Used with symmetric colour limits, so the neutral band really
+% does land on kappa = 0.
+%
+% Deliberately not kappaColormap: that one gives the whole rainbow to braking
+% and flattens everything positive to grey, which is right for figs S11 and
+% S12 and wrong here, where the drive side is half the picture.
+
+    if nargin < 1 || isempty(n)
+        n = 256;
+    end
+
+    negEnd  = [0.12 0.35 0.62];   % deep blue, most negative
+    neutral = [0.94 0.94 0.90];   % near-white at zero
+    posEnd  = [0.70 0.15 0.15];   % deep red, most positive
+
+    half = floor(n/2);
+    lower = [linspace(negEnd(1), neutral(1), half)', ...
+             linspace(negEnd(2), neutral(2), half)', ...
+             linspace(negEnd(3), neutral(3), half)'];
+
+    upper = [linspace(neutral(1), posEnd(1), n - half)', ...
+             linspace(neutral(2), posEnd(2), n - half)', ...
+             linspace(neutral(3), posEnd(3), n - half)'];
+
+    cmap = [lower; upper];
+end
+
+function bias = scheduledFrontBias(speedBreaks, decelBreaks, biasGrid, speed, decel)
+% Front FORCE bias from the brake schedule LUT at a speed and a commanded
+% decel.
+%
+% Both axes are clamped onto the grid rather than extrapolated. The LUT is
+% written with its edge values already held - above a_max it repeats the a_max
+% answer, below the drag cut-in it repeats the lowest decel that uses the
+% brakes - so clamping continues the file's own convention. Extrapolating a
+% bias would also be free to leave [0 1], which is not a bias.
+
+    speed = min(max(speed, speedBreaks(1)), speedBreaks(end));
+    decel = min(max(decel, decelBreaks(1)), decelBreaks(end));
+
+    bias = interp2(speedBreaks, decelBreaks, biasGrid, speed, decel, "linear");
+
+    % The solve divides by both bias and 1-bias, so neither end is allowed to
+    % be reached exactly.
+    bias = min(max(bias, 1e-3), 1 - 1e-3);
+end
+
 function limits = robustRange(x, tailFraction)
 % [lo hi] covering x with the extreme tailFraction of the samples dropped off
 % each end, so one outlier cannot stretch a whole plotting grid.
@@ -2845,6 +4757,131 @@ function cmap = rainbowColormap(n)
         cmap = turbo(n);
     else
         cmap = jet(n);
+    end
+end
+
+
+function cmap = slipAngleColormap(n)
+% Multi-hue diverging map for SIGNED slip angle.
+%
+% slipDivergingColormap is only blue -> near-white -> red, which has just two
+% hues to spend on the whole range. Inside a slip angle scale of a few degrees
+% that puts most of the data into pale washed-out tones where a degree of change
+% is nearly invisible.
+%
+% This runs through seven stops - deep blue, blue, cyan, neutral, amber, orange,
+% deep red - so the eye gets hue changes as well as lightness changes to read
+% gradations by. Still DIVERGING and still symmetric, so the neutral band lands
+% on alpha = 0 when used with symmetric colour limits, which is the property that
+% matters for a signed quantity.
+%
+% Not turbo/jet: those are not diverging, so zero would fall on an arbitrary
+% colour and the sign of the slip angle would stop being readable.
+
+    if nargin < 1 || isempty(n)
+        n = 256;
+    end
+
+    stops = [ ...
+        0.14 0.20 0.55        % deep blue      most negative
+        0.22 0.45 0.72        % blue
+        0.45 0.70 0.84        % cyan
+        0.95 0.95 0.92        % neutral        zero
+        0.99 0.80 0.45        % amber
+        0.92 0.52 0.22        % orange
+        0.62 0.09 0.14];      % deep red       most positive
+
+    nStop = size(stops,1);
+
+    xStop = linspace(0, 1, nStop);
+    xOut  = linspace(0, 1, n);
+
+    cmap = [interp1(xStop, stops(:,1), xOut, "pchip")', ...
+            interp1(xStop, stops(:,2), xOut, "pchip")', ...
+            interp1(xStop, stops(:,3), xOut, "pchip")'];
+
+    cmap = min(max(cmap, 0), 1);   % pchip can overshoot slightly
+end
+
+
+function FG = makeFigureGroups(groupDefs, enabled)
+% One container window per group, each holding a uitabgroup that newFigTab adds
+% tabs to. Returns a struct: FG.enabled, FG.keys, FG.titles, FG.tabgroup(i).
+%
+% With enabled = false nothing is created and newFigTab falls back to plain
+% figures, so the grouping can be switched off without touching the plot code.
+
+    FG.enabled = enabled;
+    FG.keys    = string(groupDefs(:,1));
+    FG.titles  = string(groupDefs(:,2));
+    FG.tabgroup = gobjects(numel(FG.keys), 1);
+    FG.figure   = gobjects(numel(FG.keys), 1);
+
+    if ~enabled
+        return
+    end
+
+    for iGroup = 1:numel(FG.keys)
+
+        FG.figure(iGroup) = figure( ...
+            "Name", FG.titles(iGroup), ...
+            "NumberTitle", "off");
+
+        FG.tabgroup(iGroup) = uitabgroup(FG.figure(iGroup), ...
+            "Units", "normalized", ...
+            "Position", [0 0 1 1]);
+    end
+end
+
+
+function parent = newFigTab(FG, groupKey, tabTitle)
+% Parent container for one plot: a new tab in that group's window, or a plain
+% figure when grouping is off.
+%
+% IMPORTANT for callers. The returned handle must be passed EXPLICITLY to
+% tiledlayout or axes, and the layout handle then passed to every nexttile:
+%
+%     p  = newFigTab(FG, "lateral", 'Fig S1 - ...');
+%     tl = tiledlayout(p, 1, 2);
+%     ax = nexttile(tl);
+%
+% A BARE nexttile does not work here. It ignores a tab-parented layout and
+% silently builds a second layout as a direct child of the container figure,
+% which then floats on top of the tab group and hides it. Verified in R2025b:
+% with tl parented to a Tab, isequal(nexttile().Parent, tl) is false.
+
+    if ~FG.enabled
+        parent = figure("Name", tabTitle, "NumberTitle", "off");
+        return
+    end
+
+    iGroup = find(FG.keys == string(groupKey), 1);
+
+    if isempty(iGroup)
+        error("notmal_force_estimation:unknownFigureGroup", ...
+            "figure group ""%s"" is not in figGroupDefs. Known groups: %s.", ...
+            groupKey, join(FG.keys, ", "));
+    end
+
+    parent = uitab(FG.tabgroup(iGroup), "Title", tabTitle);
+end
+
+
+function pruneEmptyFigureGroups(FG)
+% Close any container window that ended up with no tabs, so switches like
+% plot_per_tire = false do not leave empty windows behind.
+
+    if ~FG.enabled
+        return
+    end
+
+    for iGroup = 1:numel(FG.keys)
+
+        tg = FG.tabgroup(iGroup);
+
+        if isgraphics(tg) && isempty(tg.Children)
+            close(FG.figure(iGroup));
+        end
     end
 end
 
