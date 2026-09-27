@@ -20,8 +20,9 @@ time_segment = [0 Inf]
 %data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_28_fastlap_tireLocking_acc/csv_output/2026-07-28_153834_merged.csv"); %% fast lap
 %data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_19_full_test/csv_output/2026-07-19_133128_merged.csv");%% lift up tires
 %data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_28_HardBraking_feedbackcontroller/csv_output/2026-07-28_130732_merged.csv");
-data  = readtable("/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv");
+%data  = readtable("/home/elijah/PurdueRacing/bags/lagoona/comp/csv_output/2025-07-24_175839_merged.csv");
 %data = readtable("/home/elijah/PurdueRacing/bags/lagoona/control_test/JULY_19_full_test/csv_output/2026-07-19_133128_merged.csv");
+data = readtable('/home/elijah/bag_files/VD/laguna/comp/2025-07-24_175839_merged.csv')
 %% sensor source
 
 use_oms = false;

@@ -88,6 +88,134 @@ linkaxes(axS, "x");
 
 title(tl2, 'Acceleration vs distance around the lap', 'FontWeight', 'bold');
 
+%% brake bias from the clipped schedule
+% The bias the car would run around this lap, taken from the table
+% acceleration_interface loads: clipped_brake_bias_map_grid.csv, a front
+% PRESSURE bias P_f / (P_f + P_r) over vehicle speed and deceleration.
+%
+% The table is defined over the whole speed/decel plane, so a lookup returns a
+% number even where this lap is accelerating. That does not mean it is used
+% there: off the brakes there is no split to command, so those points are drawn
+% grey instead of coloured.
+%
+% a_x here is the minimum-time lap's own v*dv/ds, not a measurement, so this is
+% what the schedule WOULD command on this line - not what any run recorded.
+
+biasFile = "clipped_brake_bias_map_grid.csv";
+biasDir  = fullfile(fileparts(mfilename('fullpath')), '..', 'brake_anylisis', 'lut');
+biasPath = fullfile(biasDir, biasFile);
+
+decelMin = 0.2;                 % m/s^2, below this the car is coasting, not braking
+greyCol  = [0.72 0.72 0.72];
+
+if ~isfile(biasPath)
+    warning("newline_plotting:noBiasLut", ...
+        "%s not found; the brake bias figure is skipped.", biasPath);
+else
+    % The speed breakpoints live in the header text, which readmatrix drops, so
+    % the header is read on its own first.
+    fid = fopen(biasPath, 'r');
+    hdr = fgetl(fid);
+    fclose(fid);
+
+    speedBP = str2double(strsplit(strtrim(hdr), ','));
+    speedBP = speedBP(2:end);            % first cell names the decel column
+
+    rawBias = readmatrix(biasPath);
+    rawBias = rawBias(isfinite(rawBias(:,1)), :);
+
+    decelBP  = rawBias(:,1);
+    biasGrid = rawBias(:,2:end);
+
+    if numel(speedBP) ~= size(biasGrid, 2)
+        error("newline_plotting:biasLutShape", ...
+            "%s has %d bias columns but %d speed breakpoints in its header.", ...
+            biasPath, size(biasGrid,2), numel(speedBP));
+    end
+
+    decel   = -ax;                       % positive while slowing
+    braking = decel > decelMin;
+
+    bias = nan(N,1);
+    bias(braking) = biasLookup(speedBP, decelBP, biasGrid, v(braking), decel(braking));
+
+    cBias   = makeMap(turboMap(), 256);
+    biasLim = [min(biasGrid(:)) max(biasGrid(:))];  % table range, so all three tiles share a scale
+
+    figure('Name','Laguna Seca -- brake bias','Color','w', ...
+           'Position',[160 160 1500 520]);
+    tl3 = tiledlayout(1,3,'TileSpacing','compact','Padding','compact');
+
+    % --- the track, coloured by the bias being commanded ---
+    axB1 = nexttile;
+    hold on
+    scatter(x(~braking), y(~braking), 18, greyCol, "filled", ...
+            'DisplayName', sprintf('not decelerating (< %g m/s^2)', decelMin));
+    scatter(x(braking), y(braking), 18, bias(braking), "filled", ...
+            'HandleVisibility', 'off');
+    hold off
+    colormap(axB1, cBias);
+    clim(axB1, biasLim);
+    cb1 = colorbar;
+    cb1.Label.String = "front brake bias  P_f / (P_f + P_r)";
+    axis equal
+    grid on
+    axB1.GridAlpha = 0.15;
+    axB1.Box = "off";
+    xlabel("east  [m]")
+    ylabel("north [m]")
+    legend('Location','best')
+    title('Brake bias on track', 'FontWeight', 'normal')
+
+    % --- the table itself, with this lap drawn on top of it ---
+    % Both axes of the file are uniformly spaced, so imagesc places the cells
+    % correctly from the end points alone.
+    axB2 = nexttile;
+    imagesc(speedBP, decelBP, biasGrid);
+    set(axB2, 'YDir', 'normal');         % imagesc counts rows downward by default
+    hold on
+    scatter(v(braking), decel(braking), 8, "k", "filled", ...
+            'MarkerFaceAlpha', 0.25, 'DisplayName', 'braking points this lap');
+    hold off
+    colormap(axB2, cBias);
+    clim(axB2, biasLim);
+    cb2 = colorbar;
+    cb2.Label.String = "front brake bias  P_f / (P_f + P_r)";
+    grid on
+    axB2.GridAlpha = 0.15;
+    axB2.Box = "off";
+    xlabel("speed  [m/s]")
+    ylabel("deceleration  [m/s^2]")
+    legend('Location','northeast')
+    title(biasFile, 'FontWeight', 'normal', 'Interpreter', 'none')
+
+    % --- bias around the lap ---
+    % The grey samples have no bias to sit at, so they are pinned just under the
+    % colour band purely to keep the off-brake stretches readable as a lap.
+    greyLevel = biasLim(1) - 0.04 * diff(biasLim);
+
+    axB3 = nexttile;
+    hold on
+    scatter(s(~braking), greyLevel * ones(sum(~braking), 1), 8, greyCol, "filled", ...
+            'DisplayName', sprintf('not decelerating (< %g m/s^2)', decelMin));
+    scatter(s(braking), bias(braking), 8, bias(braking), "filled", ...
+            'HandleVisibility', 'off');
+    hold off
+    colormap(axB3, cBias);
+    clim(axB3, biasLim);
+    grid on
+    axB3.GridAlpha = 0.15;
+    axB3.Box = "off";
+    axB3.XLim = [s(1) s(end)];
+    xlabel("s  [m]")
+    ylabel("front brake bias  [-]")
+    legend('Location','best')
+    title('Bias commanded around the lap', 'FontWeight', 'normal')
+
+    title(tl3, sprintf('Scheduled brake bias, clipped LUT  --  %d of %d points decelerating above %g m/s^2', ...
+          sum(braking), N, decelMin), 'FontWeight', 'bold');
+end
+
 %% summary
 fprintf("lap length      : %d m\n", N);
 fprintf("lap time        : %.2f s\n", sum(1./v));
@@ -95,6 +223,14 @@ fprintf("speed           : %.1f - %.1f m/s\n", min(v), max(v));
 fprintf("a_x             : %.2f g braking / %.2f g accel\n", min(ax)/g, max(ax)/g);
 fprintf("a_y             : %.2f g right / %.2f g left\n", min(ay)/g, max(ay)/g);
 fprintf("peak |a|        : %.2f g\n", max(at)/g);
+
+if exist('bias', 'var') && any(braking)
+    fprintf("braking         : %d of %d m above %g m/s^2, peak %.2f g\n", ...
+            sum(braking), N, decelMin, max(decel)/g);
+    fprintf("brake bias      : %.3f - %.3f, median %.3f  (table spans %.3f - %.3f)\n", ...
+            min(bias(braking)), max(bias(braking)), median(bias(braking)), ...
+            biasLim(1), biasLim(2));
+end
 
 %% ------------------------------------------------------------------
 function trackTile(x, y, c, cmap, symmetric, ttl, cbLabel)
@@ -116,6 +252,18 @@ function trackTile(x, y, c, cmap, symmetric, ttl, cbLabel)
     xlabel("east  [m]")
     ylabel("north [m]")
     title(ttl, 'FontWeight', 'normal')
+end
+
+function bias = biasLookup(speedBP, decelBP, biasGrid, speed, decel)
+    % Front bias off the schedule at a speed and a deceleration.
+    %
+    % Both axes are clamped onto the grid rather than extrapolated: the table
+    % already holds its edge values, and extrapolating a bias would be free to
+    % leave [0 1], which is not a bias.
+    speed = min(max(speed, speedBP(1)),  speedBP(end));
+    decel = min(max(decel, decelBP(1)),  decelBP(end));
+
+    bias = interp2(speedBP, decelBP, biasGrid, speed, decel, "linear");
 end
 
 function c = makeMap(anchors, n, pos)
