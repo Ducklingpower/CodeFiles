@@ -88,8 +88,9 @@ figGroupDefs = { ...
 
 FG = makeFigureGroups(figGroupDefs, figureGrouping);
 
-%% applying the time window
-
+%% recording time base and gage zero
+% Both of these, like the wheel speed calibration below, have to be taken from
+% the FULL recording before time_segment crops it.
 
 t0_recording = data.time_s(1);
 t_recording  = data.time_s - t0_recording;
@@ -113,29 +114,145 @@ gage_zero = gage_zero(min(100, height(data)), :);   % [fl fr rl rr]
 % calibration error, and it lands as a STANDING OFFSET on every slip ratio
 % built from that channel.
 %
-% This replaces the old  ./3.61 - 0.1. That was one common factor applied to
-% all four wheels, and one factor cannot null both axles when the front and
-% rear tires are different sizes. On this recording it nulls the REAR
-% (+0.0007) and leaves the FRONT at +0.0063 - more than twice the front slip
-% actually seen under braking (-0.0028), and opposite in sign, so the front
-% tire curve in measured_slip_ratio_front.csv comes out translated sideways by
-% more than its own amplitude.
+% THE MODEL. A wheel speed channel can be wrong in two independent ways, and
+% they are not interchangeable:
 %
-% A SCALE, not an offset: the residual is flat with speed (+0.0055 at 12-18
-% m/s, +0.0071 at 30-36), which is the signature of a radius error. A sensor
-% offset would shrink as speed rises.
+%       v_read = scale * v_ground + offset
+%
+%   scale    a rolling-radius or tooth-count error. v = omega*R, so a radius
+%            1% too big reads 1% high AT EVERY SPEED. Its slip-ratio bias is
+%            flat:  kappa_bias = scale - 1.
+%   offset   a sensor, timing or filter-lag error that adds a fixed m/s. Its
+%            slip-ratio bias is offset/v, so it dominates at low speed and
+%            fades out at high speed.
+%
+% The estimator this section used to run was mean(v_read ./ v_ground), which is
+% the scale-only model with the offset forced to zero. If an offset is genuinely
+% present, that estimator splits the difference between the two terms, and where
+% it lands depends entirely on the speed distribution of the calibration
+% samples - so it is not an estimate of a physical quantity, and it moves when
+% you change wheelCal_vxMin. Fitting BOTH terms, and then keeping the offset
+% only on the channels that actually resolve one, is what wheelCal_model =
+% "auto" does below. Fig W1 is the picture of that decision.
+%
+% WHAT THIS LOG SAYS (comp 2025-07-24_175839, 5647 free-rolling samples in 142
+% episodes over 7.0-29.9 m/s), scale as percentage over-read:
+%
+%     wheel   model         scale      offset [m/s]   residual kappa
+%     FL      scale+offset  +1.165%    +0.0365        -0.00031
+%     FR      scale+offset  +1.091%    +0.0400        -0.00067
+%     RL      scale only    +0.891%     0             +0.00011
+%     RR      scale only    +0.868%     0             -0.00010
+%     ------------------------------------------------------------
+%     FRONT   scale+offset  +1.128%    +0.0382        -0.00049
+%     REAR    scale only    +0.880%     0             +0.00001
+%
+% Read the axle rows first, because that is the pair that does the damage. Both
+% axles OVER-READ, and not by the same amount: uncorrected, the front carries a
+% standing slip-ratio bias of +0.0151 at 10 m/s and +0.0126 at 30, the rear a
+% flat +0.0088, so the FRONT-TO-REAR SPLIT runs +0.0063 down to +0.0038 across
+% the speed range. No single shared constant can remove that - null one axle and
+% you plant the whole split on the other. It is larger than the front slip
+% actually seen under braking on this log (-0.0028), and opposite in sign, which
+% is exactly how the front tire curve in measured_slip_ratio_front.csv ended up
+% translated past zero.
+%
+% WHY THE FRONT GETS AN OFFSET AND THE REAR DOES NOT. Their ratios behave
+% differently with speed, and the difference is not noise:
+%
+%     front   +1.576% at 8 m/s falling to +1.235% at 30    <- decays like 1/v
+%     rear    +0.890% at 8 m/s and +0.959% at 30           <- flat, if anything rising
+%
+%   Regressing the front ratio on 1/v cuts its residual sum of squares by 29%;
+%   doing the same to the rear buys 0.6%, which is nothing. So the front has a
+%   real fixed +0.04 m/s on it and the rear is a clean pure-scale channel. The
+%   two rear wheels also agree with each other to 0.02%, which is the kind of
+%   agreement you only get when nothing else is going on.
+%
+% THREE THINGS THIS FIT CANNOT SEE:
+%
+%   1. v_ground is sensor.vx (odom_vx_mps). If that channel is itself blended
+%      from wheel speeds anywhere upstream, the whole calibration is circular.
+%      It is not identical to the four-wheel mean here (0.52 m/s rms apart,
+%      5.1 m/s worst case), so it carries independent information, but the scale
+%      it is on is only as good as the odometry's own. Everything below is a
+%      calibration RELATIVE to that channel.
+%   2. The rear axle is DRIVEN - hard acceleration puts the rear 1.24% ahead of
+%      the front on this log, hard braking 1.06% behind, so it is rear wheel
+%      drive. Even at steady speed the rear passes the drag torque through the
+%      contact patch and carries a genuine small positive slip that no
+%      free-rolling mask can exclude, and this fit will report it as radius.
+%      Worse, it is confounded with speed: the free-rolling samples above
+%      24 m/s average near or above zero drive torque while the ones at 8 m/s
+%      average -213 Nm of engine braking (fig W1 panel 8). So the rear scale is
+%      biased slightly high, and the true front-rear split is, if anything, a
+%      little wider than printed.
+%   3. Speed coverage has holes - 12-19.5, 22-24.5 and 27-29.5 m/s are all empty
+%      on this log, and 79% of the samples sit in the single 7-9.5 m/s bin. In
+%      between, the fitted lines interpolate rather than measure. Panel 7 of
+%      fig W1 is there to keep that visible.
 
 wheelCal_brakeMax_kPa = 60;     % both circuits below this counts as brakes off
 wheelCal_axMax        = 0.6;    % m/s^2, near enough to no longitudinal force
 wheelCal_ayMax        = 0.5;    % m/s^2
 wheelCal_steerMax     = 2;      % deg
-wheelCal_vxMin        = 12;     % m/s
+
+% 5 m/s, not the 12 this used to sit at. 12 was throwing away 80% of the
+% free-rolling samples on this log and, worse, leaving the survivors inside a
+% 20-30 m/s band. A 10 m/s lever arm cannot separate a scale from an offset:
+% fit both terms on that band alone and the rear comes back with a -0.14 m/s
+% offset and a +1.42% scale, which is the fit trading one term against the other
+% rather than measuring either. Opening it to 5 m/s gives 7-30 m/s, and the
+% answer then stops moving when the mask is tightened or loosened around it
+% (|a_x| < 0.3 and |a_x| < 1.0 agree to within 0.02% on scale).
+wheelCal_vxMin        = 5;      % m/s
 wheelCal_minSamples   = 300;
+wheelCal_minSpan      = 8;      % m/s of speed coverage the offset term needs
+
+% "bias"    ONE ADDITIVE CONSTANT PER AXLE and no scale term - v_corrected =
+%           v_read + bias, both wheels of an axle sharing the axle's number.
+%           The simplest thing that can work, and what is applied by default.
+%           Its constant is chosen to centre the free-rolling SLIP RATIO on
+%           zero rather than the speed error, which is not the same constant.
+%           Be aware of what it cannot do: the underlying error is a rolling
+%           radius error, so the bias in m/s grows with speed (+0.12 m/s at
+%           7 m/s on the front, +0.38 at 30) and one constant can only be right
+%           in the middle. Residual slip runs -0.011 at 8 m/s to +0.006 at 30,
+%           against +-0.003 for "auto". Fig W2 is the before/after.
+% "auto"    fit both terms, then KEEP THE OFFSET ONLY where its bootstrap
+%           interval clears zero, and refit the rest scale-only. Per channel,
+%           so the front can have an offset while the rear does not - which is
+%           what this log wants. The most accurate of the four across speed.
+%           Falls back to scale-only for every channel if there were too few
+%           episodes to bootstrap.
+% "affine"  force scale + offset on all four wheels.
+% "scale"   force offset = 0, the old mean-ratio behaviour. Use it to reproduce
+%           an older run.
+wheelCal_model        = "bias";
+
+% Free-rolling samples pile up wherever the car spent its time, and an
+% unweighted fit answers to that histogram as much as to the wheels - 79% of
+% them are in one 2.5 m/s bin here. Weighting each speed bin equally fixes that.
+% It moves the split between the two terms (front scale +1.128% balanced against
+% +1.173% unweighted, offset +0.038 against +0.030), but the CORRECTION those
+% terms add up to is stable either way: the standing front bias lands within
+% 0.0004 of itself at 10, 20 and 30 m/s. Terms trade, the answer does not.
+wheelCal_speedBalance = true;
+wheelCal_binWidth     = 2.5;    % m/s, bin width for weighting and for fig W1
+
+% Consecutive samples at 100 Hz through a 30-sample movmean are nowhere near
+% independent, so the textbook standard error on the slope is off by more than
+% an order of magnitude. The intervals below come from resampling whole
+% CONTIGUOUS free-rolling episodes with replacement, which keeps the correlation
+% inside the block where it belongs. They are also what "auto" decides on.
+wheelCal_nBoot        = 400;
+wheelCal_plot         = true;
 
 cal_vx    = movmean(data.(char(sensor.vx)), mm) .* sensor.vxScale;
 cal_ax    = movmean(data.(char(sensor.ax)), mm);
 cal_ay    = movmean(data.a_y, mm);
 cal_steer = movmean(data.steer_wheel_ang_deg, mm);
+cal_tq    = movmean(data.est_drive_torque_nm, mm);
 
 freeRolling = abs(cal_ay)    < wheelCal_ayMax ...
             & abs(cal_steer) < wheelCal_steerMax ...
@@ -147,7 +264,44 @@ freeRolling = abs(cal_ay)    < wheelCal_ayMax ...
 
 wheelSpeed_channels = ["fl_speed_kmh", "fr_speed_kmh", "rl_speed_kmh", "rr_speed_kmh"];
 wheelSpeed_names    = ["FL", "FR", "RL", "RR"];
-wheelSpeedCal       = ones(1,4);
+
+% Columns 1-4 are the wheels, 5 and 6 the axle means. Fitting the axle mean is
+% the same estimate as pooling both wheels of the axle, and it is the trace
+% fig W1 actually draws.
+cal_vw = [ movmean(data.(char(wheelSpeed_channels(1))), mm) ./ 3.6, ...
+           movmean(data.(char(wheelSpeed_channels(2))), mm) ./ 3.6, ...
+           movmean(data.(char(wheelSpeed_channels(3))), mm) ./ 3.6, ...
+           movmean(data.(char(wheelSpeed_channels(4))), mm) ./ 3.6 ];
+cal_vw(:,5) = mean(cal_vw(:,1:2), 2);
+cal_vw(:,6) = mean(cal_vw(:,3:4), 2);
+
+calCol_names = [wheelSpeed_names, "FRONT", "REAR"];
+
+wheelSpeedCal    = ones(1,4);    % scale,  v_true = (v_read - offset) / scale
+wheelSpeedOffset = zeros(1,4);   % m/s
+
+wheelCal = struct( ...
+    "ok",          false, ...
+    "model",       wheelCal_model, ...
+    "names",       calCol_names, ...
+    "scale",       ones(1,6), ...     % affine fit, both terms
+    "offset",      zeros(1,6), ...
+    "scaleOnly",   ones(1,6), ...     % offset forced to zero
+    "sigma",       nan(1,6), ...
+    "scaleCI",     nan(2,6), ...
+    "offsetCI",    nan(2,6), ...
+    "useOffset",   false(1,6), ...   % which channels kept their offset
+    "residual",    nan(1,6), ...     % free-rolling slip left after correcting
+    "biasOnly",    zeros(1,6), ...   % pure additive slip-nulling bias, m/s
+    "applyScale",  ones(1,6), ...     % what is actually applied downstream
+    "applyOffset", zeros(1,6), ...
+    "vg",          [], ...
+    "vw",          [], ...
+    "torque",      [], ...
+    "weight",      [], ...
+    "nSamples",    sum(freeRolling), ...
+    "nEpisodes",   0, ...
+    "span",        0);
 
 if sum(freeRolling) < wheelCal_minSamples
 
@@ -156,30 +310,480 @@ if sum(freeRolling) < wheelCal_minSamples
         "Every slip ratio below will carry whatever standing offset the channels have.", ...
         sum(freeRolling), wheelCal_minSamples);
 else
-    fprintf("wheel speed calibration on %d free-rolling samples (straight, brakes off, |a_x|<%.1f):\n", ...
-        sum(freeRolling), wheelCal_axMax);
+    wheelCal.vg     = cal_vx(freeRolling);
+    wheelCal.vw     = cal_vw(freeRolling, :);
+    wheelCal.torque = cal_tq(freeRolling);
+    wheelCal.span   = max(wheelCal.vg) - min(wheelCal.vg);
 
-    for iWheel = 1:4
+    % Equal weight per speed bin, so the fit answers to the speed range rather
+    % than to wherever the car happened to spend its time.
+    calWeight = ones(numel(wheelCal.vg), 1);
 
-        vw = movmean(data.(char(wheelSpeed_channels(iWheel))), mm) ./ 3.6;
-        wheelSpeedCal(iWheel) = mean(vw(freeRolling) ./ cal_vx(freeRolling), "omitnan");
+    if wheelCal_speedBalance
+        calBinEdges = min(wheelCal.vg) : wheelCal_binWidth : ...
+                      (max(wheelCal.vg) + wheelCal_binWidth);
+        calBinOf    = discretize(wheelCal.vg, calBinEdges);
+        occupied    = unique(calBinOf(isfinite(calBinOf)));
 
-        fprintf("  %s reads %+.3f%% against ground speed -> scale %.5f (free-rolling slip %+.5f -> 0)\n", ...
-            wheelSpeed_names(iWheel), 100*(wheelSpeedCal(iWheel)-1), ...
-            1/wheelSpeedCal(iWheel), 1 - 1/wheelSpeedCal(iWheel));
+        for iBin = 1:numel(occupied)
+            inBin = calBinOf == occupied(iBin);
+            calWeight(inBin) = 1 / sum(inBin);
+        end
+    end
+
+    wheelCal.weight = calWeight;
+
+    % Contiguous free-rolling episodes, the resampling unit for the bootstrap.
+    freeIdx  = find(freeRolling);
+    epBreak  = find(diff(freeIdx) > 1);
+    epFirst  = [1; epBreak + 1];              % indices into the kept arrays
+    epLast   = [epBreak; numel(freeIdx)];
+    wheelCal.nEpisodes = numel(epFirst);
+
+    if wheelCal.span < wheelCal_minSpan
+        warning("notmal_force_estimation:thinSpeedSpan", ...
+            "Free-rolling samples only span %.1f m/s (want %.1f). Scale and offset " + ...
+            "are not separable over a band that narrow - they will trade against " + ...
+            "each other. Treat any offset below as unresolved.", ...
+            wheelCal.span, wheelCal_minSpan);
+    end
+
+    [wheelCal.scale, wheelCal.offset, wheelCal.scaleOnly, wheelCal.sigma] = ...
+        fitWheelBias(wheelCal.vg, wheelCal.vw, calWeight);
+
+    % Block bootstrap over episodes. Below a handful of episodes there is
+    % nothing to resample and an interval would be theatre, so it is left NaN -
+    % which also makes "auto" fall back to scale-only, the safe choice when you
+    % cannot tell whether an offset is real.
+    if wheelCal.nEpisodes < 5
+        warning("notmal_force_estimation:tooFewCalEpisodes", ...
+            "Only %d contiguous free-rolling episode(s); no confidence interval on " + ...
+            "the wheel speed bias, and no offset term will be kept.", wheelCal.nEpisodes);
+        wheelCal_nBoot = 0;
+    end
+
+    bootScale  = nan(max(wheelCal_nBoot,1), 6);
+    bootOffset = nan(max(wheelCal_nBoot,1), 6);
+    bootStream = RandStream("threefry", "Seed", 7);
+    epRows     = arrayfun(@(a,b) (a:b)', epFirst, epLast, "UniformOutput", false);
+
+    for iBoot = 1:wheelCal_nBoot
+        pick = randi(bootStream, wheelCal.nEpisodes, wheelCal.nEpisodes, 1);
+        rows = vertcat(epRows{pick});
+
+        [bootScale(iBoot,:), bootOffset(iBoot,:)] = ...
+            fitWheelBias(wheelCal.vg(rows), wheelCal.vw(rows,:), calWeight(rows));
+    end
+
+    wheelCal.scaleCI  = prctile(bootScale,  [2.5 97.5], 1);
+    wheelCal.offsetCI = prctile(bootOffset, [2.5 97.5], 1);
+
+    % PURE ADDITIVE BIAS, for wheelCal_model = "bias". This is a different
+    % question from the least-squares fit above and needs its own algebra. The
+    % fit minimises error in m/s; what a slip ratio cares about is error in
+    % kappa, and the two are not the same target because kappa divides by speed.
+    % Solving  mean( (v_read + bias)/v_g - 1 ) = 0  for bias gives
+    %
+    %     bias = -(mean(v_read/v_g) - 1) / mean(1/v_g)
+    %
+    % which is the constant that centres the free-rolling slip ratio on zero
+    % rather than the one that centres the speed error on zero. On this log the
+    % difference is 0.05 m/s on the front, so it is worth doing properly.
+    calWeightSum      = sum(calWeight);
+    calMeanInvVg      = sum(calWeight ./ wheelCal.vg) / calWeightSum;
+    calMeanRatio      = sum(calWeight .* (wheelCal.vw ./ wheelCal.vg), 1) / calWeightSum;
+    wheelCal.biasOnly = -(calMeanRatio - 1) ./ calMeanInvVg;      % m/s, to ADD
+
+    % An offset is kept only if its interval clears zero. Anything else is a
+    % term fitted to noise, and carrying it would put a 1/v wiggle into every
+    % slip ratio at low speed in exchange for nothing.
+    offsetResolved = wheelCal.offsetCI(1,:) > 0 | wheelCal.offsetCI(2,:) < 0;
+
+    switch lower(string(wheelCal_model))
+        case "auto"
+            wheelCal.useOffset   = offsetResolved;
+            wheelCal.applyScale  = wheelCal.scale;
+            wheelCal.applyOffset = wheelCal.offset;
+            wheelCal.applyScale(~offsetResolved)  = wheelCal.scaleOnly(~offsetResolved);
+            wheelCal.applyOffset(~offsetResolved) = 0;
+        case "affine"
+            wheelCal.useOffset   = true(1,6);
+            wheelCal.applyScale  = wheelCal.scale;
+            wheelCal.applyOffset = wheelCal.offset;
+        case "scale"
+            wheelCal.useOffset   = false(1,6);
+            wheelCal.applyScale  = wheelCal.scaleOnly;
+            wheelCal.applyOffset = zeros(1,6);
+        case "bias"
+            % One additive constant per AXLE, shared by both wheels on it, and
+            % no scale term at all. Downstream applies (v_read - applyOffset),
+            % so applyOffset carries the opposite sign to the bias you add.
+            wheelCal.useOffset   = true(1,6);
+            wheelCal.applyScale  = ones(1,6);
+            wheelCal.applyOffset = -wheelCal.biasOnly([5 5 6 6 5 6]);
+        otherwise
+            error("notmal_force_estimation:badWheelCalModel", ...
+                "wheelCal_model must be ""auto"", ""affine"", ""scale"" or ""bias"", " + ...
+                "got ""%s"".", wheelCal_model);
+    end
+
+    wheelSpeedCal    = wheelCal.applyScale(1:4);
+    wheelSpeedOffset = wheelCal.applyOffset(1:4);
+    wheelCal.ok      = true;
+
+    % Residual free-rolling slip left by what is actually applied. These are the
+    % numbers that say whether the calibration worked; they should all be ~0.
+    wheelCal.residual = mean( ...
+        ((wheelCal.vw - wheelCal.applyOffset) ./ wheelCal.applyScale) ./ wheelCal.vg - 1, ...
+        1, "omitnan");
+
+    fprintf("\nwheel speed calibration: %d free-rolling samples in %d episodes, " + ...
+        "%.1f-%.1f m/s (straight, brakes off, |a_x| < %.1f)\n", ...
+        numel(wheelCal.vg), wheelCal.nEpisodes, ...
+        min(wheelCal.vg), max(wheelCal.vg), wheelCal_axMax);
+    fprintf("  v_read = scale*v_ground + offset,  model selection: %s\n", ...
+        upper(wheelCal_model));
+    fprintf("  %-6s %-13s %9s %20s %11s %20s %11s\n", ...
+        "", "applied", "scale[%]", "95% CI", "offset[m/s]", "95% CI", "resid kappa");
+
+    for iCol = 1:6
+
+        if iCol == 5
+            fprintf("  %s\n", repmat('-', 1, 96));
+        end
+
+        if wheelCal.useOffset(iCol)
+            appliedName = "scale+offset";
+        else
+            appliedName = "scale only";
+        end
+
+        fprintf("  %-6s %-13s %+9.3f  [%+7.3f %+7.3f]  %+11.4f  [%+7.4f %+7.4f]  %+11.5f\n", ...
+            calCol_names(iCol), appliedName, ...
+            100*(wheelCal.applyScale(iCol)-1), ...
+            100*(wheelCal.scaleCI(1,iCol)-1), 100*(wheelCal.scaleCI(2,iCol)-1), ...
+            wheelCal.applyOffset(iCol), ...
+            wheelCal.offsetCI(1,iCol), wheelCal.offsetCI(2,iCol), ...
+            wheelCal.residual(iCol));
+    end
+
+    fprintf("  (the CIs are on the two-term fit; a channel shown as ""scale only"" had an\n");
+    fprintf("   offset interval straddling zero, so its offset was dropped and the scale refitted)\n");
+
+    % The additive form, always printed, whether or not it is the one applied -
+    % it is the number you want if you are correcting wheel speeds by hand
+    % somewhere else, and seeing it next to the scale keeps the cost visible.
+    fprintf("  pure additive bias, per axle, to ADD to the wheel speed:\n");
+    fprintf("    FRONT %+0.3f m/s (%+0.3f km/h)    REAR %+0.3f m/s (%+0.3f km/h)\n", ...
+        wheelCal.biasOnly(5), wheelCal.biasOnly(5)*3.6, ...
+        wheelCal.biasOnly(6), wheelCal.biasOnly(6)*3.6);
+
+    % The number that matters downstream: what the uncorrected channels do to
+    % slip ratio, and how differently they do it front to rear.
+    kappaBiasFront = (wheelCal.applyScale(5) - 1) + wheelCal.applyOffset(5) ./ [10 20 30];
+    kappaBiasRear  = (wheelCal.applyScale(6) - 1) + wheelCal.applyOffset(6) ./ [10 20 30];
+    vRef = [10 20 30];
+
+    fprintf("  standing slip-ratio bias the raw channels would have carried:\n");
+
+    for iRef = 1:numel(vRef)
+        fprintf("    at %2d m/s   front %+0.5f   rear %+0.5f   front-rear split %+0.5f\n", ...
+            vRef(iRef), kappaBiasFront(iRef), kappaBiasRear(iRef), ...
+            kappaBiasFront(iRef) - kappaBiasRear(iRef));
     end
 end
 
-% Front/rear rolling radius ratio, from the same calibration. v = omega*R, so a
-% channel that over-reads by x% was built with a radius x% larger than the
-% truth, and the ratio of the two axles' errors is the ratio of their radii -
-% PROVIDED the logger used one common radius for all four channels. If it
-% already applies per-wheel radii, this residual is calibration error instead
-% and says nothing about radius. Either way the two cannot both be right, which
-% is the point of printing it.
+% Front/rear rolling radius ratio, from the SCALE term only - an offset is a
+% sensor error and says nothing about radius, which is the other reason to fit
+% the two separately. v = omega*R, so a channel that over-reads by x% was built
+% with a radius x% larger than the truth, and the ratio of the two axles' scales
+% is the ratio of their radii - PROVIDED the logger used one common radius for
+% all four channels. If it already applies per-wheel radii, this residual is
+% calibration error instead and says nothing about radius. Either way the two
+% cannot both be right, which is the point of printing it.
 rollingRadiusRatio = mean(wheelSpeedCal(1:2)) / mean(wheelSpeedCal(3:4));   % R_r / R_f
 
-fprintf("  implied R_r/R_f = %.4f\n", rollingRadiusRatio);
+fprintf("  implied R_r/R_f = %.4f\n\n", rollingRadiusRatio);
+
+%% fig W1 - wheel speed bias estimation, front vs rear axle
+% Eight panels, meant to be read as an argument rather than browsed:
+%
+%   1  THE MEASUREMENT. v_read - v_ground against v_ground, every free-rolling
+%      sample, with both candidate models drawn through it. A pure OFFSET error
+%      is a HORIZONTAL line here; a pure SCALE error is a line THROUGH THE
+%      ORIGIN. Which one the binned points follow is the whole question.
+%   2  the same data as a ratio, which is the sharper test: scale error is FLAT
+%      with speed, offset error decays as 1/v. The front tips downwards, the
+%      rear does not - that is the front's offset, visible by eye.
+%   3  WHAT IT COSTS. The standing slip-ratio bias each axle would carry
+%      uncorrected, and the front-rear SPLIT between them, which is the part no
+%      single shared constant can remove.
+%   4  THE CHECK. The same residual after correction, against what the
+%      scale-only model leaves behind. The applied trace should sit on zero
+%      across the whole speed range; if it does not, the calibration failed.
+%   5  scale estimates with block-bootstrap intervals, per wheel and per axle,
+%      with the scale-only estimate alongside to show how far the model choice
+%      moves the answer.
+%   6  offsets, same. THIS PANEL IS THE MODEL SELECTION: an interval crossing
+%      zero means that channel has no resolvable offset, and "auto" drops it.
+%   7  where the free-rolling samples actually sit in speed. Empty bins are
+%      where the fitted lines above interpolate rather than measure.
+%   8  the caveat panel - drive torque against speed on those same samples. The
+%      rear axle is driven, so wherever this sits away from zero the rear is
+%      carrying real drive slip that the fit will report as radius. If it slopes
+%      (it does here), torque and speed are confounded and the rear's apparent
+%      speed trend is not all calibration.
+
+if wheelCal_plot && wheelCal.ok
+
+    frontColor = [0.000 0.447 0.741];
+    rearColor  = [0.850 0.325 0.098];
+
+    calBias  = wheelCal.vw - wheelCal.vg;              % m/s, per column
+    calRatio = wheelCal.vw ./ wheelCal.vg;
+
+    W1edges  = min(wheelCal.vg) : wheelCal_binWidth : (max(wheelCal.vg) + wheelCal_binWidth);
+    vFit     = linspace(min(wheelCal.vg), max(wheelCal.vg), 100)';
+
+    if wheelCal.useOffset(5)
+        frontModel = "scale + offset";
+    else
+        frontModel = "scale only";
+    end
+
+    if wheelCal.useOffset(6)
+        rearModel = "scale + offset";
+    else
+        rearModel = "scale only";
+    end
+
+    parentW1 = newFigTab(FG, "inputs", ...
+        'Fig W1 - Wheel Speed Bias Estimation (front vs rear axle)');
+
+    layoutW1 = tiledlayout(parentW1, 4, 2, "TileSpacing", "compact", "Padding", "compact");
+
+    title(layoutW1, sprintf( ...
+        "Wheel speed bias against %s   |   %d free-rolling samples, %d episodes, %.1f-%.1f m/s   |   front %s, rear %s", ...
+        sensor.label, numel(wheelCal.vg), wheelCal.nEpisodes, ...
+        min(wheelCal.vg), max(wheelCal.vg), frontModel, rearModel), "FontWeight", "bold");
+
+    % ---- panel 1 (full width): bias vs speed, the estimation itself --------
+    axW1 = nexttile(layoutW1, [1 2]);
+    hold(axW1, "on");
+
+    scatter(axW1, wheelCal.vg, calBias(:,5), 6, frontColor, "filled", ...
+        "MarkerFaceAlpha", 0.12, "HandleVisibility", "off");
+    scatter(axW1, wheelCal.vg, calBias(:,6), 6, rearColor, "filled", ...
+        "MarkerFaceAlpha", 0.12, "HandleVisibility", "off");
+
+    [bvF, bmF, bsF, bnF] = binStats(wheelCal.vg, calBias(:,5), W1edges);
+    [bvR, bmR, bsR, bnR] = binStats(wheelCal.vg, calBias(:,6), W1edges);
+
+    errorbar(axW1, bvF, bmF, bsF ./ sqrt(max(bnF,1)), "o", "Color", frontColor, ...
+        "MarkerFaceColor", frontColor, "LineWidth", 1.6, "MarkerSize", 7, ...
+        "DisplayName", "front axle, binned mean");
+    errorbar(axW1, bvR, bmR, bsR ./ sqrt(max(bnR,1)), "s", "Color", rearColor, ...
+        "MarkerFaceColor", rearColor, "LineWidth", 1.6, "MarkerSize", 7, ...
+        "DisplayName", "rear axle, binned mean");
+
+    plot(axW1, vFit, (wheelCal.applyScale(5)-1).*vFit + wheelCal.applyOffset(5), "-", ...
+        "Color", frontColor, "LineWidth", 1.8, "DisplayName", sprintf( ...
+        "front applied (%s): %+.3f%% * v %+.4f", frontModel, ...
+        100*(wheelCal.applyScale(5)-1), wheelCal.applyOffset(5)));
+    plot(axW1, vFit, (wheelCal.applyScale(6)-1).*vFit + wheelCal.applyOffset(6), "-", ...
+        "Color", rearColor, "LineWidth", 1.8, "DisplayName", sprintf( ...
+        "rear applied (%s): %+.3f%% * v %+.4f", rearModel, ...
+        100*(wheelCal.applyScale(6)-1), wheelCal.applyOffset(6)));
+
+    plot(axW1, vFit, (wheelCal.scaleOnly(5)-1).*vFit, "--", "Color", frontColor, ...
+        "LineWidth", 1.2, "DisplayName", "front, scale-only model");
+    plot(axW1, vFit, (wheelCal.scaleOnly(6)-1).*vFit, "--", "Color", rearColor, ...
+        "LineWidth", 1.2, "DisplayName", "rear, scale-only model");
+
+    yline(axW1, 0, "k-", "HandleVisibility", "off");
+    grid(axW1, "on");
+    xlabel(axW1, "Ground speed v_x [m/s]");
+    ylabel(axW1, "v_{read} - v_x  [m/s]");
+    legend(axW1, "Location", "northwest", "NumColumns", 2);
+    title(axW1, "Wheel speed bias vs speed - a pure offset is horizontal, a pure scale passes through the origin");
+
+    W1span = robustRange([calBias(:,5); calBias(:,6)], 0.01);
+    ylim(axW1, W1span + 0.35*diff(W1span)*[-1 1]);   % room for the legend
+
+    % ---- panel 2: the same thing as a ratio --------------------------------
+    axW2 = nexttile(layoutW1);
+    hold(axW2, "on");
+
+    [rvF, rmF, rsF, rnF] = binStats(wheelCal.vg, calRatio(:,5), W1edges);
+    [rvR, rmR, rsR, rnR] = binStats(wheelCal.vg, calRatio(:,6), W1edges);
+
+    errorbar(axW2, rvF, 100*(rmF-1), 100*rsF./sqrt(max(rnF,1)), "o", "Color", frontColor, ...
+        "MarkerFaceColor", frontColor, "LineWidth", 1.5, "DisplayName", "front, measured");
+    errorbar(axW2, rvR, 100*(rmR-1), 100*rsR./sqrt(max(rnR,1)), "s", "Color", rearColor, ...
+        "MarkerFaceColor", rearColor, "LineWidth", 1.5, "DisplayName", "rear, measured");
+
+    plot(axW2, vFit, 100*((wheelCal.applyScale(5)-1) + wheelCal.applyOffset(5)./vFit), "-", ...
+        "Color", frontColor, "LineWidth", 1.6, "DisplayName", "front, applied model");
+    plot(axW2, vFit, 100*((wheelCal.applyScale(6)-1) + wheelCal.applyOffset(6)./vFit), "-", ...
+        "Color", rearColor, "LineWidth", 1.6, "DisplayName", "rear, applied model");
+
+    yline(axW2, 100*(wheelCal.applyScale(5)-1), "--", "Color", frontColor, ...
+        "HandleVisibility", "off");
+    yline(axW2, 100*(wheelCal.applyScale(6)-1), "--", "Color", rearColor, ...
+        "HandleVisibility", "off");
+
+    grid(axW2, "on");
+    xlabel(axW2, "Ground speed v_x [m/s]");
+    ylabel(axW2, "v_{read}/v_x - 1  [%]");
+    legend(axW2, "Location", "best");
+    title(axW2, "Ratio view - scale error is flat, offset error decays as 1/v (dashed = scale term alone)");
+
+    % ---- panel 3: what it costs in slip ratio ------------------------------
+    axW3 = nexttile(layoutW1);
+    hold(axW3, "on");
+
+    kBiasF = (wheelCal.applyScale(5)-1) + wheelCal.applyOffset(5)./vFit;
+    kBiasR = (wheelCal.applyScale(6)-1) + wheelCal.applyOffset(6)./vFit;
+
+    plot(axW3, vFit, kBiasF, "-", "Color", frontColor, "LineWidth", 1.8, ...
+        "DisplayName", "front axle");
+    plot(axW3, vFit, kBiasR, "-", "Color", rearColor, "LineWidth", 1.8, ...
+        "DisplayName", "rear axle");
+    plot(axW3, vFit, kBiasF - kBiasR, "k-", "LineWidth", 2.0, ...
+        "DisplayName", "front - rear split");
+
+    plot(axW3, rvF, rmF-1, "o", "Color", frontColor, "MarkerFaceColor", "w", ...
+        "HandleVisibility", "off");
+    plot(axW3, rvR, rmR-1, "s", "Color", rearColor, "MarkerFaceColor", "w", ...
+        "HandleVisibility", "off");
+
+    yline(axW3, 0, "k:", "HandleVisibility", "off");
+    grid(axW3, "on");
+    xlabel(axW3, "Ground speed v_x [m/s]");
+    ylabel(axW3, "standing \kappa bias [-]");
+    legend(axW3, "Location", "best");
+    title(axW3, "Slip-ratio bias the raw channels carry - the split is what no shared constant can remove");
+
+    % ---- panel 4: residual after correction --------------------------------
+    axW4 = nexttile(layoutW1);
+    hold(axW4, "on");
+
+    corrApplied = (wheelCal.vw - wheelCal.applyOffset) ./ wheelCal.applyScale;
+    corrScale   =  wheelCal.vw ./ wheelCal.scaleOnly;
+
+    [cvF, cmF] = binStats(wheelCal.vg, corrApplied(:,5)./wheelCal.vg - 1, W1edges);
+    [cvR, cmR] = binStats(wheelCal.vg, corrApplied(:,6)./wheelCal.vg - 1, W1edges);
+    [svF, smF] = binStats(wheelCal.vg, corrScale(:,5)./wheelCal.vg - 1,   W1edges);
+    [svR, smR] = binStats(wheelCal.vg, corrScale(:,6)./wheelCal.vg - 1,   W1edges);
+
+    plot(axW4, cvF, cmF, "o-", "Color", frontColor, "MarkerFaceColor", frontColor, ...
+        "LineWidth", 1.8, "DisplayName", "front, applied");
+    plot(axW4, cvR, cmR, "s-", "Color", rearColor, "MarkerFaceColor", rearColor, ...
+        "LineWidth", 1.8, "DisplayName", "rear, applied");
+    plot(axW4, svF, smF, "o--", "Color", frontColor, "LineWidth", 1.1, ...
+        "DisplayName", "front, scale only");
+    plot(axW4, svR, smR, "s--", "Color", rearColor, "LineWidth", 1.1, ...
+        "DisplayName", "rear, scale only");
+
+    yline(axW4, 0, "k-", "HandleVisibility", "off");
+    grid(axW4, "on");
+    xlabel(axW4, "Ground speed v_x [m/s]");
+    ylabel(axW4, "residual \kappa [-]");
+    legend(axW4, "Location", "best");
+    title(axW4, "Residual free-rolling slip after correction - flat on zero is the target");
+
+    % ---- panel 5: scale estimates ------------------------------------------
+    axW5 = nexttile(layoutW1);
+    hold(axW5, "on");
+
+    xEst = 1:6;
+
+    errorbar(axW5, xEst, 100*(wheelCal.scale-1), ...
+        100*(wheelCal.scale - wheelCal.scaleCI(1,:)), ...
+        100*(wheelCal.scaleCI(2,:) - wheelCal.scale), ...
+        "o", "LineWidth", 1.6, "MarkerSize", 8, "MarkerFaceColor", [0.2 0.2 0.2], ...
+        "Color", [0.2 0.2 0.2], "LineStyle", "none", "DisplayName", "two-term fit, 95% CI");
+    plot(axW5, xEst, 100*(wheelCal.scaleOnly-1), "x", "MarkerSize", 10, ...
+        "LineWidth", 1.6, "Color", [0.6 0.2 0.6], "LineStyle", "none", ...
+        "DisplayName", "scale-only fit");
+    plot(axW5, xEst, 100*(wheelCal.applyScale-1), "o", "MarkerSize", 13, ...
+        "LineWidth", 1.6, "Color", [0 0.6 0.3], "LineStyle", "none", ...
+        "DisplayName", "applied");
+
+    xline(axW5, 4.5, "k:", "HandleVisibility", "off");
+    yline(axW5, 0, "k-", "HandleVisibility", "off");
+    grid(axW5, "on");
+    xticks(axW5, xEst);
+    xticklabels(axW5, wheelCal.names);
+    xlim(axW5, [0.5 6.5]);
+    ylabel(axW5, "scale error [%]");
+    legend(axW5, "Location", "best");
+    title(axW5, "Scale (rolling radius) estimate, 95% block-bootstrap CI");
+
+    % ---- panel 6: offset estimates, and the model decision -----------------
+    axW6 = nexttile(layoutW1);
+    hold(axW6, "on");
+
+    errorbar(axW6, xEst, wheelCal.offset, ...
+        wheelCal.offset - wheelCal.offsetCI(1,:), ...
+        wheelCal.offsetCI(2,:) - wheelCal.offset, ...
+        "o", "LineWidth", 1.6, "MarkerSize", 8, "MarkerFaceColor", [0.2 0.2 0.2], ...
+        "Color", [0.2 0.2 0.2], "LineStyle", "none", "DisplayName", "two-term fit, 95% CI");
+
+    keptOffset = wheelCal.useOffset;
+
+    if any(keptOffset)
+        plot(axW6, xEst(keptOffset), wheelCal.offset(keptOffset), "o", "MarkerSize", 13, ...
+            "LineWidth", 1.6, "Color", [0 0.6 0.3], "LineStyle", "none", ...
+            "DisplayName", "kept");
+    end
+
+    if any(~keptOffset)
+        plot(axW6, xEst(~keptOffset), zeros(1, sum(~keptOffset)), "x", "MarkerSize", 12, ...
+            "LineWidth", 1.8, "Color", [0.8 0 0], "LineStyle", "none", ...
+            "DisplayName", "dropped, set to 0");
+    end
+
+    xline(axW6, 4.5, "k:", "HandleVisibility", "off");
+    yline(axW6, 0, "r-", "LineWidth", 1.2, "HandleVisibility", "off");
+    grid(axW6, "on");
+    xticks(axW6, xEst);
+    xticklabels(axW6, wheelCal.names);
+    xlim(axW6, [0.5 6.5]);
+    ylabel(axW6, "offset [m/s]");
+    legend(axW6, "Location", "best");
+    title(axW6, "Offset estimate - an interval crossing the red line is not a resolvable offset");
+
+    % ---- panel 7: where the samples are ------------------------------------
+    axW7 = nexttile(layoutW1);
+    histogram(axW7, wheelCal.vg, W1edges, "FaceColor", [0.4 0.4 0.4]);
+    grid(axW7, "on");
+    xlabel(axW7, "Ground speed v_x [m/s]");
+    ylabel(axW7, "free-rolling samples");
+    title(axW7, sprintf( ...
+        "Speed coverage - span %.1f m/s. Empty bins are where the fits interpolate", ...
+        wheelCal.span));
+
+    % ---- panel 8: the caveat - drive torque on the same samples ------------
+    axW8 = nexttile(layoutW1);
+    hold(axW8, "on");
+
+    scatter(axW8, wheelCal.vg, wheelCal.torque, 8, [0.35 0.35 0.35], "filled", ...
+        "MarkerFaceAlpha", 0.15, "HandleVisibility", "off");
+
+    [tvT, tmT] = binStats(wheelCal.vg, wheelCal.torque, W1edges);
+
+    plot(axW8, tvT, tmT, "ko-", "MarkerFaceColor", "k", "LineWidth", 1.8, ...
+        "DisplayName", "binned mean");
+    yline(axW8, 0, "r-", "LineWidth", 1.2, "DisplayName", "true coast");
+    grid(axW8, "on");
+    xlabel(axW8, "Ground speed v_x [m/s]");
+    ylabel(axW8, "drive torque [Nm]");
+    legend(axW8, "Location", "best");
+    title(axW8, "Caveat: the rear axle is driven. Off the red line it carries real slip, not just radius");
+end
+
+%% applying the time window
 
 if isempty(time_segment)
     time_segment = [0 Inf];
@@ -1843,13 +2447,22 @@ end
 
 %% wheel speeds and tire-frame velocities
 
-% Per-wheel scale from the free-rolling calibration at the top of the script,
-% replacing the old common  ./3.61 - 0.1. See that section for why one shared
-% factor cannot serve two different tire sizes.
-Vw_fl = movmean(data.fl_speed_kmh, mm) ./ 3.6 ./ wheelSpeedCal(1);
-Vw_fr = movmean(data.fr_speed_kmh, mm) ./ 3.6 ./ wheelSpeedCal(2);
-Vw_rl = movmean(data.rl_speed_kmh, mm) ./ 3.6 ./ wheelSpeedCal(3);
-Vw_rr = movmean(data.rr_speed_kmh, mm) ./ 3.6 ./ wheelSpeedCal(4);
+% Per-wheel scale AND offset from the free-rolling calibration at the top of
+% the script, replacing the old common  ./3.61 - 0.1. See that section (and fig
+% W1) for why one shared factor cannot serve two different tire sizes, and why
+% the offset is fitted separately instead of being absorbed into the scale.
+%
+% Inverting  v_read = scale*v_true + offset:
+Vw_fl = (movmean(data.fl_speed_kmh, mm) ./ 3.6 - wheelSpeedOffset(1)) ./ wheelSpeedCal(1);
+Vw_fr = (movmean(data.fr_speed_kmh, mm) ./ 3.6 - wheelSpeedOffset(2)) ./ wheelSpeedCal(2);
+Vw_rl = (movmean(data.rl_speed_kmh, mm) ./ 3.6 - wheelSpeedOffset(3)) ./ wheelSpeedCal(3);
+Vw_rr = (movmean(data.rr_speed_kmh, mm) ./ 3.6 - wheelSpeedOffset(4)) ./ wheelSpeedCal(4);
+
+% The same channels with NOTHING done to them. Only fig W2 uses these, to show
+% what the calibration actually bought - if the correction is right, the raw
+% tire curve misses the origin and the corrected one does not.
+Vw_front_raw = 0.5 .* (movmean(data.fl_speed_kmh, mm) + movmean(data.fr_speed_kmh, mm)) ./ 3.6;
+Vw_rear_raw  = 0.5 .* (movmean(data.rl_speed_kmh, mm) + movmean(data.rr_speed_kmh, mm)) ./ 3.6;
 
 % Residual free-rolling slip inside the analysed window. Every one of these
 % should print as ~0; a number here is a standing bias on that wheel's slip
@@ -1946,6 +2559,54 @@ slip_ratio_x_rr = (Vw_rr - Vx_tire_rr) ./ slipRef_rr;
 
 slip_ratio_f = (Vw_front - Fvx) ./ slipRef_f;
 slip_ratio_r = (Vw_rear  - Fvx) ./ slipRef_r;
+
+% Same definition, uncalibrated wheel speeds, for the before/after in fig W2.
+% The reference speed has to be rebuilt from the raw channels too under the
+% "wheel" definition, or the comparison would be half corrected.
+if strcmpi(slip_ratio_def, "wheel")
+    slipRefRaw_f = Vw_front_raw;
+    slipRefRaw_r = Vw_rear_raw;
+else
+    slipRefRaw_f = abs(Fvx);
+    slipRefRaw_r = abs(Fvx);
+end
+
+slip_ratio_f_raw = (Vw_front_raw - Fvx) ./ slipRefRaw_f;
+slip_ratio_r_raw = (Vw_rear_raw  - Fvx) ./ slipRefRaw_r;
+
+% The other definition, per tire, for the side-by-side in fig S7b. Same
+% numerator, other denominator: whichever of the two slip_ratio_def did not
+% select lands here, so the two tabs always show the pair. Only the per-tire
+% arrays are duplicated - the axle-level slip_ratio_f/r and everything
+% downstream of them (exports, maps, envelope) stay on slip_ratio_def.
+%
+% No epsilon on the denominator, matching the primary definition above. Where
+% the reference speed passes through zero this goes to +-Inf, and the validity
+% gate drops those samples the same way it does for the primary.
+if strcmpi(slip_ratio_def, "wheel")
+    slipRefAlt_fl = abs(Vx_tire_fl);
+    slipRefAlt_fr = abs(Vx_tire_fr);
+    slipRefAlt_rl = abs(Vx_tire_rl);
+    slipRefAlt_rr = abs(Vx_tire_rr);
+
+    slip_ratio_alt_def   = "sae";
+    slip_ratio_alt_label = "\kappa = (V_w - V_x) / |V_x|";
+else
+    slipRefAlt_fl = Vw_fl;
+    slipRefAlt_fr = Vw_fr;
+    slipRefAlt_rl = Vw_rl;
+    slipRefAlt_rr = Vw_rr;
+
+    slip_ratio_alt_def   = "wheel";
+    slip_ratio_alt_label = "\kappa = (V_w - V_x) / V_w";
+end
+
+slip_ratio_alt_x_fl = (Vw_fl - Vx_tire_fl) ./ slipRefAlt_fl;
+slip_ratio_alt_x_fr = (Vw_fr - Vx_tire_fr) ./ slipRefAlt_fr;
+slip_ratio_alt_x_rl = (Vw_rl - Vx_tire_rl) ./ slipRefAlt_rl;
+slip_ratio_alt_x_rr = (Vw_rr - Vx_tire_rr) ./ slipRefAlt_rr;
+
+fprintf("alternate slip ratio definition (fig S7b): %s\n", slip_ratio_alt_def);
 
 %% normal forces used for normalization
 if use_observed_Fz
@@ -2116,6 +2777,14 @@ validFR = validTire(slip_ratio_x_fr);
 validRL = validTire(slip_ratio_x_rl);
 validRR = validTire(slip_ratio_x_rr);
 
+% Same gate, run against the alternate-definition slip ratios of fig S7b. It
+% has to be its own mask: the two definitions blow up at different places, so
+% they do not drop the same samples.
+validFL_alt = validTire(slip_ratio_alt_x_fl);
+validFR_alt = validTire(slip_ratio_alt_x_fr);
+validRL_alt = validTire(slip_ratio_alt_x_rl);
+validRR_alt = validTire(slip_ratio_alt_x_rr);
+
 validFL_n = validFL & Fz_fl_norm > 0;
 validFR_n = validFR & Fz_fr_norm > 0;
 validRL_n = validRL & Fz_rl_norm > 0;
@@ -2147,6 +2816,11 @@ validFL_L  = validFL  & pureLong;
 validFR_L  = validFR  & pureLong;
 validRL_L  = validRL  & pureLong;
 validRR_L  = validRR  & pureLong;
+
+validFL_altL = validFL_alt & pureLong;
+validFR_altL = validFR_alt & pureLong;
+validRL_altL = validRL_alt & pureLong;
+validRR_altL = validRR_alt & pureLong;
 
 validFL_Ln = validFL_n & pureLong;
 validFR_Ln = validFR_n & pureLong;
@@ -2343,6 +3017,203 @@ title('Rear axle');
 title(layoutS4, sprintf('Slip ratio vs measured longitudinal force / %s   (%s, %s)', ...
     Fz_label, slip_ratio_label, pureLong_label));
 
+%% fig W2 - does the wheel speed bias actually work? slip vs force, before and after
+% The calibration section proves itself on free-rolling samples, which is a bit
+% of a closed loop - those are the samples it was fitted on. This figure tests
+% it on the data that matters instead: the tire curves themselves, which the
+% calibration never saw.
+%
+% THE TEST. At zero longitudinal force a tire is free-rolling, so a correct slip
+% ratio has to read zero there. That fixes where the curve must cross the
+% F_x = 0 axis, and it is the one point on a measured tire curve whose true
+% answer is known in advance. A wheel speed bias translates the whole curve
+% sideways in kappa without changing its shape, so the crossing is a direct
+% readout of the bias - which is what columns 1 and 2 show, on the SAME samples
+% and the SAME axes, so the shift is a translation you can see.
+%
+% WHAT IT FINDS ON THIS LOG. Uncorrected, the curve crosses F_x = 0 at about
+% +0.015 kappa on the front and +0.009 on the rear, at EVERY speed - the curve
+% sits off to one side of the origin and the braking branch reads shorter than
+% it is. That is the bias, and it is real.
+%
+% Correcting it is where the model choice shows up, and column 3 is there to be
+% honest about it. The crossing is plotted against SPEED for three treatments:
+%
+%   no correction   flat at +0.015 front / +0.009 rear. Wrong everywhere by the
+%                   same amount, which is the signature of a scale error.
+%   + additive bias what wheelCal_model = "bias" applies. It does not put the
+%                   curve on the origin - it PIVOTS the error about one speed.
+%                   On this log it runs about -0.021 at 5 m/s, through zero
+%                   near 15-20, to +0.005 at 30. Averaged over everything it is
+%                   about half the raw error, and inside 15-30 m/s it is good to
+%                   ~0.005, but at low speed it overshoots past zero and is no
+%                   better than leaving it alone.
+%   / scale         the multiplicative alternative, wheelCal_model = "scale",
+%                   drawn for reference. Lands within about 0.004 of zero at
+%                   every speed, because a scale is what the error actually is.
+%
+% So: the bias is CORRECT in the sense that it is measuring something real and
+% removes it in the speed range you fitted for. It is not a correction that
+% holds across the whole speed range, and column 3 is the picture of exactly
+% where it does and does not hold. Read it before trusting a slip ratio below
+% about 12 m/s.
+%
+% What this figure canNOT tell you is whether the front curve is symmetric
+% left-to-right, because the front is undriven: its F_x is negative under
+% braking and essentially never positive, so there is no driving branch to
+% mirror. The rear has both. For the front, "passes through the origin" is the
+% whole available test, and it is enough.
+
+if wheelCal.ok
+
+    parentW2 = newFigTab(FG, "long", ...
+        'Fig W2 - Wheel Speed Bias: Slip vs Force, Before and After');
+
+    layoutW2 = tiledlayout(parentW2, 2, 3, "TileSpacing", "compact", "Padding", "compact");
+
+    frontColorW2 = [0.000 0.447 0.741];
+    rearColorW2  = [0.850 0.325 0.098];
+    rawColorW2   = [0.55 0.55 0.55];
+    scaleColorW2 = [0.20 0.62 0.30];
+
+    % Samples carrying almost no longitudinal force. The median slip ratio in
+    % this band IS the zero-force crossing - a median rather than a mean because
+    % near zero force kappa is a small number over a small number and the tails
+    % are long.
+    W2_zeroBand  = 0.05;                  % |F_x/F_z| below this is free-rolling
+    W2_speedEdges = 4:4:36;               % m/s, for the crossing-vs-speed panel
+
+    % The multiplicative alternative, built from the same raw channels, so
+    % column 3 compares all three treatments on identical samples.
+    Vw_front_scaleOnly = Vw_front_raw ./ wheelCal.scaleOnly(5);
+    Vw_rear_scaleOnly  = Vw_rear_raw  ./ wheelCal.scaleOnly(6);
+
+    if strcmpi(slip_ratio_def, "wheel")
+        slip_ratio_f_scaleOnly = (Vw_front_scaleOnly - Fvx) ./ Vw_front_scaleOnly;
+        slip_ratio_r_scaleOnly = (Vw_rear_scaleOnly  - Fvx) ./ Vw_rear_scaleOnly;
+    else
+        slip_ratio_f_scaleOnly = (Vw_front_scaleOnly - Fvx) ./ abs(Fvx);
+        slip_ratio_r_scaleOnly = (Vw_rear_scaleOnly  - Fvx) ./ abs(Fvx);
+    end
+
+    W2_axles = { ...
+        "Front", slip_ratio_f_raw, slip_ratio_f, slip_ratio_f_scaleOnly, ...
+                 Fxf, Fz_front_norm, validFront_Ln, frontColorW2, 1; ...
+        "Rear",  slip_ratio_r_raw, slip_ratio_r, slip_ratio_r_scaleOnly, ...
+                 Fxr, Fz_rear_norm,  validRear_Ln,  rearColorW2,  3};
+
+    for iAxle = 1:2
+
+        axleName   = W2_axles{iAxle,1};
+        kappaRaw   = W2_axles{iAxle,2};
+        kappaCorr  = W2_axles{iAxle,3};
+        kappaScale = W2_axles{iAxle,4};
+        Fx_axle    = W2_axles{iAxle,5};
+        Fz_axle    = W2_axles{iAxle,6};
+        keep       = W2_axles{iAxle,7};
+        axleColor  = W2_axles{iAxle,8};
+        firstWheel = W2_axles{iAxle,9};
+
+        % One mask for every treatment, so the panels differ only by the
+        % correction and not by which samples survived.
+        keep = keep & isfinite(kappaRaw) & isfinite(kappaScale) ...
+             & isfinite(Fz_axle) & Fz_axle > 0;
+
+        kRaw   = kappaRaw(keep);
+        kCorr  = kappaCorr(keep);
+        kScale = kappaScale(keep);
+        fxfz   = Fx_axle(keep) ./ Fz_axle(keep);
+        vSel   = Fvx(keep);
+
+        [k0Raw,  ~]     = zeroForceIntercept(kRaw,  fxfz, W2_zeroBand);
+        [k0Corr, nCorr] = zeroForceIntercept(kCorr, fxfz, W2_zeroBand);
+
+        % Shared axes across the two scatter panels, or the shift is invisible.
+        kLim  = robustRange([kRaw; kCorr], 0.005);
+        kLim  = kLim + 0.08*diff(kLim)*[-1 1];
+        fzLim = robustRange(fxfz, 0.005);
+
+        fEdges = linspace(fzLim(1), fzLim(2), 22);
+
+        [fcRaw,  kmRaw ] = binStats(fxfz, kRaw,  fEdges);
+        [fcCorr, kmCorr] = binStats(fxfz, kCorr, fEdges);
+
+        % ---- columns 1 and 2: the same cloud, uncorrected then corrected ----
+        for iCase = 1:2
+
+            if iCase == 1
+                kThis = kRaw;  binK = kmRaw;  binF = fcRaw;
+                k0 = k0Raw;    thisCol = rawColorW2;
+                caseTag = "NO correction";
+            else
+                kThis = kCorr; binK = kmCorr; binF = fcCorr;
+                k0 = k0Corr;   thisCol = axleColor;
+
+                if wheelCal.applyScale(firstWheel) == 1
+                    caseTag = sprintf("bias applied (%+0.3f m/s)", ...
+                        -wheelSpeedOffset(firstWheel));
+                else
+                    caseTag = sprintf("correction applied (%s)", wheelCal_model);
+                end
+            end
+
+            axW2 = nexttile(layoutW2);
+            hold(axW2, "on");
+
+            scatter(axW2, kThis, fxfz, 5, thisCol, "filled", ...
+                "MarkerFaceAlpha", 0.10, "HandleVisibility", "off");
+            plot(axW2, binK, binF, "-", "Color", thisCol*0.5, "LineWidth", 2.2, ...
+                "DisplayName", "binned curve");
+
+            xline(axW2, 0, "k-", "LineWidth", 1.2, "HandleVisibility", "off");
+            yline(axW2, 0, "k-", "LineWidth", 1.2, "HandleVisibility", "off");
+
+            plot(axW2, k0, 0, "p", "MarkerSize", 16, "MarkerFaceColor", [0.9 0.7 0], ...
+                "MarkerEdgeColor", "k", "LineWidth", 1.0, ...
+                "DisplayName", sprintf("F_x = 0 crossing: \\kappa = %+0.4f", k0));
+
+            grid(axW2, "on");
+            xlim(axW2, kLim);
+            ylim(axW2, fzLim);
+            xlabel(axW2, sprintf("%s slip ratio \\kappa [-]", axleName));
+            ylabel(axW2, "F_x / F_z [-]");
+            legend(axW2, "Location", "southeast");
+            title(axW2, sprintf("%s axle - %s", axleName, caseTag));
+        end
+
+        % ---- column 3: the crossing against speed, all three treatments -----
+        axW2c = nexttile(layoutW2);
+        hold(axW2c, "on");
+
+        [vC, k0RawV]   = crossingVsSpeed(kRaw,   fxfz, vSel, W2_zeroBand, W2_speedEdges);
+        [~,  k0CorrV]  = crossingVsSpeed(kCorr,  fxfz, vSel, W2_zeroBand, W2_speedEdges);
+        [~,  k0ScaleV] = crossingVsSpeed(kScale, fxfz, vSel, W2_zeroBand, W2_speedEdges);
+
+        plot(axW2c, vC, k0RawV, "o-", "Color", rawColorW2, "LineWidth", 2.0, ...
+            "MarkerFaceColor", rawColorW2, "DisplayName", "no correction");
+        plot(axW2c, vC, k0CorrV, "o-", "Color", axleColor, "LineWidth", 2.4, ...
+            "MarkerFaceColor", axleColor, "DisplayName", ...
+            sprintf("applied (%s)", wheelCal_model));
+        plot(axW2c, vC, k0ScaleV, "s--", "Color", scaleColorW2, "LineWidth", 1.6, ...
+            "MarkerFaceColor", scaleColorW2, "DisplayName", "scale only, for reference");
+
+        yline(axW2c, 0, "k-", "LineWidth", 1.4, "HandleVisibility", "off");
+        grid(axW2c, "on");
+        xlabel(axW2c, "Speed [m/s]");
+        ylabel(axW2c, "\kappa at F_x = 0 [-]");
+        legend(axW2c, "Location", "best");
+        title(axW2c, sprintf("%s - crossing vs speed. Zero is correct at EVERY speed", axleName));
+
+        fprintf("fig W2 %s axle: F_x = 0 crossing %+0.4f -> %+0.4f kappa " + ...
+            "(%d samples in the |F_x/F_z| < %.2f band)\n", ...
+            axleName, k0Raw, k0Corr, nCorr, W2_zeroBand);
+    end
+
+    title(layoutW2, sprintf( ...
+        "Wheel speed bias check - a correct slip ratio reads zero at zero longitudinal force   (%s, %s)", ...
+        slip_ratio_label, pureLong_label), "FontWeight", "bold");
+end
+
 %% fig S5 - friction circle per axle [N]
 parentS5 = newFigTab(FG, "circle", 'Fig S5 - Friction Circle (per axle, measured)');
 
@@ -2411,6 +3282,36 @@ layoutS7 = tiledlayout(parentS7, 2, 2, "TileSpacing", "compact", "Padding", "com
 
     title(layoutS7, sprintf('Slip ratio vs measured longitudinal force (per-tire split: %s)   (%s, %s)', ...
         fx_split_label, slip_ratio_label, pureLong_label));
+
+    %% fig S7b - fig S7 with the other slip ratio definition
+    % Same numerator, same force on y, same gate - only the denominator of
+    % kappa changes. Read against the S7 tab it answers what the choice of
+    % definition alone does to the tire curve. Under braking the two agree to
+    % first order at small slip and split hard as the wheel slows: the V_w
+    % normalization runs away toward -Inf as the wheel locks, the |V_x| one
+    % saturates at -1.
+    parentS7b = newFigTab(FG, "long", 'Fig S7b - Slip Ratio vs F_x (per tire, alternate definition)');
+
+    layoutS7b = tiledlayout(parentS7b, 2, 2, "TileSpacing", "compact", "Padding", "compact");
+
+    nexttile(layoutS7b)
+    scatterTime(slip_ratio_alt_x_fl(validFL_altL), fx_fl(validFL_altL), tAbs(validFL_altL));
+    xlabel('\kappa_{fl} [-]'); ylabel('F_{x,fl} [N]'); title('Front Left');
+
+    nexttile(layoutS7b)
+    scatterTime(slip_ratio_alt_x_fr(validFR_altL), fx_fr(validFR_altL), tAbs(validFR_altL));
+    xlabel('\kappa_{fr} [-]'); ylabel('F_{x,fr} [N]'); title('Front Right');
+
+    nexttile(layoutS7b)
+    scatterTime(slip_ratio_alt_x_rl(validRL_altL), fx_rl(validRL_altL), tAbs(validRL_altL));
+    xlabel('\kappa_{rl} [-]'); ylabel('F_{x,rl} [N]'); title('Rear Left');
+
+    nexttile(layoutS7b)
+    scatterTime(slip_ratio_alt_x_rr(validRR_altL), fx_rr(validRR_altL), tAbs(validRR_altL));
+    xlabel('\kappa_{rr} [-]'); ylabel('F_{x,rr} [N]'); title('Rear Right');
+
+    title(layoutS7b, sprintf('Slip ratio vs measured longitudinal force, %s definition (per-tire split: %s)   (%s, %s)', ...
+        slip_ratio_alt_def, fx_split_label, slip_ratio_alt_label, pureLong_label));
 
     %% fig S8 - slip ratio vs Fx / Fz per tire [-]
     parentS8 = newFigTab(FG, "long", 'Fig S8 - Slip Ratio vs F_x/F_z (per tire, observed F_z)');
@@ -4896,3 +5797,123 @@ end
 % function definitions, since MATLAB requires script functions to come last.
 % It normalizes with the observer loads: Fz_fl_obs, Fz_fr_obs, Fz_rl_obs,
 % Fz_rr_obs (set use_observed_Fz = false to normalize with the strain gages).
+
+
+function [scale, offset, scaleOnly, sigma] = fitWheelBias(vg, vw, w)
+% Weighted least squares of  v_wheel = scale*v_ground + offset,  one fit per
+% column of vw, plus the scale-only model  v_wheel = scaleOnly*v_ground  for
+% comparison. sigma is the weighted rms residual of the affine fit.
+%
+% Both models are fitted on the same samples and the same weights, so the gap
+% between them is a model difference and not a sampling difference. That gap is
+% what fig W1 panels 1 and 5 are showing.
+
+    nCols     = size(vw, 2);
+    scale     = ones(1, nCols);
+    offset    = zeros(1, nCols);
+    scaleOnly = ones(1, nCols);
+    sigma     = nan(1, nCols);
+
+    vg = vg(:);
+    w  = w(:);
+
+    for iCol = 1:nCols
+
+        y    = vw(:, iCol);
+        good = isfinite(vg) & isfinite(y) & isfinite(w) & w > 0;
+
+        if sum(good) < 10
+            continue
+        end
+
+        x  = vg(good);
+        y  = y(good);
+        wc = w(good);
+        sw = sqrt(wc);
+
+        coef = ([x, ones(numel(x),1)] .* sw) \ (y .* sw);
+
+        scale(iCol)     = coef(1);
+        offset(iCol)    = coef(2);
+        scaleOnly(iCol) = sum(wc .* x .* y) / sum(wc .* x.^2);
+
+        resid       = y - (scale(iCol).*x + offset(iCol));
+        sigma(iCol) = sqrt(sum(wc .* resid.^2) / sum(wc));
+    end
+end
+
+
+function [centers, means, sds, counts] = binStats(x, y, edges)
+% Mean, standard deviation and count of y in each x bin. Bins holding nothing
+% come back as NaN so they leave a visible gap in the plot rather than a line
+% drawn straight across a speed range that was never measured.
+
+    nBins   = numel(edges) - 1;
+    centers = 0.5 * (edges(1:end-1) + edges(2:end));
+    centers = centers(:);
+    means   = nan(nBins, 1);
+    sds     = nan(nBins, 1);
+    counts  = zeros(nBins, 1);
+
+    which = discretize(x(:), edges);
+    y     = y(:);
+
+    for iBin = 1:nBins
+
+        inBin = which == iBin & isfinite(y);
+        counts(iBin) = sum(inBin);
+
+        if counts(iBin) > 0
+            means(iBin) = mean(y(inBin));
+            sds(iBin)   = std(y(inBin));
+        end
+    end
+end
+
+
+function [kappa0, nBand] = zeroForceIntercept(kappa, fxOverFz, band)
+% Slip ratio where the tire curve crosses zero longitudinal force - the median
+% kappa among samples carrying almost no F_x.
+%
+% A median, not a mean: near zero force the slip ratio is a small number divided
+% by a small number, so the tails are long and a mean chases them. And a band
+% rather than an interpolation of the fitted curve, because the crossing is the
+% measurement here and should not inherit the shape of a fit.
+
+    sel   = isfinite(kappa) & isfinite(fxOverFz) & abs(fxOverFz) < band;
+    nBand = sum(sel);
+
+    if nBand < 10
+        kappa0 = NaN;
+        return
+    end
+
+    kappa0 = median(kappa(sel));
+end
+
+
+function [centers, kappa0] = crossingVsSpeed(kappa, fxOverFz, vx, band, edges)
+% Zero-force slip ratio crossing, resolved by speed. One median per speed bin,
+% over the samples in that bin that also carry almost no longitudinal force.
+%
+% This is what separates a scale error from an offset correction on real tire
+% data: a channel with the right correction crosses at zero in EVERY bin, one
+% that is over- or under-corrected crosses at zero in at most one.
+
+    nBins   = numel(edges) - 1;
+    centers = 0.5 * (edges(1:end-1) + edges(2:end));
+    centers = centers(:);
+    kappa0  = nan(nBins, 1);
+
+    inBand = isfinite(kappa) & isfinite(fxOverFz) & abs(fxOverFz) < band;
+    which  = discretize(vx(:), edges);
+
+    for iBin = 1:nBins
+
+        sel = which == iBin & inBand;
+
+        if sum(sel) >= 30
+            kappa0(iBin) = median(kappa(sel));
+        end
+    end
+end

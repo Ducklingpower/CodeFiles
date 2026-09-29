@@ -3,7 +3,7 @@ close all
 clear
 %% plotting ax vs pos on fast lap
 
-M = readmatrix("laguna_mintime_p15.csv");
+M = readmatrix("/home/elijah/PurdueRacing/on_vehicle/on-vehicle/src/planning/frenet_path_server/maps/laguna/laguna_mintime_p15.csv");
 
 lat   = M(:,1);
 lon   = M(:,2);
