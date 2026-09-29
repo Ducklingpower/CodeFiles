@@ -6,4 +6,4 @@ Research/VD/data_analisis/putnam_coast_down/FastLaps.csv
 *.mat
 *.rosbag
 
-.vscode/browse.vc.db*
+.vscode/
