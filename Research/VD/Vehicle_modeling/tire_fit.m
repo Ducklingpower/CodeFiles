@@ -9,13 +9,15 @@ clear
 
 %% settings
 
-fitDataFile = "/home/elijah/code/Research/VD/Vehicle_modeling/tire_fit_data.mat";
-tireDir     = "/home/elijah/code/Research/VD/Vehicle_modeling/tires";
-adjDir      = "/home/elijah/code/Research/VD/Vehicle_modeling/tires/adjusted";
+here        = fileparts(mfilename("fullpath"));
+% fitDataFile = "/home/elijah/code/Research/VD/Vehicle_modeling/tire_fit_data.mat";   % laptop path
+fitDataFile = fullfile(here, "tire_fit_data_2025.mat");   % 2025 comp log, built by tire_fz_plots.m from vehicle_model.m (current observer)
+tireDir     = fullfile(here, "tires");
+adjDir      = fullfile(here, "tires", "adjusted");
 mfevalDir   = "/home/elijah/MATLAB Add-Ons/Toolboxes/MFeval";
-coefFile    = "/home/elijah/code/Research/VD/Vehicle_modeling/tire_coeffs.csv";
-figDir      = "/home/elijah/code/Research/VD/Vehicle_modeling/report_figs";
-exportFigs  = true;
+coefFile    = fullfile(here, "tire_coeffs.csv");
+figDir      = fullfile(here, "report_figs");
+exportFigs  = false;   % true overwrites the report figures
 
 tireFiles = ["2024003_Firestone_Firehawk Left Front SC_RC__275_40R15_MF62_UM4.tir", ...
              "2024003_Firestone_Firehawk Right Front SC_RC__275_40R15_MF62_UM4.tir", ...
@@ -39,7 +41,7 @@ cSeq   = [0.525 0.714 0.937; 0.333 0.596 0.906; 0.165 0.471 0.839; ...
           0.110 0.361 0.671; 0.063 0.259 0.506; 0.051 0.212 0.420];   % sequential blue, FzPlot
 
 %% load data
-% ASSUMPTION: Kalman filter axle Fy and wheel dynamics Fx are the measurements
+% ASSUMPTION: force balance axle Fy and wheel dynamics Fx are the measurements
 % ASSUMPTION: MF gets -alpha (ISO-W), ours has alpha > 0 -> Fy > 0
 
 addpath(genpath(mfevalDir));
@@ -51,7 +53,7 @@ kappa  = [d.kappa_fl, d.kappa_fr, d.kappa_rl, d.kappa_rr];       % (-)
 Vx     = [d.Vx_tire_fl, d.Vx_tire_fr, d.Vx_tire_rl, d.Vx_tire_rr];
 FxW    = [d.Fx_fl, d.Fx_fr, d.Fx_rl, d.Fx_rr];                    % (N) wheel dynamics
 locked = [d.locked_fl, d.locked_fr, d.locked_rl, d.locked_rr];
-S      = [d.Fyf_kf, d.Fyr_kf];                                    % (N) measured axle Fy
+S      = [d.Fyf, d.Fyr];                                             % (N) measured axle Fy
 
 Fz_ax    = [Fz(:,1) + Fz(:,2), Fz(:,3) + Fz(:,4)];
 alpha_ax = rad2deg([d.alpha_f, d.alpha_r]);

@@ -147,15 +147,15 @@ $-----------------------------------------------------------------SCALING
 [SCALING_COEFFICIENTS]
 LFZO                     =  1                       $Scale factor of nominal (rated) load
 LCX                      =  1                       $Scale factor of Fx shape factor
-LMUX                     = 0.590687                       $Scale factor of Fx peak friction coefficient
+LMUX                     = 0.610584                       $Scale factor of Fx peak friction coefficient
 LEX                      =  1                       $Scale factor of Fx curvature factor
-LKX                      = 1.03898                       $Scale factor of Fx slip stiffness
+LKX                      = 1.03281                       $Scale factor of Fx slip stiffness
 LHX                      =  1                       $Scale factor of Fx horizontal shift
 LVX                      =  1                       $Scale factor of Fx vertical shift
 LCY                      =  1                       $Scale factor of Fy shape factor
-LMUY                     = 0.841998                       $Scale factor of Fy peak friction coefficient
+LMUY                     = 0.88054                       $Scale factor of Fy peak friction coefficient
 LEY                      =  1                       $Scale factor of Fy curvature factor
-LKY                      = 1.01781                       $Scale factor of cornering stiffness
+LKY                      = 0.992441                       $Scale factor of cornering stiffness
 LKYC                     =  1                       $Scale factor of camber stiffness
 LKZC                     =  1                       $Scale factor of camber moment stiffness
 LHY                      =  1                       $Scale factor of Fy horizontal shift

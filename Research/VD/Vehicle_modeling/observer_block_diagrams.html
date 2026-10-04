@@ -1,0 +1,883 @@
+<meta charset="utf-8">
+<title>Vehicle Model Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* layout: one reading column for prose, figures break out wider and scroll sideways on a phone */
+:root {
+  --bg: #f4f6f8; --panel: #ffffff; --fg: #18212c; --muted: #5a6573; --rule: #d5dbe2;
+  --sensor: #1f6aa8; --filter: #0d7a70; --model: #a8620a; --out: #b02a52; --off: #8b94a1;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --panel: #161d25; --fg: #dfe5ec; --muted: #9aa5b2; --rule: #2a3440;
+    --sensor: #6aaee8; --filter: #3dc0b2; --model: #e5a43e; --out: #f07096; --off: #6d7785;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --panel: #161d25; --fg: #dfe5ec; --muted: #9aa5b2; --rule: #2a3440;
+  --sensor: #6aaee8; --filter: #3dc0b2; --model: #e5a43e; --out: #f07096; --off: #6d7785;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--body); }
+.page { max-width: 1360px; margin: 0 auto; padding-inline: 24px; padding-block: 32px 64px; }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: 34px; letter-spacing: 0.005em; }
+h2 { font-size: 25px; margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule); }
+h3 { font-size: 18px; margin-top: 30px; }
+p { margin: 10px 0; }
+code, .mono { font-family: var(--mono); font-size: 0.88em; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 18px 0 4px; font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.sw { width: 26px; height: 14px; border-radius: 3px; border: 1.5px solid; display: inline-block; }
+.sw.sen { border-color: var(--sensor); background: color-mix(in srgb, var(--sensor) 14%, var(--panel)); border-radius: 8px; }
+.sw.sig { border-color: var(--fg); background: var(--panel); border-radius: 8px; }
+.sw.flt { border-color: var(--filter); background: color-mix(in srgb, var(--filter) 13%, var(--panel)); }
+.sw.tm  { border-color: var(--model);  background: color-mix(in srgb, var(--model) 14%, var(--panel)); }
+.sw.calc{ border-color: var(--fg); background: var(--panel); }
+.sw.out { border-color: var(--out); background: color-mix(in srgb, var(--out) 12%, var(--panel)); }
+.sw.off { border-color: var(--off); border-style: dashed; background: transparent; }
+figure { margin: 22px 0 8px; }
+.fig { overflow-x: auto; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 10px; }
+.fig svg { display: block; width: 100%; height: auto; min-width: 980px; color: var(--fg); }
+figcaption { font-size: 13.5px; color: var(--muted); margin-top: 8px; max-width: 100ch; }
+.tbl { overflow-x: auto; margin-top: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 760px; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom: 1px solid var(--rule); }
+th { font-family: var(--mono); font-weight: 500; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+td:first-child { font-family: var(--mono); font-weight: 500; width: 2.5em; }
+td .mono { white-space: nowrap; }
+.note { border-left: 3px solid var(--model); padding: 4px 0 4px 14px; margin: 16px 0; max-width: 90ch; }
+.note.warn { border-color: var(--out); }
+
+/* SVG drawing */
+.b rect, .b circle.node { fill: var(--panel); stroke: var(--fg); stroke-width: 1.2; }
+.b.sen rect { fill: color-mix(in srgb, var(--sensor) 14%, var(--panel)); stroke: var(--sensor); stroke-width: 1.5; }
+.b.flt rect { fill: color-mix(in srgb, var(--filter) 13%, var(--panel)); stroke: var(--filter); stroke-width: 1.5; }
+.b.tm rect  { fill: color-mix(in srgb, var(--model) 14%, var(--panel)); stroke: var(--model); stroke-width: 1.5; }
+.b.out rect { fill: color-mix(in srgb, var(--out) 12%, var(--panel)); stroke: var(--out); stroke-width: 1.5; }
+.b.off rect { fill: none; stroke: var(--off); stroke-dasharray: 6 4; stroke-width: 1.4; }
+.b.cmp rect { fill: none; stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: 1.2; }
+.w { fill: none; stroke: var(--fg); stroke-width: 1.4; }
+.w.dash { stroke: var(--off); stroke-dasharray: 6 4; }
+.dot { fill: var(--fg); }
+svg text { fill: var(--fg); }
+.ti { font: 600 13px var(--body); }
+.fm { font: 400 11.5px var(--mono); }
+.sm { font: 400 10.5px var(--body); fill: var(--muted); }
+.lb { font: 500 11px var(--mono); }
+.sg { font: 600 14px var(--mono); }
+.big { font: 500 17px var(--body); }
+.b.off text { fill: var(--muted); }
+.bdg circle { fill: var(--fg); }
+.bdg text { font: 700 10px var(--body); fill: var(--panel); }
+.stage { font: 600 13px var(--display); fill: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.brk { fill: none; stroke: var(--rule); stroke-width: 2; }
+@media (max-width: 600px) { .page { padding-inline: 16px; } h1 { font-size: 27px; } }
+</style>
+<style>
+.plan { display: grid; gap: 14px; margin-top: 14px; }
+.phase { border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; background: var(--panel); max-width: 110ch; }
+.phase h4 { font-family: var(--display); font-size: 16px; margin: 0 0 6px; }
+.phase ol, .phase ul { margin: 6px 0 4px; padding-left: 22px; }
+.phase li { margin: 3px 0; }
+.tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+</style>
+
+<div class="page">
+<header class="prose">
+  <div class="eyebrow">Vehicle_modeling · vehicle_model.m · on-vehicle src/control/vehicle_model</div>
+  <h1>Vehicle model: bicycle and dual track</h1>
+  <p>Block diagrams and the math of <code>vehicle_model.m</code>, the MATLAB reference for the on-vehicle <code>vehicle_model</code> package: road wheel angles, kinematic slips, normal load observer, forces, the two MPC brush v<sub>y</sub> observers, the per tire F<sub>y</sub> split and the understeer gradient. Every numbered block points at the line that computes it. The build plan for the C++ is at the end.</p>
+</header>
+
+<div class="legend" aria-label="Legend">
+  <span><i class="sw sen"></i>Sensor channel</span>
+  <span><i class="sw sig"></i>Signal from another block</span>
+  <span><i class="sw flt"></i>Filter / observer dynamics</span>
+  <span><i class="sw tm"></i>Tire model</span>
+  <span><i class="sw calc"></i>Algebra</span>
+  <span><i class="sw out"></i>Output</span>
+</div>
+
+<!-- ============================== 0. OVERVIEW ============================== -->
+<h2>0 · What the package computes</h2>
+<p class="prose">Four stages. The kinematics give the reference slips and the slip ratios. The load model and the strain gages give the observed normal load. The force balance and the wheel dynamics give the forces. The slip observers turn the axle force and the observed load into slip angles without the localization v<sub>y</sub>, and those give the understeer gradient.</p>
+<figure>
+<div class="fig">
+<svg viewBox="0 0 1460 790" role="img" aria-label="Data flow of the vehicle model: road wheel angles and kinematics, load model and normal force observer, force balance and wheel dynamics, bicycle v_y observer, per tire Fy split with brush correction, dual track v_y observer, understeer gradient, and the outputs.">
+<defs><marker id="a0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<text class="stage" x="16" y="18">Kinematics</text>
+<g class="b sen"><rect x="16" y="36" width="180" height="28" rx="14"/></g>
+<text class="fm" x="106" y="54" text-anchor="middle">steering wheel angle</text>
+<g class="b sen"><rect x="16" y="88" width="180" height="28" rx="14"/></g>
+<text class="fm" x="106" y="106" text-anchor="middle">odom vx, vy, r</text>
+<g class="b sen"><rect x="16" y="134" width="180" height="28" rx="14"/></g>
+<text class="fm" x="106" y="152" text-anchor="middle">wheel speeds Vw_i</text>
+<g class="b calc"><rect x="240" y="26" width="210" height="52" rx="4"/></g>
+<text class="ti" x="345" y="45" text-anchor="middle">Road wheel angles</text>
+<text class="fm" x="345" y="69" text-anchor="middle">Ackermann LUT + toe</text>
+<g class="bdg"><circle cx="252" cy="39" r="9"/><text x="252" y="42.5" text-anchor="middle">1</text></g>
+<path class="w" d="M196,50 L240,50" marker-end="url(#a0)"/>
+<g class="b calc"><rect x="500" y="26" width="210" height="142" rx="4"/></g>
+<text class="ti" x="605" y="45" text-anchor="middle">Kinematic slips</text>
+<text class="fm" x="605" y="69" text-anchor="middle">α_i = −atan2(Vy_t, Vx_t)</text>
+<text class="fm" x="605" y="89" text-anchor="middle">κ_i = (Vw − Vx_t)/|Vx_t|</text>
+<text class="sm" x="605" y="106" text-anchor="middle">localization v_y: the reference</text>
+<text class="sm" x="605" y="123" text-anchor="middle">slip ratios stay kinematic</text>
+<g class="bdg"><circle cx="512" cy="39" r="9"/><text x="512" y="42.5" text-anchor="middle">2</text></g>
+<path class="w" d="M450,50 L500,50" marker-end="url(#a0)"/>
+<text class="lb" x="475" y="43" text-anchor="middle">δ_i</text>
+<path class="w" d="M196,102 L500,102" marker-end="url(#a0)"/>
+<text class="lb" x="348" y="96" text-anchor="middle">vx, vy, r (3 Hz)</text>
+<path class="w" d="M196,148 L500,148" marker-end="url(#a0)"/>
+<text class="lb" x="348" y="141" text-anchor="middle">Vw_i</text>
+<g class="b out"><rect x="1290" y="88" width="160" height="28" rx="14"/></g>
+<text class="fm" x="1370" y="106" text-anchor="middle">α_i ref, κ_i, s_x,y</text>
+<path class="w" d="M710,102 L1290,102" marker-end="url(#a0)"/>
+<text class="lb" x="1000" y="95" text-anchor="middle">kinematic slips</text>
+<text class="stage" x="16" y="196">Normal load</text>
+<g class="b sen"><rect x="16" y="212" width="180" height="28" rx="14"/></g>
+<text class="fm" x="106" y="230" text-anchor="middle">odom + a_x (0.3 Hz)</text>
+<g class="b sen"><rect x="16" y="282" width="180" height="28" rx="14"/></g>
+<text class="fm" x="106" y="300" text-anchor="middle">strain gages (0.5 Hz)</text>
+<g class="b calc"><rect x="240" y="200" width="210" height="68" rx="4"/></g>
+<text class="ti" x="345" y="219" text-anchor="middle">Load model</text>
+<text class="fm" x="345" y="243" text-anchor="middle">bicycle + dual track</text>
+<text class="sm" x="345" y="260" text-anchor="middle">a_z with bank, roll transfer</text>
+<g class="bdg"><circle cx="252" cy="213" r="9"/><text x="252" y="216.5" text-anchor="middle">3</text></g>
+<path class="w" d="M196,226 L240,226" marker-end="url(#a0)"/>
+<g class="b flt"><rect x="500" y="204" width="210" height="116" rx="4"/></g>
+<text class="ti" x="605" y="223" text-anchor="middle">F_z observer</text>
+<text class="fm" x="605" y="247" text-anchor="middle">c = a·(c + K·u)</text>
+<text class="fm" x="605" y="267" text-anchor="middle">u = Δgage − Δmodel</text>
+<text class="sm" x="605" y="284" text-anchor="middle">K 1.1, τ 8 s, model at 0.5 Hz</text>
+<g class="bdg"><circle cx="512" cy="217" r="9"/><text x="512" y="220.5" text-anchor="middle">4</text></g>
+<path class="w" d="M450,226 L500,226" marker-end="url(#a0)"/>
+<text class="lb" x="475" y="219" text-anchor="middle">model</text>
+<path class="w" d="M196,296 L500,296" marker-end="url(#a0)"/>
+<text class="lb" x="348" y="289" text-anchor="middle">F_z,meas</text>
+<g class="b out"><rect x="1290" y="248" width="160" height="28" rx="14"/></g>
+<text class="fm" x="1370" y="266" text-anchor="middle">F_z,i observed</text>
+<path class="w" d="M710,262 L1290,262" marker-end="url(#a0)"/>
+<text class="lb" x="1000" y="255" text-anchor="middle">F_z,i (≥ 0 into the tire models), axle sums</text>
+<text class="stage" x="16" y="352">Forces</text>
+<g class="b sen"><rect x="16" y="366" width="180" height="28" rx="14"/></g>
+<text class="fm" x="106" y="384" text-anchor="middle">a_x, a_y, odom (3 Hz)</text>
+<g class="b sen"><rect x="16" y="446" width="180" height="28" rx="14"/></g>
+<text class="fm" x="106" y="464" text-anchor="middle">brake p, rpm, gear, Vw</text>
+<g class="b calc"><rect x="240" y="356" width="210" height="52" rx="4"/></g>
+<text class="ti" x="345" y="375" text-anchor="middle">Force balance</text>
+<text class="fm" x="345" y="399" text-anchor="middle">F_y,f, F_y,r, F_x,total</text>
+<g class="bdg"><circle cx="252" cy="369" r="9"/><text x="252" y="372.5" text-anchor="middle">5</text></g>
+<path class="w" d="M196,380 L240,380" marker-end="url(#a0)"/>
+<g class="b calc"><rect x="240" y="434" width="210" height="52" rx="4"/></g>
+<text class="ti" x="345" y="453" text-anchor="middle">Wheel dynamics</text>
+<text class="fm" x="345" y="477" text-anchor="middle">(T_d − T_b − I_w ω̇)/R</text>
+<g class="bdg"><circle cx="252" cy="447" r="9"/><text x="252" y="450.5" text-anchor="middle">6</text></g>
+<path class="w" d="M196,460 L240,460" marker-end="url(#a0)"/>
+<g class="b out"><rect x="1290" y="366" width="160" height="28" rx="14"/></g>
+<text class="fm" x="1370" y="384" text-anchor="middle">F_y,f, F_y,r axle</text>
+<path class="w" d="M450,380 L1290,380" marker-end="url(#a0)"/>
+<text class="lb" x="870" y="373" text-anchor="middle">axle F_y (front in its tire frame)</text>
+<g class="b out"><rect x="1290" y="446" width="160" height="28" rx="14"/></g>
+<text class="fm" x="1370" y="464" text-anchor="middle">F_x,i per tire</text>
+<path class="w" d="M450,460 L1290,460" marker-end="url(#a0)"/>
+<text class="lb" x="870" y="453" text-anchor="middle">F_x,i</text>
+<text class="stage" x="16" y="528">Slip observers</text>
+<g class="b sig"><rect x="250" y="540" width="190" height="22" rx="11"/></g>
+<text class="fm" x="345" y="555" text-anchor="middle">F_y, F_z axle, a_y, δ</text>
+<g class="b sig"><rect x="510" y="540" width="190" height="22" rx="11"/></g>
+<text class="fm" x="605" y="555" text-anchor="middle">F_y axle, F_z,i, δ_i</text>
+<g class="b sig"><rect x="770" y="540" width="190" height="22" rx="11"/></g>
+<text class="fm" x="865" y="555" text-anchor="middle">F_z,i, a_y, δ_i</text>
+<g class="b sig"><rect x="1030" y="540" width="210" height="22" rx="11"/></g>
+<text class="fm" x="1135" y="555" text-anchor="middle">F_z axle and F_z,i</text>
+<path class="w" d="M345,562 L345,576" marker-end="url(#a0)"/>
+<path class="w" d="M605,562 L605,576" marker-end="url(#a0)"/>
+<path class="w" d="M865,562 L865,576" marker-end="url(#a0)"/>
+<path class="w" d="M1135,562 L1135,576" marker-end="url(#a0)"/>
+<g class="b flt"><rect x="240" y="576" width="210" height="100" rx="4"/></g>
+<text class="ti" x="345" y="595" text-anchor="middle">Bicycle v_y observer</text>
+<text class="fm" x="345" y="619" text-anchor="middle">brush inverse per axle</text>
+<text class="fm" x="345" y="639" text-anchor="middle">IMU predict, τ 0.2 s</text>
+<text class="sm" x="345" y="656" text-anchor="middle">full trust: mean of the axles</text>
+<g class="bdg"><circle cx="252" cy="589" r="9"/><text x="252" y="592.5" text-anchor="middle">7</text></g>
+<g class="b tm"><rect x="500" y="576" width="210" height="100" rx="4"/></g>
+<text class="ti" x="605" y="595" text-anchor="middle">F_y per tire</text>
+<text class="fm" x="605" y="619" text-anchor="middle">normal load split</text>
+<text class="fm" x="605" y="639" text-anchor="middle">+ brush correction</text>
+<text class="sm" x="605" y="656" text-anchor="middle">axleCorrect, σ 200 N + 0.2 |F|</text>
+<g class="bdg"><circle cx="512" cy="589" r="9"/><text x="512" y="592.5" text-anchor="middle">8</text></g>
+<g class="b flt"><rect x="760" y="576" width="210" height="100" rx="4"/></g>
+<text class="ti" x="865" y="595" text-anchor="middle">Dual track observer</text>
+<text class="fm" x="865" y="619" text-anchor="middle">brush inverse per tire</text>
+<text class="fm" x="865" y="639" text-anchor="middle">w = c² · F_z,i / F_z,ax</text>
+<text class="sm" x="865" y="656" text-anchor="middle">IMU predict, τ 0.2 s</text>
+<g class="bdg"><circle cx="772" cy="589" r="9"/><text x="772" y="592.5" text-anchor="middle">9</text></g>
+<g class="b out"><rect x="1020" y="576" width="230" height="100" rx="4"/></g>
+<text class="ti" x="1135" y="595" text-anchor="middle">Understeer gradient</text>
+<text class="fm" x="1135" y="619" text-anchor="middle">C = |F| / tan|α|</text>
+<text class="fm" x="1135" y="639" text-anchor="middle">k = m(lr·Cr − lf·Cf)/(L·Cf·Cr)</text>
+<text class="sm" x="1135" y="656" text-anchor="middle">bicycle and dual track</text>
+<g class="bdg"><circle cx="1032" cy="589" r="10"/><text x="1032" y="592.5" text-anchor="middle">10</text></g>
+<path class="w" d="M450,626 L500,626" marker-end="url(#a0)"/>
+<text class="lb" x="475" y="619" text-anchor="middle">α_i^B</text>
+<path class="w" d="M710,626 L760,626" marker-end="url(#a0)"/>
+<text class="lb" x="735" y="619" text-anchor="middle">F_y,i</text>
+<path class="w" d="M970,626 L1020,626" marker-end="url(#a0)"/>
+<text class="lb" x="995" y="619" text-anchor="middle">α_i</text>
+<g class="b out"><rect x="1290" y="612" width="160" height="28" rx="14"/></g>
+<text class="fm" x="1370" y="630" text-anchor="middle">k_us bicycle, dual</text>
+<path class="w" d="M1250,626 L1290,626" marker-end="url(#a0)"/>
+<path class="w" d="M335,676 L335,698" marker-end="url(#a0)"/>
+<g class="b out"><rect x="240.0" y="698" width="190" height="26" rx="13"/></g>
+<text class="fm" x="335" y="715" text-anchor="middle">v_y, α_f, α_r (bicycle)</text>
+<path class="w" d="M605,676 L605,698" marker-end="url(#a0)"/>
+<g class="b out"><rect x="510.0" y="698" width="190" height="26" rx="13"/></g>
+<text class="fm" x="605" y="715" text-anchor="middle">F_y,i per tire</text>
+<path class="w" d="M865,676 L865,698" marker-end="url(#a0)"/>
+<g class="b out"><rect x="770.0" y="698" width="190" height="26" rx="13"/></g>
+<text class="fm" x="865" y="715" text-anchor="middle">v_y, α_i observed</text>
+<path class="w" d="M430,676 L430,760 L1135,760 L1135,676" marker-end="url(#a0)"/>
+<text class="lb" x="782.5" y="753" text-anchor="middle">α_f, α_r and F_z axle (bicycle k_us)</text>
+</svg>
+</div>
+<figcaption>Fig. 0. What runs in <code>vehicle_model.m</code>, block by block. Pills on the left are sensor channels, pills on the right are the outputs the on-vehicle package publishes, small pills above a block name the signals it takes from other blocks. Numbers match the sections below.</figcaption>
+</figure>
+
+<div class="tbl"><table>
+<thead><tr><th>Input</th><th>Channel (CSV / ROS topic)</th><th>Filter</th><th>Used by</th></tr></thead>
+<tbody>
+<tr><td>–</td><td>odom v<sub>x</sub>, v<sub>y</sub>, r, attitude: <span class="mono">/odometry/global_filtered</span></td><td>3 Hz (<span class="mono">fc</span>); 0.3 Hz copy for the load model (<span class="mono">fcObsModel</span>)</td><td>kinematics, force balance, load model, observers (v<sub>x</sub>, r only)</td></tr>
+<tr><td>–</td><td>a<sub>x</sub>, a<sub>y</sub>: <span class="mono">/novatel_bottom/accel_filtered</span> (gravity removed)</td><td>3 Hz; a<sub>x</sub> also 0.3 Hz</td><td>force balance (a<sub>x</sub>), load model, v<sub>y</sub> observers (a<sub>y</sub>)</td></tr>
+<tr><td>–</td><td>steering wheel angle: <span class="mono">steering_extended_report.primary_steering_angle_fbk</span></td><td>3 Hz</td><td>road wheel angles</td></tr>
+<tr><td>–</td><td>wheel speeds (km/h): <span class="mono">wheel_speed_report</span></td><td>3 Hz, ÷ 3.6 ÷ wheelCal</td><td>slip ratios, wheel dynamics</td></tr>
+<tr><td>–</td><td>strain gages: <span class="mono">tire_report.*_wheel_load</span></td><td>0.5 Hz (<span class="mono">fcObsGage</span>), minus the zero offset</td><td>F<sub>z</sub> observer</td></tr>
+<tr><td>–</td><td>brake pressures, rpm, throttle, gear: <span class="mono">brake_2_report</span>, <span class="mono">pt_report</span></td><td>3 Hz (gear unfiltered)</td><td>wheel dynamics F<sub>x</sub></td></tr>
+</tbody></table></div>
+<p class="note prose">Every filter is a first order Tustin low pass with prewarp (<code>lpf</code>, <code>vehicle_model.m:914</code>): <span class="mono">K = tan(π f<sub>c</sub> T<sub>s</sub>)</span>, <span class="mono">y(k) = (1−K)/(1+K)·y(k−1) + K/(1+K)·(x(k) + x(k−1))</span>, T<sub>s</sub> = 0.01 s. Derivatives are backward differences of filtered signals (<code>ddt</code>, <code>:262</code>).</p>
+
+<!-- ============================== 1. ANGLES AND KINEMATICS ============================== -->
+<h2>1 · Road wheel angles and kinematic slips</h2>
+<p class="prose">Every tire uses its own road wheel angle. The steering wheel angle goes through the steering ratio and offset, then the Ackermann table gives the left and right front angle, and the static toe is added on top (0 until it is confirmed on the car). The bicycle model uses the mean of the two front angles.</p>
+<div class="tbl"><table>
+<thead><tr><th>#</th><th>Quantity</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Road wheel angle</td><td><span class="mono">δ_road = 0.333° + steer / 15.015</span> (deg)</td><td class="mono">vehicle_model.m:248</td></tr>
+<tr><td>1</td><td>Ackermann + toe</td><td><span class="mono">δ_FL = LUT_left(δ_road) − toe_f</span>, <span class="mono">δ_FR = LUT_right(δ_road) + toe_f</span>, <span class="mono">δ_RL = −toe_r</span>, <span class="mono">δ_RR = toe_r</span>. LUT = <span class="mono">yaw_moment/ackerman_sweep_50.xlsx</span> (road_deg → left_deg, right_deg, linear interpolation), toe in deg with − = out (YMD_calc.m convention), toe_f = toe_r = 0 for now (yaw_moment.m: −0.451°). Bicycle <span class="mono">δ = (δ_FL + δ_FR)/2</span>.</td><td class="mono">:50, 117–118, 249–254</td></tr>
+<tr><td>2</td><td>Tire frame velocity</td><td><span class="mono">tireKin</span>: corner speed <span class="mono">Vx_c = v_x ∓ r·t/2</span> (left −, right +), lateral <span class="mono">Vy_c = v_y + l_f·r</span> (front) or <span class="mono">v_y − l_r·r</span> (rear), rotated by δ<sub>i</sub>: <span class="mono">Vx_t = Vx_c cosδ_i + Vy_c sinδ_i</span>, <span class="mono">Vy_t = −Vx_c sinδ_i + Vy_c cosδ_i</span>. t<sub>f</sub> 1.639 m, t<sub>r</sub> 1.524 m, l<sub>f</sub> 1.724 m, l<sub>r</sub> 1.248 m. NaN below v<sub>x</sub> 4 m/s.</td><td class="mono">:280, 946</td></tr>
+<tr><td>2</td><td>Slip angle per tire</td><td><span class="mono">α_i = −atan2(Vy_t, Vx_t)</span> (α &gt; 0 → F<sub>y</sub> &gt; 0). With the localization v<sub>y</sub> this is the reference; with an observer v<sub>y</sub> it is that observer's slip (same function).</td><td class="mono">:284</td></tr>
+<tr><td>2</td><td>Slip angle per axle</td><td><span class="mono">α_f = δ − atan2(v_y + l_f·r, v_x)</span>, <span class="mono">α_r = −atan2(v_y − l_r·r, v_x)</span></td><td class="mono">:290–291</td></tr>
+<tr><td>2</td><td>Slip ratio (kinematic)</td><td><span class="mono">κ_i = (Vw_i − Vx_t,i) / |Vx_t,i|</span>; also <span class="mono">s_x = (Vw − Vx_t)/Vw</span>, <span class="mono">s_y = −Vy_t/Vw</span>; a wheel with κ &lt; −0.5 is locked</td><td class="mono">:298–324</td></tr>
+</tbody></table></div>
+
+<!-- ============================== 2. NORMAL LOAD ============================== -->
+<h2>2 · Normal load model and observer</h2>
+<p class="prose">The load model turns the vehicle motion into a load per tire (Fig. 1a). The observer adds the part of the strain gage <em>change</em> the model misses (Fig. 1b): the model sets the level, the gages add their rate.</p>
+<h3>2a · Load model (per tire)</h3>
+<figure>
+<div class="fig">
+<svg viewBox="0 0 1350 312" role="img" aria-label="Load model: odom and IMU signals are low passed at 0.3 Hz, turned into attitude, accelerations and downforce, then into axle loads, lateral load transfer and four corner loads Fz_model.">
+<defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+
+<!-- inputs -->
+<g class="b sen"><rect x="16" y="40" width="150" height="34" rx="17"/><text class="fm" x="91" y="61" text-anchor="middle">odom quaternion q</text></g>
+<g class="b sen"><rect x="16" y="86" width="150" height="34" rx="17"/><text class="fm" x="91" y="107" text-anchor="middle">odom vx</text></g>
+<g class="b sen"><rect x="16" y="132" width="150" height="34" rx="17"/><text class="fm" x="91" y="153" text-anchor="middle">odom vy</text></g>
+<g class="b sen"><rect x="16" y="178" width="150" height="34" rx="17"/><text class="fm" x="91" y="199" text-anchor="middle">odom yaw rate r</text></g>
+<g class="b sen"><rect x="16" y="224" width="150" height="34" rx="17"/><text class="fm" x="91" y="245" text-anchor="middle">IMU ax</text></g>
+<path class="w" d="M166,57 H206" marker-end="url(#a1)"/>
+<path class="w" d="M166,103 H206" marker-end="url(#a1)"/>
+<path class="w" d="M166,149 H206" marker-end="url(#a1)"/>
+<path class="w" d="M166,195 H206" marker-end="url(#a1)"/>
+<path class="w" d="M166,241 H206" marker-end="url(#a1)"/>
+
+<!-- 1 LPF -->
+<g class="b flt"><rect x="206" y="32" width="100" height="234" rx="4"/>
+  <text class="ti" x="256" y="130" text-anchor="middle">LPF</text>
+  <text class="fm" x="256" y="150" text-anchor="middle">0.3 Hz</text>
+  <text class="sm" x="256" y="170" text-anchor="middle">fcObsModel</text>
+  <text class="sm" x="256" y="186" text-anchor="middle">Tustin</text>
+  <text class="sm" x="256" y="200" text-anchor="middle">1st order</text></g>
+<g class="bdg"><circle cx="220" cy="46" r="9"/><text x="220" y="49.5" text-anchor="middle">1</text></g>
+
+<!-- 2 attitude -->
+<path class="w" d="M306,57 H356" marker-end="url(#a1)"/><text class="lb" x="331" y="50" text-anchor="middle">q</text>
+<g class="b"><rect x="356" y="32" width="160" height="50" rx="4"/>
+  <text class="ti" x="436" y="52" text-anchor="middle">Attitude</text>
+  <text class="fm" x="436" y="71" text-anchor="middle">quat2eul → θ, φ</text></g>
+<g class="bdg"><circle cx="370" cy="46" r="9"/><text x="370" y="49.5" text-anchor="middle">2</text></g>
+
+<!-- 4 aero -->
+<path class="w" d="M306,241 H356" marker-end="url(#a1)"/><text class="lb" x="331" y="234" text-anchor="middle">vx</text>
+<g class="b"><rect x="356" y="213" width="160" height="56" rx="4"/>
+  <text class="ti" x="436" y="235" text-anchor="middle">Downforce</text>
+  <text class="fm" x="436" y="256" text-anchor="middle">DF = ½·ρ·ClA·vx²</text></g>
+<g class="bdg"><circle cx="370" cy="227" r="9"/><text x="370" y="230.5" text-anchor="middle">4</text></g>
+
+<!-- 3 accelerations -->
+<path class="w" d="M516,57 H566" marker-end="url(#a1)"/><text class="lb" x="541" y="50" text-anchor="middle">θ, φ</text>
+<path class="w" d="M306,150 H566" marker-end="url(#a1)"/><text class="lb" x="436" y="142" text-anchor="middle">vx, vy, r, ax</text>
+<g class="b"><rect x="566" y="32" width="260" height="168" rx="4"/>
+  <text class="ti" x="696" y="54" text-anchor="middle">Accelerations</text>
+  <text class="fm" x="580" y="84">ay = vx·r + dvy/dt + g·cosθ·sinφ</text>
+  <text class="fm" x="580" y="110">ax_long = ax + g·sinθ</text>
+  <text class="fm" x="580" y="136">az_road = g·cosθ·cosφ − vx·r·sinφ</text>
+  <text class="sm" x="580" y="162">dvy/dt = backward difference of LPF vy</text>
+  <text class="sm" x="580" y="180">g = 9.81 m/s²</text></g>
+<g class="bdg"><circle cx="580" cy="46" r="9"/><text x="580" y="49.5" text-anchor="middle">3</text></g>
+
+<!-- 5 lateral transfer -->
+<path class="w" d="M826,77 H876" marker-end="url(#a1)"/><text class="lb" x="851" y="70" text-anchor="middle">ay</text>
+<g class="b"><rect x="876" y="32" width="170" height="92" rx="4"/>
+  <text class="ti" x="961" y="53" text-anchor="middle">Lateral transfer</text>
+  <text class="fm" x="961" y="75" text-anchor="middle">LT_f ∝ m·ay / t_f</text>
+  <text class="fm" x="961" y="95" text-anchor="middle">LT_r ∝ m·ay / t_r</text>
+  <text class="sm" x="961" y="114" text-anchor="middle">roll stiffness, roll centres</text></g>
+<g class="bdg"><circle cx="890" cy="46" r="9"/><text x="890" y="49.5" text-anchor="middle">5</text></g>
+
+<!-- 6 axle loads -->
+<path class="w" d="M826,175 H876" marker-end="url(#a1)"/><text class="lb" x="851" y="168" text-anchor="middle">az, ax</text>
+<path class="w" d="M516,241 H876" marker-end="url(#a1)"/><text class="lb" x="696" y="234" text-anchor="middle">DF</text>
+<g class="b"><rect x="876" y="150" width="170" height="140" rx="4"/>
+  <text class="ti" x="961" y="171" text-anchor="middle">Axle loads</text>
+  <text class="fm" x="890" y="194">Fz_f = m·az·lr/L</text>
+  <text class="fm" x="890" y="211">  − m·ax·h/L + 0.33·DF</text>
+  <text class="fm" x="890" y="236">Fz_r = m·az·lf/L</text>
+  <text class="fm" x="890" y="253">  + m·ax·h/L + 0.67·DF</text>
+  <text class="sm" x="890" y="278">lr = 0.42L, lf = 0.58L</text></g>
+<g class="bdg"><circle cx="890" cy="164" r="9"/><text x="890" y="167.5" text-anchor="middle">6</text></g>
+
+<!-- 7 corner split -->
+<path class="w" d="M1046,77 H1106" marker-end="url(#a1)"/><text class="lb" x="1076" y="70" text-anchor="middle">LT_f,r</text>
+<path class="w" d="M1046,220 H1106" marker-end="url(#a1)"/><text class="lb" x="1076" y="213" text-anchor="middle">Fz_f,r</text>
+<g class="b"><rect x="1106" y="32" width="160" height="258" rx="4"/>
+  <text class="ti" x="1186" y="60" text-anchor="middle">Corner split</text>
+  <text class="fm" x="1118" y="100">Fz_fl = ½Fz_f − LT_f</text>
+  <text class="fm" x="1118" y="126">Fz_fr = ½Fz_f + LT_f</text>
+  <text class="fm" x="1118" y="152">Fz_rl = ½Fz_r − LT_r</text>
+  <text class="fm" x="1118" y="178">Fz_rr = ½Fz_r + LT_r</text>
+  <text class="sm" x="1118" y="212">½ = static corner share</text>
+  <text class="sm" x="1118" y="228">(symmetric corner loads)</text></g>
+<g class="bdg"><circle cx="1120" cy="46" r="9"/><text x="1120" y="49.5" text-anchor="middle">7</text></g>
+
+<path class="w" d="M1266,161 H1340" marker-end="url(#a1)"/><text class="lb" x="1272" y="153">Fz_model</text>
+</svg>
+</div>
+<figcaption>Fig. 1a. Every input goes through one 0.3 Hz low pass first, then the load is pure algebra. The model sees odom v<sub>y</sub> only through its derivative in a<sub>y</sub>. Output: the predicted load on each of the four tires.</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>#</th><th>Block</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>LPF 0.3 Hz</td><td>Tustin low pass on odom v<sub>x</sub>, v<sub>y</sub>, r, a<sub>x</sub> and the quaternion, the load model inputs only</td><td class="mono">vehicle_model.m:219–226</td></tr>
+<tr><td>2</td><td>Attitude</td><td><span class="mono">quat2eul(q, "ZYX")</span>, θ = −eul(:,2), φ = eul(:,3)</td><td class="mono">:224–226</td></tr>
+<tr><td>3</td><td>Accelerations</td><td><span class="mono">a_y = v_x·r + dv_y/dt + g·cosθ·sinφ</span>, <span class="mono">a_x,long = a_x + g·sinθ</span>, <span class="mono">a_z,road = g·cosθ·cosφ − v_x·r·sinφ</span> (gravity plus the bank centripetal term)</td><td class="mono">:336–338</td></tr>
+<tr><td>4</td><td>Downforce</td><td><span class="mono">DF = ½·1.225·0.58·v_x²</span>, front share 0.33</td><td class="mono">:340–341</td></tr>
+<tr><td>5</td><td>Lateral transfer</td><td><span class="mono">LT_f = m·a_y/t_f·(h_roll·s_f + l_r·rc_f/L)</span>, <span class="mono">LT_r = m·a_y/t_r·(h_roll·(1−s_f) + l_f·rc_r/L)</span>, s<sub>f</sub> = front roll stiffness share (k = wheel rate·t²/2, ARB<sub>f</sub> = 0), <span class="mono">h_roll = h − roll axis height at the CG</span>, rc<sub>f</sub> 0.120 m, rc<sub>r</sub> 0.002 m</td><td class="mono">:357–364</td></tr>
+<tr><td>6</td><td>Axle loads</td><td><span class="mono">Fz_f = m·a_z·l_r/L − m·a_x·h/L + 0.33·DF</span>, <span class="mono">Fz_r = m·a_z·l_f/L + m·a_x·h/L + 0.67·DF</span>; m 815 kg, L 2.9718 m, h 0.35 m</td><td class="mono">:343–344</td></tr>
+<tr><td>7</td><td>Corner split</td><td>axle load × static share (0.5) ∓ lateral transfer, left tires lose load when a<sub>y</sub> &gt; 0</td><td class="mono">:372–375</td></tr>
+</tbody></table></div>
+
+<h3>2b · Normal force observer (per tire, same structure per axle)</h3>
+<figure>
+<div class="fig">
+<svg viewBox="0 0 1330 312" role="img" aria-label="Observer: Fz_model goes straight to the output sum. A copy of Fz_model is low passed at 0.5 Hz and differenced; the strain gage is low passed at 0.5 Hz, offset and differenced; the difference of the two rates times K goes through a leaky integrator, and that correction is added to Fz_model to give Fz_obs.">
+<defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+
+<!-- model lane -->
+<g class="b"><rect x="16" y="53" width="160" height="34" rx="17"/><text class="fm" x="96" y="74" text-anchor="middle">Fz_model (Fig. 1a)</text></g>
+<path class="w" d="M176,70 H1184" marker-end="url(#a2)"/>
+<circle class="dot" cx="216" cy="70" r="3.5"/>
+<text class="lb" x="700" y="62" text-anchor="middle">Fz_model, passes straight through (sets the level and all fast content)</text>
+
+<!-- compare lane -->
+<path class="w" d="M216,70 V170 H266" marker-end="url(#a2)"/>
+<g class="b flt"><rect x="266" y="146" width="120" height="48" rx="4"/>
+  <text class="ti" x="326" y="166" text-anchor="middle">LPF 0.5 Hz</text>
+  <text class="sm" x="326" y="184" text-anchor="middle">fcObsGage</text></g>
+<g class="bdg"><circle cx="266" cy="146" r="8"/><text x="266" y="149.5" text-anchor="middle">1</text></g>
+<path class="w" d="M386,170 H436" marker-end="url(#a2)"/><text class="lb" x="411" y="162" text-anchor="middle">Fz_cmp</text>
+<g class="b flt"><rect x="436" y="146" width="120" height="48" rx="4"/>
+  <text class="ti" x="496" y="166" text-anchor="middle">Δ per sample</text>
+  <text class="fm" x="496" y="184" text-anchor="middle">x(k) − x(k−1)</text></g>
+<path class="w" d="M556,170 H756 V204" marker-end="url(#a2)"/><text class="lb" x="656" y="162" text-anchor="middle">ΔFz_cmp</text>
+
+<!-- gage lane -->
+<g class="b sen"><rect x="16" y="253" width="160" height="34" rx="17"/><text class="fm" x="96" y="274" text-anchor="middle">strain gage (raw)</text></g>
+<path class="w" d="M176,270 H226" marker-end="url(#a2)"/>
+<g class="b flt"><rect x="226" y="246" width="120" height="48" rx="4"/>
+  <text class="ti" x="286" y="266" text-anchor="middle">LPF 0.5 Hz</text>
+  <text class="sm" x="286" y="284" text-anchor="middle">fcObsGage</text></g>
+<g class="bdg"><circle cx="226" cy="246" r="8"/><text x="226" y="249.5" text-anchor="middle">2</text></g>
+<path class="w" d="M346,270 H396" marker-end="url(#a2)"/>
+<g class="b"><rect x="396" y="246" width="120" height="48" rx="4"/>
+  <text class="ti" x="456" y="266" text-anchor="middle">− gageOffset</text>
+  <text class="sm" x="456" y="284" text-anchor="middle">constant per tire</text></g>
+<path class="w" d="M516,270 H566" marker-end="url(#a2)"/><text class="lb" x="541" y="262" text-anchor="middle">Fz_meas</text>
+<g class="b flt"><rect x="566" y="246" width="120" height="48" rx="4"/>
+  <text class="ti" x="626" y="266" text-anchor="middle">Δ per sample</text>
+  <text class="fm" x="626" y="284" text-anchor="middle">x(k) − x(k−1)</text></g>
+<path class="w" d="M686,270 H756 V236" marker-end="url(#a2)"/><text class="lb" x="718" y="262" text-anchor="middle">ΔFz_meas</text>
+
+<!-- junction, gain, integrator -->
+<g class="b"><circle class="node" cx="756" cy="220" r="16"/></g>
+<text class="sg" x="756" y="225" text-anchor="middle">Σ</text>
+<text class="sg" x="770" y="200">−</text>
+<text class="sg" x="770" y="250">+</text>
+<path class="w" d="M772,220 H822" marker-end="url(#a2)"/><text class="lb" x="797" y="212" text-anchor="middle">u</text>
+<g class="b flt"><rect x="822" y="196" width="100" height="48" rx="4"/>
+  <text class="ti" x="872" y="216" text-anchor="middle">Gain</text>
+  <text class="fm" x="872" y="234" text-anchor="middle">K = 1.1</text></g>
+<g class="bdg"><circle cx="822" cy="196" r="8"/><text x="822" y="199.5" text-anchor="middle">3</text></g>
+<path class="w" d="M922,220 H972" marker-end="url(#a2)"/><text class="lb" x="947" y="212" text-anchor="middle">K·u</text>
+<g class="b flt"><rect x="972" y="186" width="200" height="68" rx="4"/>
+  <text class="ti" x="1072" y="206" text-anchor="middle">Leaky integrator</text>
+  <text class="fm" x="1072" y="226" text-anchor="middle">c(k) = a·(c(k−1) + K·u(k))</text>
+  <text class="fm" x="1072" y="244" text-anchor="middle">a = τ/(τ+dt), τ = 8 s</text></g>
+<g class="bdg"><circle cx="972" cy="186" r="8"/><text x="972" y="189.5" text-anchor="middle">4</text></g>
+<path class="w" d="M1172,220 H1200 V86" marker-end="url(#a2)"/><text class="lb" x="1208" y="160">c</text>
+
+<!-- output sum -->
+<g class="b"><circle class="node" cx="1200" cy="70" r="16"/></g>
+<text class="sg" x="1200" y="75" text-anchor="middle">Σ</text>
+<text class="sg" x="1172" y="60">+</text>
+<text class="sg" x="1210" y="104">+</text>
+<path class="w" d="M1216,70 H1310" marker-end="url(#a2)"/><text class="lb" x="1263" y="62" text-anchor="middle">Fz_obs</text>
+<text class="sm" x="1310" y="92" text-anchor="end">not clamped</text>
+</svg>
+</div>
+<figcaption>Fig. 1b. The correction only carries what the gages see and the model misses, below 0.5 Hz. The leaky integrator turns the rate difference back into a load and lets it decay to the model with τ = 8 s, so <span class="mono">c ≈ K·HP<sub>τ</sub>(LP<sub>0.5</sub>(gage) − LP<sub>0.5</sub>(model))</span>: active from about 0.02 Hz (1/2πτ) up to 0.5 Hz.</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>#</th><th>Block</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Model through the gage filter</td><td><span class="mono">Fz_cmp = lpf(Fz_model, 0.5 Hz)</span>, so the two rates are compared like for like</td><td class="mono">vehicle_model.m:392</td></tr>
+<tr><td>2</td><td>Gage filter and offset</td><td><span class="mono">Fz_meas = lpf(gage, 0.5 Hz) − gageOffset</span>, offset = gage (3 Hz LPF) at sample 100 − static corner load; a constant, the Δ removes it</td><td class="mono">:177–180, 209–212</td></tr>
+<tr><td>3</td><td>Gain</td><td><span class="mono">u(k) = ΔFz_meas(k) − ΔFz_cmp(k)</span>, K = 1.1</td><td class="mono">:383, 905</td></tr>
+<tr><td>4</td><td>Leaky integrator</td><td><span class="mono">c(k) = τ/(τ+dt)·(c(k−1) + K·u(k))</span>, τ = 8 s, <span class="mono">Fz_obs = Fz_model + c</span>, not clamped. The tire models use <span class="mono">max(Fz_obs, 0)</span> and the axle sums of that.</td><td class="mono">:384–396, 893</td></tr>
+</tbody></table></div>
+
+<!-- ============================== 3. FORCES ============================== -->
+<h2>3 · Forces</h2>
+<div class="tbl"><table>
+<thead><tr><th>#</th><th>Quantity</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td>5</td><td>Axle F<sub>y</sub> (force and yaw moment balance)</td><td><span class="mono">a_y,tire = v_x·r + dv_y/dt + g·cosθ·sinφ</span> (3 Hz signals); <span class="mono">Fy_f,veh = (m·l_r·a_y + I_z·ṙ)/L</span>, <span class="mono">Fy_r = (m·l_f·a_y − I_z·ṙ)/L</span>, front into its tire frame <span class="mono">Fy_f = (Fy_f,veh − Fx_f·sinδ)/cosδ</span>; I<sub>z</sub> = 1000 kg m² (placeholder)</td><td class="mono">vehicle_model.m:269, 475–478</td></tr>
+<tr><td>5</td><td>F<sub>x</sub> total (IMU)</td><td><span class="mono">Fx_total = m·a_x + ½ρ·CdA·v_x|v_x| + m·g·sinθ</span>; check against the wheels <span class="mono">Fx_f·cosδ − Fy_f·sinδ + Fx_r</span></td><td class="mono">:481–485</td></tr>
+<tr><td>6</td><td>F<sub>x</sub> per tire (wheel dynamics)</td><td><span class="mono">Fx_i = (T_d,i − T_b,i − I_w·ω̇_i)/R</span>; <span class="mono">T_b = P·4486 mm²·0.444·0.134 m/1000</span>; rear <span class="mono">T_d = G·T_engine(rpm, throttle)·η</span> split ½ / ½ (open diff), minus the engine inertia term; I<sub>w</sub> = thick ring + 0.25 kg m²; a locked wheel is capped at μ<sub>x</sub>·F<sub>z</sub></td><td class="mono">:415–461</td></tr>
+<tr><td>–</td><td>F<sub>x</sub> IMU split (comparison)</td><td>Fx_total split per tire: drive all rear, braking by the caliper pressure bias (0.53 below 75 kPa) with engine braking rear, 50 / 50 left / right</td><td class="mono">:487–513</td></tr>
+</tbody></table></div>
+
+<!-- ============================== 4. BICYCLE OBSERVER ============================== -->
+<h2>4 · Bicycle v<sub>y</sub> observer (MPC brush at the observed axle load)</h2>
+<p class="prose">The MPC brush tire inverts the axle force at the observed axle load into an axle slip. Kinematics turn the two slips into a v<sub>y</sub>, the IMU integrates v<sub>y</sub> between corrections. The localization v<sub>y</sub> is not an input. Full trust: the tire model v<sub>y</sub> is the mean of the two axles.</p>
+<figure>
+<div class="fig">
+<svg viewBox="0 0 1330 560" role="img" aria-label="Bicycle vy observer (full trust): axle Fy and axle load go through the MPC brush inverse to get axle slips, which kinematics turn into a front and a rear vy. Their mean is the tire-model vy. The IMU predicts vy each sample, the prediction is pulled toward the tire-model vy with time constant 0.2 s, and the result gives the axle slips.">
+<defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+
+<!-- inputs row 1 -->
+<g class="b"><rect x="16" y="73" width="180" height="34" rx="17"/><text class="fm" x="106" y="94" text-anchor="middle">axle Fy (force balance)</text></g>
+<g class="b"><rect x="16" y="153" width="180" height="34" rx="17"/><text class="fm" x="106" y="174" text-anchor="middle">Fz ×4 (Fig. 1b)</text></g>
+<path class="w" d="M196,90 H406" marker-end="url(#a3)"/><text class="lb" x="301" y="82" text-anchor="middle">Fy_f, Fy_r</text>
+<path class="w" d="M196,170 H236" marker-end="url(#a3)"/>
+<g class="b"><rect x="236" y="146" width="130" height="48" rx="4"/>
+  <text class="fm" x="301" y="166" text-anchor="middle">max(Fz, 0)</text>
+  <text class="fm" x="301" y="184" text-anchor="middle">sum per axle</text></g>
+<path class="w" d="M366,170 H406" marker-end="url(#a3)"/><text class="lb" x="386" y="162" text-anchor="middle">Fz_ax</text>
+
+<!-- 1 brush inverse -->
+<g class="b tm"><rect x="406" y="50" width="220" height="160" rx="4"/>
+  <text class="ti" x="516" y="76" text-anchor="middle">Brush inverse, per axle</text>
+  <text class="fm" x="420" y="102">closed-form cubic (MPC)</text>
+  <text class="fm" x="420" y="122">μ = 1.6</text>
+  <text class="fm" x="420" y="142">Cα = 174k / 290k N/rad</text>
+  <text class="fm" x="420" y="162">Fz = Fz_ax (min 100 N)</text>
+  <text class="sm" x="420" y="186">closed form, = controller cubic</text></g>
+<g class="bdg"><circle cx="420" cy="64" r="9"/><text x="420" y="67.5" text-anchor="middle">1</text></g>
+
+<!-- 3 kinematic vy -->
+<path class="w" d="M626,130 H686" marker-end="url(#a3)"/><text class="lb" x="656" y="122" text-anchor="middle">α_f, α_r</text>
+<g class="b sen"><rect x="766" y="4" width="100" height="26" rx="13"/><text class="fm" x="816" y="21" text-anchor="middle">δ, vx, r</text></g>
+<path class="w" d="M816,30 V50" marker-end="url(#a3)"/>
+<g class="b"><rect x="686" y="50" width="260" height="160" rx="4"/>
+  <text class="ti" x="816" y="76" text-anchor="middle">vy from each axle</text>
+  <text class="fm" x="700" y="110">vy_F = vx·tan(δ − α_f) − lf·r</text>
+  <text class="fm" x="700" y="138">vy_R = −vx·tan(α_r) + lr·r</text>
+  <text class="sm" x="700" y="168">lf = 1.724 m, lr = 1.248 m</text>
+  <text class="sm" x="700" y="186">(URDF base_link = CG)</text></g>
+<g class="bdg"><circle cx="700" cy="64" r="9"/><text x="700" y="67.5" text-anchor="middle">2</text></g>
+
+<!-- 4 blend -->
+<path class="w" d="M946,130 H1016" marker-end="url(#a3)"/><text class="lb" x="981" y="122" text-anchor="middle">vy_F, vy_R</text>
+<g class="b"><rect x="1016" y="50" width="180" height="160" rx="4"/>
+  <text class="ti" x="1106" y="76" text-anchor="middle">Blend</text>
+  <text class="fm" x="1030" y="110">vy_T = (vy_F + vy_R)/2</text>
+  <text class="fm" x="1030" y="136">w_T = 1</text>
+  <text class="sm" x="1030" y="168">full trust in the tire</text>
+  <text class="sm" x="1030" y="184">model, the IMU only fills</text>
+  <text class="sm" x="1030" y="200">in above ~0.8 Hz</text></g>
+<g class="bdg"><circle cx="1030" cy="64" r="9"/><text x="1030" y="67.5" text-anchor="middle">3</text></g>
+<path class="w" d="M1196,130 H1240 V372 H860 V400" marker-end="url(#a3)"/><text class="lb" x="1248" y="250">vy_T, w_T</text>
+
+<!-- row 2: observer loop -->
+<g class="b sen"><rect x="16" y="418" width="160" height="34" rx="17"/><text class="fm" x="96" y="439" text-anchor="middle">IMU ay (3 Hz)</text></g>
+<path class="w" d="M176,435 H226" marker-end="url(#a3)"/><text class="lb" x="201" y="427" text-anchor="middle">ay</text>
+<g class="b flt"><rect x="226" y="400" width="260" height="70" rx="4"/>
+  <text class="ti" x="356" y="422" text-anchor="middle">IMU predict</text>
+  <text class="fm" x="356" y="444" text-anchor="middle">Δvy = (ay − b − vx·r)·Ts</text>
+  <text class="sm" x="356" y="462" text-anchor="middle">Ts = 0.01 s</text></g>
+<g class="bdg"><circle cx="240" cy="414" r="9"/><text x="240" y="417.5" text-anchor="middle">4</text></g>
+<g class="b sen"><rect x="286" y="500" width="140" height="28" rx="14"/><text class="fm" x="356" y="518" text-anchor="middle">vx, r, bias b</text></g>
+<path class="w" d="M356,500 V470" marker-end="url(#a3)"/>
+
+<path class="w" d="M486,435 H564" marker-end="url(#a3)"/><text class="lb" x="525" y="427" text-anchor="middle">Δvy</text>
+<g class="b"><circle class="node" cx="580" cy="435" r="16"/></g>
+<text class="sg" x="580" y="440" text-anchor="middle">Σ</text>
+<text class="sg" x="552" y="425">+</text>
+<text class="sg" x="590" y="472">+</text>
+<g class="b flt"><rect x="545" y="500" width="70" height="40" rx="4"/><text class="ti" x="580" y="525" text-anchor="middle">z⁻¹</text></g>
+<path class="w" d="M580,500 V451" marker-end="url(#a3)"/><text class="lb" x="572" y="486" text-anchor="end">vy(k−1)</text>
+
+<path class="w" d="M596,435 H700" marker-end="url(#a3)"/><text class="lb" x="648" y="427" text-anchor="middle">vy⁻</text>
+<g class="b flt"><rect x="700" y="400" width="300" height="70" rx="4"/>
+  <text class="ti" x="850" y="422" text-anchor="middle">Correct toward the tire model</text>
+  <text class="fm" x="850" y="444" text-anchor="middle">vy = vy⁻ + (Ts/τ)·w_T·(vy_T − vy⁻)</text>
+  <text class="sm" x="850" y="462" text-anchor="middle">τ = 0.2 s · vy = 0 while vx ≤ 10 m/s</text></g>
+<g class="bdg"><circle cx="714" cy="414" r="9"/><text x="714" y="417.5" text-anchor="middle">5</text></g>
+
+<path class="w" d="M1000,435 H1090" marker-end="url(#a3)"/><text class="lb" x="1065" y="427" text-anchor="middle">vy(k)</text>
+<circle class="dot" cx="1040" cy="435" r="3.5"/>
+<path class="w" d="M1040,435 V520 H615" marker-end="url(#a3)"/>
+
+<!-- 7 slip -->
+<g class="b out"><rect x="1090" y="400" width="222" height="70" rx="4"/>
+  <text class="ti" x="1201" y="420" text-anchor="middle">Axle slip</text>
+  <text class="fm" x="1102" y="442">α_f = δ − atan((vy+lf·r)/vx)</text>
+  <text class="fm" x="1102" y="460">α_r = −atan((vy − lr·r)/vx)</text></g>
+<g class="bdg"><circle cx="1104" cy="414" r="9"/><text x="1104" y="417.5" text-anchor="middle">6</text></g>
+<g class="b sen"><rect x="1190" y="500" width="100" height="28" rx="14"/><text class="fm" x="1240" y="518" text-anchor="middle">δ, vx, r</text></g>
+<path class="w" d="M1240,500 V470" marker-end="url(#a3)"/>
+<path class="w" d="M1130,470 V544" marker-end="url(#a3)"/><text class="lb" x="1138" y="540">α_f, α_r, α_i^B → Fig. 3</text>
+</svg>
+</div>
+<figcaption>Fig. 2. A discrete complementary filter at full trust: above about 1/(2π·0.2 s) ≈ 0.8 Hz v<sub>y</sub> follows the IMU integration, below it the mean of the two axles' brush inverse. The axle slips feed the bicycle k<sub>us</sub>; the same v<sub>y</sub> through the dual track kinematics gives α<sub>i</sub><sup>B</sup>, the slip that corrects the per tire F<sub>y</sub> split in Fig. 3.</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>#</th><th>Block</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td>–</td><td>Brush tire</td><td><span class="mono">|F_y| = μF_z·(1 − (1 − x)³)</span>, <span class="mono">x = |tanα|/t_th</span>, <span class="mono">t_th = 3μF_z/Cα</span>, μF<sub>z</sub> past t<sub>th</sub>; μ 1.6, Cα 174k / 290k N/rad per axle (Cα/2 per tire), F<sub>z</sub> ≥ 100 N. This is the controller's <span class="mono">brush_tire_force</span> written out.</td><td class="mono">vehicle_model.m:976–1001</td></tr>
+<tr><td>1</td><td>Brush inverse</td><td>closed form <span class="mono">α = atan(t_th·(1 − (1 − u)^(1/3)))</span>, <span class="mono">u = |F_y|/(μF_z)</span>, α = atan(t<sub>th</sub>) for u ≥ 1; identical to the controller's <span class="mono">inverse_brush_tire_slip</span> cubic (checked to 1e-13 rad on 400 000 samples). Conditioning <span class="mono">c = (1 − u)^(2/3)</span>, 0 at saturation.</td><td class="mono">:536, 1003</td></tr>
+<tr><td>2</td><td>v<sub>y</sub> from each axle</td><td><span class="mono">vy_F = v_x·tan(δ − α_f) − l_f·r</span>, <span class="mono">vy_R = −v_x·tan(α_r) + l_r·r</span></td><td class="mono">:537</td></tr>
+<tr><td>3</td><td>Blend</td><td><span class="mono">vy_T = (vy_F + vy_R)/2</span>, gain 1</td><td class="mono">:537–538</td></tr>
+<tr><td>4</td><td>IMU predict</td><td><span class="mono">vy ← vy + (a_y − b − v_x·r)·T_s</span>, <span class="mono">b = median(a_y − v_x·r)</span> where |r| &lt; 0.02 rad/s and |a_y| &lt; 2 m/s²</td><td class="mono">:526–527, 958</td></tr>
+<tr><td>5</td><td>Correct</td><td><span class="mono">vy ← vy + (T_s/τ)·w_T·(vy_T − vy)</span> on the predicted value, τ 0.2 s; vy = 0 while v<sub>x</sub> ≤ 10 m/s or an input is missing</td><td class="mono">:958–973</td></tr>
+<tr><td>6</td><td>Slips</td><td><span class="mono">α_f = δ − atan((vy + l_f·r)/v_x)</span>, <span class="mono">α_r = −atan((vy − l_r·r)/v_x)</span>; per tire <span class="mono">α_i^B</span> = tireKin with this v<sub>y</sub> and δ<sub>i</sub></td><td class="mono">:539–544</td></tr>
+</tbody></table></div>
+
+<!-- ============================== 5. TIRE FY, DUAL TRACK, KUS ============================== -->
+<h2>5 · Per tire F<sub>y</sub>, dual track v<sub>y</sub> observer and k<sub>us</sub></h2>
+<p class="prose">The axle force is split per tire twice: by normal load, and by normal load corrected with each tire's brush at its bicycle observer slip (Jung &amp; Choi). The corrected split is the per tire F<sub>y</sub> output and the input of the dual track observer. The understeer gradient uses the controller's formula with a secant axle stiffness; the right column shows where the bicycle version differs.</p>
+<figure>
+<div class="fig">
+<svg viewBox="0 0 1200 1138" role="img" aria-label="Dual track chain: the axle Fy is split by normal load and corrected with the brush at the bicycle observer slip, each tire runs a brush inverse, gets a weight and a v_y estimate, the weighted v_y feeds the IMU observer, the observed v_y gives each tire slip, each tire brush force, axle stiffness and the understeer gradient.">
+<defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<g class="b sig"><rect x="158" y="12" width="168" height="30" rx="15"/></g>
+<text class="fm" x="242" y="31" text-anchor="middle">F_y axle (force bal.)</text>
+<g class="b sig"><rect x="338" y="12" width="150" height="30" rx="15"/></g>
+<text class="fm" x="413" y="31" text-anchor="middle">F_z,i observed</text>
+<g class="b sig"><rect x="500" y="12" width="150" height="30" rx="15"/></g>
+<text class="fm" x="575" y="31" text-anchor="middle">α_i^B (Fig. 2)</text>
+<g class="b sen"><rect x="662" y="12" width="136" height="30" rx="15"/></g>
+<text class="fm" x="730" y="31" text-anchor="middle">δ_i, v_x, r</text>
+<g class="b sen"><rect x="810" y="12" width="132" height="30" rx="15"/></g>
+<text class="fm" x="876" y="31" text-anchor="middle">IMU a_y, b</text>
+<text class="sm" x="730" y="56" text-anchor="middle">used in 4, 6, 7</text>
+<text class="sm" x="876" y="56" text-anchor="middle">used in 6</text>
+<path class="w" d="M242,42 L242,78" marker-end="url(#a4)"/>
+<path class="w" d="M413,42 L413,78" marker-end="url(#a4)"/>
+<path class="w" d="M575,42 L575,78" marker-end="url(#a4)"/>
+<g class="b tm"><rect x="158" y="78" width="784" height="84" rx="4"/></g>
+<text class="ti" x="550" y="97" text-anchor="middle">Split each axle F_y by normal load, correct with the brush at the bicycle observer slip</text>
+<text class="fm" x="550" y="120.333" text-anchor="middle">F⁰_i = brush(α_i^B, F_z,i, μ 1.6, Cα/2)</text>
+<text class="fm" x="550" y="139.667" text-anchor="middle">F_y,i = F⁰_i + (F_y,axle − F⁰_L − F⁰_R) · P_i / (P_L + P_R),   P_i = (200 N + 0.2 |F⁰_i|)²</text>
+<text class="sm" x="550" y="156.667" text-anchor="middle">below v_x 10 m/s (no observer slip): the normal load split F_y,axle · F_z,i / (F_z,L + F_z,R)</text>
+<g class="bdg"><circle cx="170" cy="91" r="9"/><text x="170" y="94.5" text-anchor="middle">1</text></g>
+<path class="w" d="M250,162 L250,200" marker-end="url(#a4)"/>
+<text class="lb" x="258" y="185">F_y,i</text>
+<path class="w" d="M450,162 L450,200" marker-end="url(#a4)"/>
+<path class="w" d="M650,162 L650,200" marker-end="url(#a4)"/>
+<path class="w" d="M850,162 L850,200" marker-end="url(#a4)"/>
+<g class="b tm"><rect x="158" y="200" width="184" height="64" rx="4"/></g>
+<text class="ti" x="250" y="219" text-anchor="middle">FL: brush inverse</text>
+<text class="fm" x="250" y="242" text-anchor="middle">Cα/2 = 87k N/rad</text>
+<text class="sm" x="250" y="259" text-anchor="middle">μ 1.6, F_z = F_z,FL</text>
+<g class="bdg"><circle cx="170" cy="213" r="9"/><text x="170" y="216.5" text-anchor="middle">2</text></g>
+<g class="b tm"><rect x="358" y="200" width="184" height="64" rx="4"/></g>
+<text class="ti" x="450" y="219" text-anchor="middle">FR: brush inverse</text>
+<text class="fm" x="450" y="242" text-anchor="middle">Cα/2 = 87k N/rad</text>
+<text class="sm" x="450" y="259" text-anchor="middle">μ 1.6, F_z = F_z,FR</text>
+<g class="b tm"><rect x="558" y="200" width="184" height="64" rx="4"/></g>
+<text class="ti" x="650" y="219" text-anchor="middle">RL: brush inverse</text>
+<text class="fm" x="650" y="242" text-anchor="middle">Cα/2 = 145k N/rad</text>
+<text class="sm" x="650" y="259" text-anchor="middle">μ 1.6, F_z = F_z,RL</text>
+<g class="b tm"><rect x="758" y="200" width="184" height="64" rx="4"/></g>
+<text class="ti" x="850" y="219" text-anchor="middle">RR: brush inverse</text>
+<text class="fm" x="850" y="242" text-anchor="middle">Cα/2 = 145k N/rad</text>
+<text class="sm" x="850" y="259" text-anchor="middle">μ 1.6, F_z = F_z,RR</text>
+<path class="w" d="M250,264 L250,300" marker-end="url(#a4)"/>
+<text class="lb" x="258" y="286">α_i</text>
+<path class="w" d="M450,264 L450,300" marker-end="url(#a4)"/>
+<path class="w" d="M650,264 L650,300" marker-end="url(#a4)"/>
+<path class="w" d="M850,264 L850,300" marker-end="url(#a4)"/>
+<g class="b calc"><rect x="158" y="300" width="184" height="82" rx="4"/></g>
+<text class="ti" x="250" y="319" text-anchor="middle">FL: weight</text>
+<text class="fm" x="250" y="341.667" text-anchor="middle">c = (1−|tanα_i|/t_th)²</text>
+<text class="fm" x="250" y="360.333" text-anchor="middle">w_i = c² · F_z,i/F_z,ax</text>
+<text class="sm" x="250" y="377.333" text-anchor="middle">t_th = 3μF_z,i/(Cα/2)</text>
+<g class="bdg"><circle cx="170" cy="313" r="9"/><text x="170" y="316.5" text-anchor="middle">3</text></g>
+<g class="b calc"><rect x="358" y="300" width="184" height="82" rx="4"/></g>
+<text class="ti" x="450" y="319" text-anchor="middle">FR: weight</text>
+<text class="fm" x="450" y="341.667" text-anchor="middle">c = (1−|tanα_i|/t_th)²</text>
+<text class="fm" x="450" y="360.333" text-anchor="middle">w_i = c² · F_z,i/F_z,ax</text>
+<text class="sm" x="450" y="377.333" text-anchor="middle">c = 0 if |F_y,i| ≥ μF_z,i</text>
+<g class="b calc"><rect x="558" y="300" width="184" height="82" rx="4"/></g>
+<text class="ti" x="650" y="319" text-anchor="middle">RL: weight</text>
+<text class="fm" x="650" y="341.667" text-anchor="middle">c = (1−|tanα_i|/t_th)²</text>
+<text class="fm" x="650" y="360.333" text-anchor="middle">w_i = c² · F_z,i/F_z,ax</text>
+<text class="sm" x="650" y="377.333" text-anchor="middle">lifted tire → w ≈ 0</text>
+<g class="b calc"><rect x="758" y="300" width="184" height="82" rx="4"/></g>
+<text class="ti" x="850" y="319" text-anchor="middle">RR: weight</text>
+<text class="fm" x="850" y="341.667" text-anchor="middle">c = (1−|tanα_i|/t_th)²</text>
+<text class="fm" x="850" y="360.333" text-anchor="middle">w_i = c² · F_z,i/F_z,ax</text>
+<text class="sm" x="850" y="377.333" text-anchor="middle">saturated tire → w ≈ 0</text>
+<path class="w" d="M250,382 L250,418" marker-end="url(#a4)"/>
+<text class="lb" x="258" y="404">α_i, w_i</text>
+<path class="w" d="M450,382 L450,418" marker-end="url(#a4)"/>
+<path class="w" d="M650,382 L650,418" marker-end="url(#a4)"/>
+<path class="w" d="M850,382 L850,418" marker-end="url(#a4)"/>
+<g class="b calc"><rect x="158" y="418" width="184" height="66" rx="4"/></g>
+<text class="ti" x="250" y="437" text-anchor="middle">FL: vy from tire</text>
+<text class="fm" x="250" y="461" text-anchor="middle">Vx_i·tan(δ_i−α_i) − lf·r</text>
+<text class="sm" x="250" y="478" text-anchor="middle">Vx_i = vx − r·t_f/2</text>
+<g class="bdg"><circle cx="170" cy="431" r="9"/><text x="170" y="434.5" text-anchor="middle">4</text></g>
+<g class="b calc"><rect x="358" y="418" width="184" height="66" rx="4"/></g>
+<text class="ti" x="450" y="437" text-anchor="middle">FR: vy from tire</text>
+<text class="fm" x="450" y="461" text-anchor="middle">Vx_i·tan(δ_i−α_i) − lf·r</text>
+<text class="sm" x="450" y="478" text-anchor="middle">Vx_i = vx + r·t_f/2</text>
+<g class="b calc"><rect x="558" y="418" width="184" height="66" rx="4"/></g>
+<text class="ti" x="650" y="437" text-anchor="middle">RL: vy from tire</text>
+<text class="fm" x="650" y="461" text-anchor="middle">Vx_i·tan(δ_i−α_i) + lr·r</text>
+<text class="sm" x="650" y="478" text-anchor="middle">Vx_i = vx − r·t_r/2</text>
+<g class="b calc"><rect x="758" y="418" width="184" height="66" rx="4"/></g>
+<text class="ti" x="850" y="437" text-anchor="middle">RR: vy from tire</text>
+<text class="fm" x="850" y="461" text-anchor="middle">Vx_i·tan(δ_i−α_i) + lr·r</text>
+<text class="sm" x="850" y="478" text-anchor="middle">Vx_i = vx + r·t_r/2</text>
+<path class="w" d="M250,484 L250,520" marker-end="url(#a4)"/>
+<text class="lb" x="258" y="506">vy_i, w_i</text>
+<path class="w" d="M450,484 L450,520" marker-end="url(#a4)"/>
+<path class="w" d="M650,484 L650,520" marker-end="url(#a4)"/>
+<path class="w" d="M850,484 L850,520" marker-end="url(#a4)"/>
+<g class="b calc"><rect x="158" y="520" width="784" height="60" rx="4"/></g>
+<text class="ti" x="550" y="539" text-anchor="middle">Weighted blend of the four tires</text>
+<text class="fm" x="550" y="563" text-anchor="middle">vy_T = Σ w_i·vy_i / Σ w_i,   w_T = max(w_FL + w_FR, w_RL + w_RR)</text>
+<g class="bdg"><circle cx="170" cy="533" r="9"/><text x="170" y="536.5" text-anchor="middle">5</text></g>
+<path class="w" d="M550,580 L550,616" marker-end="url(#a4)"/>
+<text class="lb" x="558" y="602">vy_T, w_T</text>
+<g class="b flt"><rect x="158" y="616" width="784" height="80" rx="4"/></g>
+<text class="ti" x="550" y="635" text-anchor="middle">IMU observer loop (Fig. 2, blocks 4 and 5)</text>
+<text class="fm" x="550" y="659" text-anchor="middle">predict: vy⁻ = vy(k−1) + (a_y − b − v_x·r)·Ts</text>
+<text class="fm" x="550" y="679" text-anchor="middle">correct: vy = vy⁻ + (Ts/τ)·w_T·(vy_T − vy⁻),   τ = 0.2 s,   vy = 0 while v_x ≤ 10 m/s</text>
+<g class="bdg"><circle cx="170" cy="629" r="9"/><text x="170" y="632.5" text-anchor="middle">6</text></g>
+<path class="w" d="M250,696 V732" marker-end="url(#a4)"/>
+<text class="lb" x="258" y="718">vy</text>
+<path class="w" d="M450,696 L450,732" marker-end="url(#a4)"/>
+<path class="w" d="M650,696 L650,732" marker-end="url(#a4)"/>
+<path class="w" d="M850,696 L850,732" marker-end="url(#a4)"/>
+<g class="b out"><rect x="158" y="732" width="184" height="70" rx="4"/></g>
+<text class="ti" x="250" y="751" text-anchor="middle">FL: slip α_i</text>
+<text class="fm" x="250" y="775" text-anchor="middle">−atan2(Vy_t, Vx_t)</text>
+<text class="sm" x="250" y="792" text-anchor="middle">corner velocity, δ_i frame</text>
+<g class="bdg"><circle cx="170" cy="745" r="9"/><text x="170" y="748.5" text-anchor="middle">7</text></g>
+<g class="b out"><rect x="358" y="732" width="184" height="70" rx="4"/></g>
+<text class="ti" x="450" y="751" text-anchor="middle">FR: slip α_i</text>
+<text class="fm" x="450" y="775" text-anchor="middle">−atan2(Vy_t, Vx_t)</text>
+<text class="sm" x="450" y="792" text-anchor="middle">corner velocity, δ_i frame</text>
+<g class="b out"><rect x="558" y="732" width="184" height="70" rx="4"/></g>
+<text class="ti" x="650" y="751" text-anchor="middle">RL: slip α_i</text>
+<text class="fm" x="650" y="775" text-anchor="middle">−atan2(Vy_t, Vx_t)</text>
+<text class="sm" x="650" y="792" text-anchor="middle">corner velocity, δ_i frame</text>
+<g class="b out"><rect x="758" y="732" width="184" height="70" rx="4"/></g>
+<text class="ti" x="850" y="751" text-anchor="middle">RR: slip α_i</text>
+<text class="fm" x="850" y="775" text-anchor="middle">−atan2(Vy_t, Vx_t)</text>
+<text class="sm" x="850" y="792" text-anchor="middle">corner velocity, δ_i frame</text>
+<path class="w" d="M250,802 L250,838" marker-end="url(#a4)"/>
+<text class="lb" x="258" y="824">α_i</text>
+<path class="w" d="M450,802 L450,838" marker-end="url(#a4)"/>
+<path class="w" d="M650,802 L650,838" marker-end="url(#a4)"/>
+<path class="w" d="M850,802 L850,838" marker-end="url(#a4)"/>
+<g class="b tm"><rect x="158" y="838" width="184" height="64" rx="4"/></g>
+<text class="ti" x="250" y="857" text-anchor="middle">FL: tire force</text>
+<text class="fm" x="250" y="880" text-anchor="middle">F_i = |brush(|α_i|)|</text>
+<text class="sm" x="250" y="897" text-anchor="middle">μ 1.6, Cα/2, F_z,FL</text>
+<g class="bdg"><circle cx="170" cy="851" r="9"/><text x="170" y="854.5" text-anchor="middle">8</text></g>
+<g class="b tm"><rect x="358" y="838" width="184" height="64" rx="4"/></g>
+<text class="ti" x="450" y="857" text-anchor="middle">FR: tire force</text>
+<text class="fm" x="450" y="880" text-anchor="middle">F_i = |brush(|α_i|)|</text>
+<text class="sm" x="450" y="897" text-anchor="middle">μ 1.6, Cα/2, F_z,FR</text>
+<g class="b tm"><rect x="558" y="838" width="184" height="64" rx="4"/></g>
+<text class="ti" x="650" y="857" text-anchor="middle">RL: tire force</text>
+<text class="fm" x="650" y="880" text-anchor="middle">F_i = |brush(|α_i|)|</text>
+<text class="sm" x="650" y="897" text-anchor="middle">μ 1.6, Cα/2, F_z,RL</text>
+<g class="b tm"><rect x="758" y="838" width="184" height="64" rx="4"/></g>
+<text class="ti" x="850" y="857" text-anchor="middle">RR: tire force</text>
+<text class="fm" x="850" y="880" text-anchor="middle">F_i = |brush(|α_i|)|</text>
+<text class="sm" x="850" y="897" text-anchor="middle">μ 1.6, Cα/2, F_z,RR</text>
+<path class="w" d="M250,902 L250,938" marker-end="url(#a4)"/>
+<text class="lb" x="258" y="924">F_i, α_i</text>
+<path class="w" d="M450,902 L450,938" marker-end="url(#a4)"/>
+<path class="w" d="M650,902 L650,938" marker-end="url(#a4)"/>
+<path class="w" d="M850,902 L850,938" marker-end="url(#a4)"/>
+<g class="b calc"><rect x="158" y="938" width="384" height="80" rx="4"/></g>
+<text class="ti" x="350" y="957" text-anchor="middle">Front axle stiffness</text>
+<text class="fm" x="350" y="981" text-anchor="middle">α_f = mean(α_FL, α_FR)</text>
+<text class="fm" x="350" y="1001" text-anchor="middle">C_f = (F_FL + F_FR) / tan(max(|α_f|, 0.1°))</text>
+<g class="bdg"><circle cx="170" cy="951" r="9"/><text x="170" y="954.5" text-anchor="middle">9</text></g>
+<g class="b calc"><rect x="558" y="938" width="384" height="80" rx="4"/></g>
+<text class="ti" x="750" y="957" text-anchor="middle">Rear axle stiffness</text>
+<text class="fm" x="750" y="981" text-anchor="middle">α_r = mean(α_RL, α_RR)</text>
+<text class="fm" x="750" y="1001" text-anchor="middle">C_r = (F_RL + F_RR) / tan(max(|α_r|, 0.1°))</text>
+<path class="w" d="M350,1018 L350,1054" marker-end="url(#a4)"/>
+<text class="lb" x="358" y="1040">C_f</text>
+<path class="w" d="M750,1018 L750,1054" marker-end="url(#a4)"/>
+<text class="lb" x="758" y="1040">C_r</text>
+<g class="b out"><rect x="158" y="1054" width="784" height="70" rx="4"/></g>
+<text class="ti" x="550" y="1073" text-anchor="middle">Understeer gradient (the MPC formula)</text>
+<text class="fm" x="550" y="1097" text-anchor="middle">k_us = m·(lr·C_r − lf·C_f) / (L·C_f·C_r)</text>
+<text class="sm" x="550" y="1114" text-anchor="middle">m 815 kg, lf 1.724 m, lr 1.248 m, L 2.972 m · NaN where |v_x·r| ≤ 4 m/s² or v_x ≤ 10 m/s</text>
+<g class="bdg"><circle cx="170" cy="1067" r="10"/><text x="170" y="1070.5" text-anchor="middle">10</text></g>
+<path class="w" d="M942,1089 L990,1089" marker-end="url(#a4)"/>
+<path class="brk" d="M146,78 V696"/>
+<text class="stage" x="16" y="381">Dual-track</text><text class="stage" x="16" y="399">vy observer</text>
+<path class="brk" d="M146,732 V902"/>
+<text class="stage" x="16" y="811">Per-tire</text><text class="stage" x="16" y="829">slip, force</text>
+<path class="brk" d="M146,938 V1124"/>
+<text class="stage" x="16" y="1025">Axle stiffness</text><text class="stage" x="16" y="1043">and k_us</text>
+<text class="ti" x="1090" y="190" text-anchor="middle">Bicycle version (Fig. 2)</text>
+<g class="b cmp"><rect x="990" y="200" width="200" height="284" rx="4"/></g>
+<text class="sm" x="1002" y="224">Steps 1–4 replaced by:</text>
+<text class="fm" x="1002" y="242">one brush inverse per</text>
+<text class="fm" x="1002" y="260">axle at F_z,ax, full Cα</text>
+<text class="fm" x="1002" y="296">vy_F, vy_R from axle</text>
+<text class="fm" x="1002" y="314">kinematics, mean δ</text>
+<text class="fm" x="1002" y="350">no weights: vy_T = mean,</text>
+<text class="fm" x="1002" y="368">w_T = 1</text>
+<text class="sm" x="1002" y="404">Steps 5 and 6 are the</text>
+<text class="sm" x="1002" y="422">same in both.</text>
+<g class="b cmp"><rect x="990" y="732" width="200" height="286" rx="4"/></g>
+<text class="sm" x="1002" y="756">Steps 7–9 replaced by:</text>
+<text class="fm" x="1002" y="774">α_f, α_r straight from</text>
+<text class="fm" x="1002" y="792">the bicycle observer</text>
+<text class="fm" x="1002" y="828">C_axle =</text>
+<text class="fm" x="1002" y="846">|brush(α_axle, F_z,ax,</text>
+<text class="fm" x="1002" y="864">μ 1.6, Cα)| / tan α_axle</text>
+<text class="sm" x="1002" y="900">One axle tire at the axle</text>
+<text class="sm" x="1002" y="918">load: no left / right load</text>
+<text class="sm" x="1002" y="936">transfer penalty.</text>
+<text class="sm" x="1002" y="972">Step 10 is the same.</text>
+<g class="b cmp"><rect x="990" y="1054" width="200" height="70" rx="4"/></g>
+<text class="sm" x="1002" y="1074">Compared with measured</text>
+<text class="fm" x="1002" y="1094">(α_f − α_r − offset)/a_y</text>
+<text class="sm" x="1002" y="1112">localization slips</text>
+</svg>
+</div>
+<figcaption>Fig. 3. The per tire F<sub>y</sub> and the dual track chain to k<sub>us</sub>. Front and rear lanes run the same steps with their own track width, road wheel angle δ<sub>i</sub> and Cα/2. The weight is c² with c already squared, so each tire counts as (1 − |tanα|/t<sub>th</sub>)<sup>4</sup> times its load share.</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>#</th><th>Step</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>F<sub>y</sub> split + correction</td><td>normal load: <span class="mono">Fy_i = Fy_axle·Fz_i/(Fz_L + Fz_R)</span> (0.5 if both 0); corrected: <span class="mono">F⁰_i = brush(α_i^B, Fz_i, μ, Cα/2)</span>, residual <span class="mono">r = Fy_axle − F⁰_L − F⁰_R</span>, <span class="mono">Fy_i = F⁰_i + r·P_i/(P_L + P_R)</span>, <span class="mono">P_i = (200 + 0.2|F⁰_i|)²</span> (axleCorrect). Where the observer is off: the normal load split.</td><td class="mono">vehicle_model.m:546–577, 934</td></tr>
+<tr><td>2</td><td>Brush inverse per tire</td><td>the same closed form with Cα/2 and the tire's own F<sub>z</sub></td><td class="mono">:593</td></tr>
+<tr><td>3</td><td>Weight</td><td><span class="mono">c_i = (1 − u_i)^(2/3)</span> = (1 − |tanα<sub>i</sub>|/t<sub>th</sub>)², <span class="mono">w_i = c_i² · Fz_i / Fz_axle</span></td><td class="mono">:595–596</td></tr>
+<tr><td>4</td><td>v<sub>y</sub> per tire</td><td><span class="mono">vy_i = Vx_c,i·tan(δ_i − α_i) − x_i·r</span>, x<sub>i</sub> = l<sub>f</sub> (front) or −l<sub>r</sub> (rear), the exact inverse of tireKin</td><td class="mono">:589–594</td></tr>
+<tr><td>5</td><td>Blend</td><td><span class="mono">vy_T = Σ w_i·vy_i / Σ w_i</span>, <span class="mono">w_T = max(w_FL + w_FR, w_RL + w_RR)</span></td><td class="mono">:598–599</td></tr>
+<tr><td>6</td><td>Observer</td><td>Fig. 2 blocks 4–5 with gain w<sub>T</sub>, τ 0.2 s</td><td class="mono">:600</td></tr>
+<tr><td>7</td><td>Slip per tire</td><td><span class="mono">α_i = −atan2(Vy_t, Vx_t)</span> from tireKin with the observed v<sub>y</sub> and δ<sub>i</sub>; axle slip = mean of the two tires (left minus right differs by 0.08° rms front, the mean equals the axle centre slip to 0.001°)</td><td class="mono">:601–604</td></tr>
+<tr><td>8–9</td><td>Axle stiffness</td><td>dual track <span class="mono">C = (|F_L| + |F_R|)/tan(max(|α_axle|, 0.1°))</span>, <span class="mono">F_i = brush(max(|α_i|, 0.1°), Fz_i, μ, Cα/2)</span>; bicycle <span class="mono">C = |brush(α_axle, Fz_axle, μ, Cα)|/tan α_axle</span> at the bicycle observer slip</td><td class="mono">:615–626</td></tr>
+<tr><td>10</td><td>k<sub>us</sub></td><td><span class="mono">k_us = m·(l_r·C_r − l_f·C_f)/(L·C_f·C_r)</span>, m 815 kg, l<sub>f</sub> 1.724 m, l<sub>r</sub> 1.248 m; only where v<sub>x</sub> &gt; 10 m/s and |v<sub>x</sub>·r| &gt; 4 m/s². Measured reference <span class="mono">(α_f − α_r − offset)/a_y</span> from the localization slips, offset = median on straights.</td><td class="mono">:627–631</td></tr>
+</tbody></table></div>
+<p class="note prose">2026-09-03 log, v<sub>x</sub> &gt; 10 m/s: v<sub>y</sub> rms against the localization 0.202 m/s (bicycle) and 0.172 m/s (dual track); per tire slip 0.30° rms on all four tires; k<sub>us</sub> median |error| against the measured 0.00021 (bicycle) and 0.00045 (dual track). The bicycle k<sub>us</sub> is the one to use; the dual track one still reads high (front load transfer).</p>
+<p class="note warn prose">One path to the localization stays: the axle F<sub>y</sub> uses <span class="mono">a_y,tire = v_x·r + dv_y/dt − g_y</span>, and dv<sub>y</sub>/dt is the derivative of the localization v<sub>y</sub>. The observers never use its level.</p>
+
+<!-- ============================== 6. OUTPUTS ============================== -->
+<h2>6 · Outputs of the package</h2>
+<div class="tbl"><table>
+<thead><tr><th>#</th><th>Output</th><th>Per</th><th>MATLAB variable</th><th>From</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Road wheel angle (rad)</td><td>tire, and the bicycle δ</td><td class="mono">delta_fl, delta_fr, delta</td><td>section 1</td></tr>
+<tr><td>2</td><td>Kinematic slip angle (rad), reference</td><td>tire, axle</td><td class="mono">alpha_fl ... alpha_rr, alpha_f, alpha_r</td><td>section 1</td></tr>
+<tr><td>3</td><td>Slip ratio κ, s<sub>x</sub>, s<sub>y</sub> (kinematic), locked flag</td><td>tire</td><td class="mono">kappa_*, sx_*, sy_*, locked_*</td><td>section 1</td></tr>
+<tr><td>4</td><td>Observed normal load (N), model load</td><td>tire, axle</td><td class="mono">Fz_dual_obs, Fz_bike_obs, Fz_dual_model</td><td>section 2</td></tr>
+<tr><td>5</td><td>F<sub>x</sub> (N), wheel dynamics; F<sub>x</sub> total (IMU)</td><td>tire, axle, vehicle</td><td class="mono">Fx_fl ... Fx_rr, Fxf, Fxr, Fx_total</td><td>section 3</td></tr>
+<tr><td>6</td><td>F<sub>y</sub> (N), force balance</td><td>axle</td><td class="mono">Fyf, Fyr</td><td>section 3</td></tr>
+<tr><td>7</td><td>F<sub>y</sub> (N), normal load split and corrected split</td><td>tire</td><td class="mono">Fy_fl ... Fy_rr, Fy_tm</td><td>section 5</td></tr>
+<tr><td>8</td><td>Observed v<sub>y</sub> (m/s)</td><td>vehicle (bicycle, dual track)</td><td class="mono">vy_bike_obs, vy_dual_obs</td><td>sections 4, 5</td></tr>
+<tr><td>9</td><td>Observed slip angle (rad)</td><td>axle (bicycle), tire (dual track)</td><td class="mono">alpha_f_obs, alpha_r_obs, alpha_obs</td><td>sections 4, 5</td></tr>
+<tr><td>10</td><td>Understeer gradient (rad/(m/s²))</td><td>vehicle (bicycle, dual track, measured)</td><td class="mono">k_us_bike, k_us_dual, k_us_meas</td><td>section 5</td></tr>
+</tbody></table></div>
+
+<!-- ============================== 7. BUILD PLAN ============================== -->
+<h2>7 · Plan: building the dual track model in on-vehicle <code>vehicle_model</code></h2>
+<p class="prose">Today the on-vehicle dual track node (<code>src/control/vehicle_model</code>, <code>dynamic_dualtrack_model</code>) publishes kinematic slip angles and slip ratios from the odom at 3 Hz with one front road wheel angle, and the bicycle node has an axle load model and observer. The plan below brings the node to exactly what <code>vehicle_model.m</code> does, one tested piece at a time, with the MATLAB script as the golden reference.</p>
+<div class="plan">
+<div class="phase"><span class="tag">Phase 1</span><h4>Golden data from MATLAB</h4>
+<ol>
+<li>Add an export to <code>vehicle_model.m</code>: inputs at 100 Hz exactly as the node receives them (odom v<sub>x</sub>, v<sub>y</sub>, r, quaternion, accel_filtered a<sub>x</sub>, a<sub>y</sub>, steering angle, wheel speeds, gages, brake pressures, rpm, throttle, gear) and every output of section 6, as CSV.</li>
+<li>Cut two short windows (a few laps of the 2026-09-03 log and one braking / lock-up window) for unit tests.</li>
+</ol></div>
+<div class="phase"><span class="tag">Phase 2</span><h4>Pure C++ blocks, no ROS, each with a unit test against the golden CSV</h4>
+<ol>
+<li><b>Filters:</b> a Tustin prewarped first order low pass to match <code>lpf</code> (the node's current <code>lowPassFilter</code> is the exponential form, slightly different); 3 Hz shared, 0.3 Hz load model inputs, 0.5 Hz gages and the model compare copy.</li>
+<li><b>Road wheel angles:</b> load the Ackermann table as a CSV parameter, linear interpolation, toe parameters; δ<sub>i</sub> for all four tires and the bicycle δ.</li>
+<li><b>Kinematics:</b> one <code>tire_kin(vx, vy, r, δ[4])</code> used for the reference slips, the slip ratios and both observers; replace the single steering angle in <code>calculate_slip_angles</code> and <code>slip_ratio_calc</code> with δ<sub>i</sub>.</li>
+<li><b>Load model:</b> the bicycle loads with <code>a_z = g·cosθ·cosφ − v_x·r·sinφ</code> (the C++ bicycle model has the bank term commented out), downforce, the dual track lateral transfer and the corner split.</li>
+<li><b>F<sub>z</sub> observer:</b> per tire, the model passed through the gage filter before the rate compare; c(k) = a·(c(k−1) + K·u). The existing <code>vehicle_model::Observer</code> computes c = (1−leak)·c + K·e, which matches with <span class="mono">leak = 1 − τ/(τ + dt) = 0.00125</span> and <span class="mono">K_c++ = K·τ/(τ + dt) = 1.0986</span> at τ 8 s, K 1.1, dt 0.01 s.</li>
+<li><b>Forces:</b> axle F<sub>y</sub> force and yaw moment balance with the front in its tire frame; F<sub>x</sub> total; F<sub>x</sub> per tire from the wheel dynamics (engine map CSV, gear and diff ratios and efficiencies, brake gain, inertias, locked cap).</li>
+<li><b>Brush:</b> forward, closed form inverse and conditioning as one small header shared with <code>fbl_mpc_controller</code> (the closed form equals its cubic).</li>
+<li><b>Bicycle v<sub>y</sub> observer</b>, <b>F<sub>y</sub> split + correction</b>, <b>dual track v<sub>y</sub> observer</b>, <b>k<sub>us</sub></b>, in that order, each tested on the golden CSV (tolerance: v<sub>y</sub> 1e-3 m/s, slips 1e-3 deg, k<sub>us</sub> 1e-6).</li>
+</ol></div>
+<div class="phase"><span class="tag">Phase 3</span><h4>Node, parameters, message</h4>
+<ol>
+<li>Subscriptions: <code>/odometry/global_filtered</code>, <code>/novatel_bottom/accel_filtered</code>, <code>steering_extended_report</code>, <code>wheel_speed_report</code>, <code>tire_report</code>, <code>brake_2_report</code>, <code>pt_report</code>; one 100 Hz update.</li>
+<li>Parameters from <code>vehicle_model.m</code>: l<sub>f</sub> 1.724 / l<sub>r</sub> 1.248 m (URDF base_link), tracks, m, h, I<sub>z</sub>, aero, roll centres and wheel rates, steering ratio and offset, Ackermann table, toe, brush μ and Cα, observer τ, K, gains and speed gates.</li>
+<li>Message: extend <code>DualTrackSlip</code> (or a new <code>DualTrackState</code>) with every output of section 6 and valid flags (observer running, tire unloaded, wheel locked).</li>
+</ol></div>
+<div class="phase"><span class="tag">Phase 4</span><h4>Validation</h4>
+<ol>
+<li>Bag replay of the 2026-09-03 log through the node, outputs against <code>vehicle_model.m</code> on the whole log.</li>
+<li>A second log (2025 comp) to check that nothing was tuned to one session.</li>
+<li>On the car in shadow mode: published, not used by the controller.</li>
+</ol></div>
+<div class="phase"><span class="tag">Phase 5</span><h4>Use in the MPC</h4>
+<ol>
+<li><code>fbl_mpc_controller</code>: take the bicycle k<sub>us</sub> (or the observed axle F<sub>z</sub> and slip into its own <code>effective_stiffness</code>) in place of the fixed load brush; replace the 0.0012 clamp with a hold or rate limit when |F|/μF<sub>z</sub> &gt; ~0.9.</li>
+</ol></div>
+<div class="phase"><span class="tag">Open items</span><h4>To settle on the car or in the data</h4>
+<ul>
+<li>Static toe: yaw_moment.m has −0.451° front and rear, set to 0 here until confirmed.</li>
+<li>Wheel speed calibration: the 2026 log has too few free rolling samples (289 &lt; 300), wheelCal = 1.</li>
+<li>I<sub>z</sub> (placeholder 1000 kg m²), CG height, front ARB rate.</li>
+<li>The dual track k<sub>us</sub> reads high against the measured one; the bicycle k<sub>us</sub> is the one for the MPC.</li>
+</ul></div>
+</div>
+
+</div>
