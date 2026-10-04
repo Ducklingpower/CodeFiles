@@ -89,6 +89,10 @@ svg text { fill: var(--fg); }
 .phase h4 { font-family: var(--display); font-size: 16px; margin: 0 0 6px; }
 .phase ol, .phase ul { margin: 6px 0 4px; padding-left: 22px; }
 .phase li { margin: 3px 0; }
+.b.grp rect { fill: color-mix(in srgb, var(--fg) 4%, var(--panel)); stroke: var(--muted); stroke-width: 1.2; }
+.halo { fill: none; stroke: var(--panel); stroke-width: 7; }
+pre.code { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; overflow-x: auto; max-width: 110ch; font-size: 12.5px; line-height: 1.45; }
+pre.code code { background: none; padding: 0; }
 .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 </style>
 
@@ -107,6 +111,344 @@ svg text { fill: var(--fg); }
   <span><i class="sw calc"></i>Algebra</span>
   <span><i class="sw out"></i>Output</span>
 </div>
+
+<!-- ============================== P. PACKAGE OVERVIEW ============================== -->
+<h2>The on-vehicle package at a glance</h2>
+<p class="prose">What feeds <code>src/control/vehicle_model</code> today, what it publishes, and the two models inside it. The rest of this page is the MATLAB reference these nodes are being brought up to (sections 0 to 6) and the plan to get there (section 7).</p>
+<figure>
+<div class="fig">
+<svg viewBox="0 0 1460 800" role="img" aria-label="On-vehicle vehicle_model package: six input topics feed the bicycle node and the dual track node, which publish six output topics; odom, steering and wheel speeds go to both nodes, accel, IMU and tire report to the bicycle node only.">
+<defs><marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<text class="stage" x="16" y="20">Input topics</text>
+<g class="b sen"><rect x="16" y="40" width="380" height="62" rx="6"/></g>
+<text class="fm" x="28" y="59">/odometry/global_filtered</text>
+<text class="sm" x="28" y="77">nav_msgs/Odometry</text>
+<text class="sm" x="28" y="93">twist vx, vy, wz, pitch rate; pose q (roll, pitch)</text>
+<g class="b sen"><rect x="16" y="116" width="380" height="62" rx="6"/></g>
+<text class="fm" x="28" y="135">/raptor_dbw_interface/steering_extended_report</text>
+<text class="sm" x="28" y="153">raptor_dbw_msgs/SteeringReportExtd</text>
+<text class="sm" x="28" y="169">primary_steering_angle_fbk (deg)</text>
+<g class="b sen"><rect x="16" y="192" width="380" height="62" rx="6"/></g>
+<text class="fm" x="28" y="211">/raptor_dbw_interface/wheel_speed_report</text>
+<text class="sm" x="28" y="229">raptor_dbw_msgs/WheelSpeedReport</text>
+<text class="sm" x="28" y="245">front_left ... rear_right (km/h)</text>
+<g class="b sen"><rect x="16" y="268" width="380" height="62" rx="6"/></g>
+<text class="fm" x="28" y="287">/novatel_bottom/accel_filtered</text>
+<text class="sm" x="28" y="305">geometry_msgs/AccelStamped</text>
+<text class="sm" x="28" y="321">accel.linear x, y (gravity removed)</text>
+<g class="b off"><rect x="16" y="344" width="380" height="62" rx="6"/></g>
+<text class="fm" x="28" y="363">/novatel_bottom/imu/data_raw</text>
+<text class="sm" x="28" y="381">sensor_msgs/Imu</text>
+<text class="sm" x="28" y="397">subscribed, not used in the model</text>
+<g class="b sen"><rect x="16" y="420" width="380" height="62" rx="6"/></g>
+<text class="fm" x="28" y="439">/raptor_dbw_interface/tire_report</text>
+<text class="sm" x="28" y="457">deep_orange_msgs/TireReport</text>
+<text class="sm" x="28" y="473">fl ... rr_wheel_load (strain gages)</text>
+<g class="b grp"><rect x="560" y="28" width="400" height="472" rx="10"/></g>
+<text class="ti" x="576" y="50">Bicycle model</text>
+<text class="sm" x="576" y="67">dynamic_bicycle_model · node Dynamic_bicycle_model_estimation</text>
+<text class="sm" x="946" y="50" text-anchor="end">100 Hz wall timer</text>
+<g class="b grp"><rect x="560" y="540" width="400" height="240" rx="10"/></g>
+<text class="ti" x="576" y="562">Dual track model</text>
+<text class="sm" x="576" y="579">dynamic_dualtrack_model · node Dynamic_dualtrack_model_estimation</text>
+<text class="sm" x="946" y="562" text-anchor="end">100 Hz wall timer</text>
+<g class="b calc"><rect x="580" y="82" width="360" height="60" rx="4"/></g>
+<text class="ti" x="760" y="101" text-anchor="middle">Slip angles, per axle</text>
+<text class="fm" x="760" y="125" text-anchor="middle">α_f = δ − atan2(vy + lf r, vx), α_r</text>
+<g class="b calc"><rect x="580" y="152" width="360" height="60" rx="4"/></g>
+<text class="ti" x="760" y="171" text-anchor="middle">Slip ratios, per axle</text>
+<text class="fm" x="760" y="195" text-anchor="middle">(mean Vw − Vx_axle) / max(|Vx|, 5)</text>
+<g class="b calc"><rect x="580" y="222" width="360" height="60" rx="4"/></g>
+<text class="ti" x="760" y="241" text-anchor="middle">Normal loads + F_z observer, per axle</text>
+<text class="fm" x="760" y="265" text-anchor="middle">m g cosθ, pitch transfer, aero; gage rate</text>
+<g class="b calc"><rect x="580" y="292" width="360" height="60" rx="4"/></g>
+<text class="ti" x="760" y="311" text-anchor="middle">F_y, per axle</text>
+<text class="fm" x="760" y="335" text-anchor="middle">(m a_y l / L) ± I_z ṙ / L</text>
+<g class="b calc"><rect x="580" y="362" width="360" height="60" rx="4"/></g>
+<text class="ti" x="760" y="381" text-anchor="middle">F_x, per axle</text>
+<text class="fm" x="760" y="405" text-anchor="middle">m a_x split by the F_z share</text>
+<g class="b flt"><rect x="580" y="432" width="360" height="60" rx="4"/></g>
+<text class="ti" x="760" y="451" text-anchor="middle">Low pass 1.3 Hz (exponential)</text>
+<text class="fm" x="760" y="475" text-anchor="middle">copy of every output → output_filtered</text>
+<g class="b calc"><rect x="580" y="594" width="360" height="50" rx="4"/></g>
+<text class="ti" x="760" y="613" text-anchor="middle">Slip angles, per tire</text>
+<text class="fm" x="760" y="637" text-anchor="middle">one road wheel angle, corner speeds</text>
+<g class="b calc"><rect x="580" y="652" width="360" height="50" rx="4"/></g>
+<text class="ti" x="760" y="671" text-anchor="middle">Slip ratios x, y, per tire</text>
+<text class="fm" x="760" y="695" text-anchor="middle">(Vw − Vx_t) / max(|Vw|, 1), −Vy_t / Vw</text>
+<g class="b flt"><rect x="580" y="710" width="360" height="50" rx="4"/></g>
+<text class="ti" x="760" y="729" text-anchor="middle">Low pass 3 Hz (exponential)</text>
+<text class="fm" x="760" y="753" text-anchor="middle">copy of every output → output_filtered</text>
+<path class="w" d="M396,71 L560,71" marker-end="url(#ap)"/>
+<path class="w" d="M396,147 L560,147" marker-end="url(#ap)"/>
+<path class="w" d="M396,223 L560,223" marker-end="url(#ap)"/>
+<path class="w" d="M396,299 L560,299" marker-end="url(#ap)"/>
+<path class="w dash" d="M396,375 L560,375" marker-end="url(#ap)"/>
+<path class="w" d="M396,451 L560,451" marker-end="url(#ap)"/>
+<path class="halo" d="M440,77.0 V760"/>
+<path class="halo" d="M470,153.0 V700"/>
+<path class="halo" d="M500,229.0 V640"/>
+<circle class="dot" cx="440" cy="71.0" r="3.5"/>
+<path class="w" d="M440,71 L440,760 L560,760" marker-end="url(#ap)"/>
+<circle class="dot" cx="470" cy="147.0" r="3.5"/>
+<path class="w" d="M470,147 L470,700 L560,700" marker-end="url(#ap)"/>
+<circle class="dot" cx="500" cy="223.0" r="3.5"/>
+<path class="w" d="M500,223 L500,640 L560,640" marker-end="url(#ap)"/>
+<text class="sm" x="500" y="790" text-anchor="middle">odom, steering and wheel speeds feed both nodes</text>
+<text class="stage" x="1040" y="20">Output topics</text>
+<g class="b out"><rect x="1040" y="40" width="404" height="80" rx="6"/></g>
+<text class="fm" x="1052" y="58">/control/vehicle_model/output</text>
+<text class="sm" x="1052" y="75">blackandgold_msgs/VehicleModelOutput</text>
+<text class="sm" x="1052" y="91">slip angle, slip ratio, Fy, Fx, Fz: front and rear</text>
+<text class="sm" x="1052" y="108">used by: no subscriber found</text>
+<path class="w" d="M960,80 L1040,80" marker-end="url(#ap)"/>
+<g class="b out"><rect x="1040" y="132" width="404" height="80" rx="6"/></g>
+<text class="fm" x="1052" y="150">/control/vehicle_model/output_filtered</text>
+<text class="sm" x="1052" y="167">blackandgold_msgs/VehicleModelOutput</text>
+<text class="sm" x="1052" y="183">the same fields, low passed</text>
+<text class="sm" x="1052" y="200">used by: telemetry_web, basestation, slip_vs_force_plot</text>
+<path class="w" d="M960,172 L1040,172" marker-end="url(#ap)"/>
+<g class="b out"><rect x="1040" y="224" width="404" height="80" rx="6"/></g>
+<text class="fm" x="1052" y="242">/control/vehicle_model/vehicle_state</text>
+<text class="sm" x="1052" y="259">blackandgold_msgs/VehicleState</text>
+<text class="sm" x="1052" y="275">vx, vy, yaw_rate, ax, ay (pass-through)</text>
+<text class="sm" x="1052" y="292">used by: debug</text>
+<path class="w" d="M960,264 L1040,264" marker-end="url(#ap)"/>
+<g class="b off"><rect x="1040" y="316" width="404" height="80" rx="6"/></g>
+<text class="fm" x="1052" y="334">/control/vehicle_model/errors</text>
+<text class="sm" x="1052" y="351">blackandgold_msgs/ErrorReport</text>
+<text class="sm" x="1052" y="367">publisher created, nothing is published</text>
+<text class="sm" x="1052" y="384">used by: –</text>
+<path class="w dash" d="M960,356 L1040,356" marker-end="url(#ap)"/>
+<g class="b out"><rect x="1040" y="572" width="404" height="80" rx="6"/></g>
+<text class="fm" x="1052" y="590">/control/vehicle_model/dualtrack/output</text>
+<text class="sm" x="1052" y="607">blackandgold_msgs/DualTrackSlip</text>
+<text class="sm" x="1052" y="623">4 slip angles, 4 slip ratios x and y, valid flags</text>
+<text class="sm" x="1052" y="640">used by: acceleration_interface (ABS), basestation</text>
+<path class="w" d="M960,612 L1040,612" marker-end="url(#ap)"/>
+<g class="b out"><rect x="1040" y="664" width="404" height="80" rx="6"/></g>
+<text class="fm" x="1052" y="682">/control/vehicle_model/dualtrack/output_filtered</text>
+<text class="sm" x="1052" y="699">blackandgold_msgs/DualTrackSlip</text>
+<text class="sm" x="1052" y="715">the same fields, low passed</text>
+<text class="sm" x="1052" y="732">used by: no subscriber found</text>
+<path class="w" d="M960,704 L1040,704" marker-end="url(#ap)"/>
+</svg>
+</div>
+<figcaption>Fig. P. The on-vehicle <code>vehicle_model</code> package as it is on the current branch: two nodes launched from <code>iac_launch/control.launch.py</code>, the topics they read on the left, the topics they publish and who reads them on the right. Dashed: subscribed or created but unused. The dual track slip ratios feed the ABS slip input of <code>acceleration_interface</code>, so they are the one output already used in the loop.</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>Dir</th><th>Topic</th><th>Message</th><th>Node</th><th>Fields used / published</th></tr></thead>
+<tbody>
+<tr><td>in</td><td class="mono">/odometry/global_filtered</td><td>nav_msgs/Odometry</td><td>both</td><td>twist.linear x, y; twist.angular z; bicycle also twist.angular y (pitch rate, sign flipped) and the pose quaternion (roll, pitch)</td></tr>
+<tr><td>in</td><td class="mono">/raptor_dbw_interface/steering_extended_report</td><td>raptor_dbw_msgs/SteeringReportExtd</td><td>both</td><td>primary_steering_angle_fbk → road wheel angle = deg2rad / 15.015 + steering_bias (bicycle default −0.333°, yaml 0.2°; dual track yaml 0.2°)</td></tr>
+<tr><td>in</td><td class="mono">/raptor_dbw_interface/wheel_speed_report</td><td>raptor_dbw_msgs/WheelSpeedReport</td><td>both</td><td>front_left, front_right, rear_left, rear_right (km/h ÷ 3.6; dual track adds wheel_speed_bias)</td></tr>
+<tr><td>in</td><td class="mono">/novatel_bottom/accel_filtered</td><td>geometry_msgs/AccelStamped</td><td>bicycle</td><td>accel.linear x, y: a<sub>x</sub> for loads and F<sub>x</sub>, a<sub>y</sub> for F<sub>y</sub></td></tr>
+<tr><td>in</td><td class="mono">/novatel_bottom/imu/data_raw</td><td>sensor_msgs/Imu</td><td>bicycle</td><td>stored in ax_imu_, ay_imu_ and not used</td></tr>
+<tr><td>in</td><td class="mono">/raptor_dbw_interface/tire_report</td><td>deep_orange_msgs/TireReport</td><td>bicycle</td><td>fl, fr, rl, rr_wheel_load summed per axle for the F<sub>z</sub> observer</td></tr>
+<tr><td>out</td><td class="mono">/control/vehicle_model/output</td><td>blackandgold_msgs/VehicleModelOutput</td><td>bicycle</td><td>slip_angle_front/rear, slip_ratio_front/rear, fy_, fx_, fz_front/rear</td></tr>
+<tr><td>out</td><td class="mono">/control/vehicle_model/output_filtered</td><td>VehicleModelOutput</td><td>bicycle</td><td>the same, low passed (telemetry_web, basestation_com_v2, slip_vs_force_plot)</td></tr>
+<tr><td>out</td><td class="mono">/control/vehicle_model/vehicle_state</td><td>blackandgold_msgs/VehicleState</td><td>bicycle</td><td>vx, vy, yaw_rate, ax, ay as received</td></tr>
+<tr><td>out</td><td class="mono">/control/vehicle_model/errors</td><td>blackandgold_msgs/ErrorReport</td><td>bicycle</td><td>created, never published</td></tr>
+<tr><td>out</td><td class="mono">/control/vehicle_model/dualtrack/output</td><td>blackandgold_msgs/DualTrackSlip</td><td>dual track</td><td>fl..rr_slip_angle, fl..rr_slip_ratio_x, _y, slip_angles_valid, slip_ratios_valid (acceleration_interface ABS input, basestation)</td></tr>
+<tr><td>out</td><td class="mono">/control/vehicle_model/dualtrack/output_filtered</td><td>DualTrackSlip</td><td>dual track</td><td>the same, low passed (no subscriber found)</td></tr>
+</tbody></table></div>
+
+<h3>Proposed final version</h3>
+<p class="prose">The same view for the package once it matches <code>vehicle_model.m</code> (sections 0 to 6). The node is a wrapper; the bicycle and the dual track model are two separate classes with a <code>step()</code> that takes the conditioned inputs and returns its outputs. Section 7 is the plan to build it.</p>
+<figure>
+<div class="fig">
+<svg viewBox="0 0 1516 910" role="img" aria-label="Proposed vehicle_model package: seven input topics go into one node that only wraps two separate models. The node conditions the inputs into one VehicleModelInput struct, calls BicycleModel::step and DualTrackModel::step, and publishes their outputs; the two models share no state.">
+<defs><marker id="aq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<text class="stage" x="16" y="58">Input topics</text>
+<g class="b sen"><rect x="16" y="80" width="350" height="62" rx="6"/></g>
+<text class="fm" x="28" y="99">/odometry/global_filtered</text>
+<text class="sm" x="28" y="117">nav_msgs/Odometry</text>
+<text class="sm" x="28" y="133">twist vx, vy, wz; pose q (roll, pitch)</text>
+<g class="b sen"><rect x="16" y="180" width="350" height="62" rx="6"/></g>
+<text class="fm" x="28" y="199">/raptor_dbw_interface/steering_extended_report</text>
+<text class="sm" x="28" y="217">raptor_dbw_msgs/SteeringReportExtd</text>
+<text class="sm" x="28" y="233">primary_steering_angle_fbk (deg)</text>
+<g class="b sen"><rect x="16" y="280" width="350" height="62" rx="6"/></g>
+<text class="fm" x="28" y="299">/raptor_dbw_interface/wheel_speed_report</text>
+<text class="sm" x="28" y="317">raptor_dbw_msgs/WheelSpeedReport</text>
+<text class="sm" x="28" y="333">four wheel speeds (km/h)</text>
+<g class="b sen"><rect x="16" y="380" width="350" height="62" rx="6"/></g>
+<text class="fm" x="28" y="399">/novatel_bottom/accel_filtered</text>
+<text class="sm" x="28" y="417">geometry_msgs/AccelStamped</text>
+<text class="sm" x="28" y="433">accel.linear x, y (gravity removed)</text>
+<g class="b sen"><rect x="16" y="480" width="350" height="62" rx="6"/></g>
+<text class="fm" x="28" y="499">/raptor_dbw_interface/tire_report</text>
+<text class="sm" x="28" y="517">deep_orange_msgs/TireReport</text>
+<text class="sm" x="28" y="533">fl ... rr_wheel_load, per tire</text>
+<g class="b sen"><rect x="16" y="580" width="350" height="62" rx="6"/></g>
+<text class="fm" x="28" y="599">/raptor_dbw_interface/brake_2_report</text>
+<text class="sm" x="28" y="617">raptor_dbw_msgs/Brake2Report</text>
+<text class="sm" x="28" y="633">front, rear brake pressure (kPa)</text>
+<text class="sm" x="356" y="599" text-anchor="end">new</text>
+<g class="b sen"><rect x="16" y="680" width="350" height="62" rx="6"/></g>
+<text class="fm" x="28" y="699">/raptor_dbw_interface/pt_report</text>
+<text class="sm" x="28" y="717">deep_orange_msgs/PtReport</text>
+<text class="sm" x="28" y="733">engine rpm, throttle, current gear</text>
+<text class="sm" x="356" y="699" text-anchor="end">new</text>
+<g class="b grp"><rect x="400" y="14" width="690" height="856" rx="12"/></g>
+<text class="ti" x="416" y="36">vehicle_model node (wrapper, 100 Hz)</text>
+<text class="sm" x="416" y="53">subscribe → condition the inputs → BicycleModel::step(), DualTrackModel::step() → publish</text>
+<g class="b flt"><rect x="420" y="70" width="170" height="780" rx="4"/></g>
+<text class="ti" x="505" y="89" text-anchor="middle">Input conditioning</text>
+<text class="fm" x="432" y="118">units: km/h → m/s</text>
+<text class="fm" x="432" y="140">wheel speed cal.</text>
+<text class="fm" x="432" y="162">gage zero offset</text>
+<text class="fm" x="432" y="184">Tustin low pass:</text>
+<text class="fm" x="432" y="206">  3 Hz every input</text>
+<text class="fm" x="432" y="228">  0.3 Hz load model</text>
+<text class="fm" x="432" y="250">  0.5 Hz gages</text>
+<text class="fm" x="432" y="272">steering → road wheel</text>
+<text class="fm" x="432" y="294">  angles: Ackermann</text>
+<text class="fm" x="432" y="316">  LUT + toe → δ_i, δ</text>
+<text class="sm" x="432" y="360">fills one struct:</text>
+<text class="fm" x="432" y="382">VehicleModelInput</text>
+<text class="sm" x="432" y="404">(same sample to</text>
+<text class="fm" x="432" y="426">both models)</text>
+<path class="w" d="M366,111 L420,111" marker-end="url(#aq)"/>
+<path class="w" d="M366,211 L420,211" marker-end="url(#aq)"/>
+<path class="w" d="M366,311 L420,311" marker-end="url(#aq)"/>
+<path class="w" d="M366,411 L420,411" marker-end="url(#aq)"/>
+<path class="w" d="M366,511 L420,511" marker-end="url(#aq)"/>
+<path class="w" d="M366,611 L420,611" marker-end="url(#aq)"/>
+<path class="w" d="M366,711 L420,711" marker-end="url(#aq)"/>
+<g class="b grp"><rect x="650" y="70" width="410" height="342" rx="10"/></g>
+<text class="ti" x="664" y="91">BicycleModel: setInput, step, getOutput</text>
+<text class="sm" x="664" y="107">axle level, its own state</text>
+<g class="b grp"><rect x="650" y="450" width="410" height="400" rx="10"/></g>
+<text class="ti" x="664" y="471">DualTrackModel: setInput, step, getOutput</text>
+<text class="sm" x="664" y="487">tire level, its own state</text>
+<g class="b calc"><rect x="666" y="118" width="378" height="52" rx="4"/></g>
+<text class="ti" x="855" y="137" text-anchor="middle">Axle kinematic slips</text>
+<text class="fm" x="855" y="161" text-anchor="middle">α_f, α_r reference; κ_f, κ_r</text>
+<g class="b flt"><rect x="666" y="176" width="378" height="52" rx="4"/></g>
+<text class="ti" x="855" y="195" text-anchor="middle">Axle load model + F_z observer</text>
+<text class="fm" x="855" y="219" text-anchor="middle">a_z with bank; K 1.1, τ 8 s</text>
+<g class="b calc"><rect x="666" y="234" width="378" height="52" rx="4"/></g>
+<text class="ti" x="855" y="253" text-anchor="middle">Axle forces</text>
+<text class="fm" x="855" y="277" text-anchor="middle">F_y balance; F_x from the wheel torques</text>
+<g class="b flt"><rect x="666" y="292" width="378" height="52" rx="4"/></g>
+<text class="ti" x="855" y="311" text-anchor="middle">Bicycle v_y observer</text>
+<text class="fm" x="855" y="335" text-anchor="middle">brush at F_z axle, IMU, τ 0.2 s</text>
+<g class="b out"><rect x="666" y="350" width="378" height="52" rx="4"/></g>
+<text class="ti" x="855" y="369" text-anchor="middle">Axle slips + k_us</text>
+<text class="fm" x="855" y="393" text-anchor="middle">α_f, α_r observed; MPC formula</text>
+<g class="b calc"><rect x="666" y="498" width="378" height="52" rx="4"/></g>
+<text class="ti" x="855" y="517" text-anchor="middle">Tire kinematics</text>
+<text class="fm" x="855" y="541" text-anchor="middle">α_i reference; κ_i, s_x, s_y (ABS)</text>
+<g class="b flt"><rect x="666" y="556" width="378" height="52" rx="4"/></g>
+<text class="ti" x="855" y="575" text-anchor="middle">Tire load model + F_z observer</text>
+<text class="fm" x="855" y="599" text-anchor="middle">lateral transfer; K 1.1, τ 8 s</text>
+<g class="b calc"><rect x="666" y="614" width="378" height="52" rx="4"/></g>
+<text class="ti" x="855" y="633" text-anchor="middle">Tire F_x</text>
+<text class="fm" x="855" y="657" text-anchor="middle">wheel dynamics per tire</text>
+<g class="b tm"><rect x="666" y="672" width="378" height="52" rx="4"/></g>
+<text class="ti" x="855" y="691" text-anchor="middle">Tire F_y</text>
+<text class="fm" x="855" y="715" text-anchor="middle">load split + brush at its own slip (k−1)</text>
+<g class="b flt"><rect x="666" y="730" width="378" height="52" rx="4"/></g>
+<text class="ti" x="855" y="749" text-anchor="middle">Dual track v_y observer</text>
+<text class="fm" x="855" y="773" text-anchor="middle">brush per tire, equal weights, gain 1</text>
+<g class="b out"><rect x="666" y="788" width="378" height="52" rx="4"/></g>
+<text class="ti" x="855" y="807" text-anchor="middle">Tire slips + k_us</text>
+<text class="fm" x="855" y="831" text-anchor="middle">α_i observed; k_us dual track</text>
+<path class="w" d="M590,240 L650,240" marker-end="url(#aq)"/>
+<text class="lb" x="620" y="233" text-anchor="middle">in</text>
+<path class="w" d="M590,640 L650,640" marker-end="url(#aq)"/>
+<text class="lb" x="620" y="633" text-anchor="middle">in</text>
+<text class="sm" x="745" y="892" text-anchor="middle">shared library, functions only (no shared state): lpf, road_wheel_angles, tire_kin, brush, FzObserver, axle_correct</text>
+<text class="stage" x="1126" y="58">Output topics</text>
+<g class="b out"><rect x="1126" y="70" width="380" height="112" rx="6"/></g>
+<text class="fm" x="1138" y="88">/control/vehicle_model/bicycle/state</text>
+<text class="sm" x="1138" y="105">blackandgold_msgs/BicycleState (new)</text>
+<text class="sm" x="1138" y="121">δ; per axle: α kinematic, α observed, κ,</text>
+<text class="sm" x="1138" y="137">F_z model and observed, F_x, F_y; v_y obs, k_us</text>
+<text class="sm" x="1138" y="172">used by: fbl_mpc_controller (k_us, F_z axle), telemetry, plots</text>
+<text class="sm" x="1496" y="88" text-anchor="end">new</text>
+<path class="w" d="M1060,160 L1126,160" marker-end="url(#aq)"/>
+<g class="b out"><rect x="1126" y="200" width="380" height="112" rx="6"/></g>
+<text class="fm" x="1138" y="218">/control/vehicle_model/bicycle/debug</text>
+<text class="sm" x="1138" y="235">blackandgold_msgs/BicycleDebug (new)</text>
+<text class="sm" x="1138" y="251">valid: moving, slip angle, slip ratio, observer,</text>
+<text class="sm" x="1138" y="267">F_z observer, k_us; v_y tire model, conditioning</text>
+<text class="sm" x="1138" y="302">used by: debugging, telemetry</text>
+<text class="sm" x="1496" y="218" text-anchor="end">new</text>
+<path class="w" d="M1060,300 L1126,300" marker-end="url(#aq)"/>
+<g class="b out"><rect x="1126" y="370" width="380" height="96" rx="6"/></g>
+<text class="fm" x="1138" y="388">/control/vehicle_model/errors</text>
+<text class="sm" x="1138" y="405">blackandgold_msgs/ErrorReport (from the node)</text>
+<text class="sm" x="1138" y="421">input timeout, tire report missing, NaN input</text>
+<text class="sm" x="1138" y="456">used by: error handling, basestation</text>
+<text class="sm" x="1496" y="388" text-anchor="end">kept</text>
+<circle class="dot" cx="1090" cy="431" r="3.5"/>
+<path class="w" d="M1090,431 L1126,431" marker-end="url(#aq)"/>
+<g class="b out"><rect x="1126" y="490" width="380" height="112" rx="6"/></g>
+<text class="fm" x="1138" y="508">/control/vehicle_model/dualtrack/state</text>
+<text class="sm" x="1138" y="525">blackandgold_msgs/DualTrackState (new)</text>
+<text class="sm" x="1138" y="541">per tire: δ, α kinematic, α observed, κ, s_x, s_y, F_z</text>
+<text class="sm" x="1138" y="557">model and observed, F_x, F_y (2 splits); v_y obs, k_us</text>
+<text class="sm" x="1138" y="592">used by: acceleration_interface (ABS), telemetry, MPC</text>
+<text class="sm" x="1496" y="508" text-anchor="end">new</text>
+<path class="w" d="M1060,560 L1126,560" marker-end="url(#aq)"/>
+<g class="b out"><rect x="1126" y="620" width="380" height="112" rx="6"/></g>
+<text class="fm" x="1138" y="638">/control/vehicle_model/dualtrack/debug</text>
+<text class="sm" x="1138" y="655">blackandgold_msgs/DualTrackDebug (new)</text>
+<text class="sm" x="1138" y="671">valid per tire: slip angle, slip ratio, lifted,</text>
+<text class="sm" x="1138" y="687">locked, saturated; conditioning c_i</text>
+<text class="sm" x="1138" y="722">used by: debugging, telemetry</text>
+<text class="sm" x="1496" y="638" text-anchor="end">new</text>
+<path class="w" d="M1060,700 L1126,700" marker-end="url(#aq)"/>
+</svg>
+</div>
+<figcaption>Fig. P2. Proposed final package. One node that only wraps two separate models: it subscribes, conditions the inputs into one <code>VehicleModelInput</code> struct, calls <code>BicycleModel::step()</code> and <code>DualTrackModel::step()</code> on the same sample, and publishes their outputs. The models share no state and do not read each other's outputs; each has its own load model, F<sub>z</sub> observer, forces and v<sub>y</sub> observer, built from the same stateless library functions. Outputs: one state and one debug topic per model, plus the node's errors; the old output, output_filtered, vehicle_state and DualTrackSlip topics are retired, their readers move to the new state topics.</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>Item</th><th>Today</th><th>Proposed</th></tr></thead>
+<tbody>
+<tr><td>Structure</td><td>two nodes, each with its own copy of the kinematics</td><td>one node as a thin wrapper: input conditioning, then <span class="mono">BicycleModel::step()</span> and <span class="mono">DualTrackModel::step()</span>, two separate models with their own state, then publishing</td></tr>
+<tr><td>Coupling</td><td>none (two nodes)</td><td>none: the dual track F<sub>y</sub> correction uses its own previous-sample slip, not the bicycle observer slip (same accuracy, see the note in section 5); <code>vehicle_model.m</code> is already split this way</td></tr>
+<tr><td>Inputs</td><td>odom, steering, wheel speeds, accel_filtered, imu/data_raw (unused), tire_report</td><td>the same minus imu/data_raw, plus <span class="mono">brake_2_report</span> (raptor_dbw_msgs/Brake2Report: front, rear pressure; marked deprecated since AV24 in raptor_dbw_can but still in the 2026 logs, confirm the AV24 source) and <span class="mono">pt_report</span> (deep_orange_msgs/PtReport: rpm, throttle, gear, as acceleration_interface reads it) for F<sub>x</sub> per tire</td></tr>
+<tr><td>Road wheel angle</td><td>one angle for both fronts</td><td>Ackermann table + toe per tire</td></tr>
+<tr><td>Normal load</td><td>axle model without the bank term, axle observer</td><td>bicycle: axle model with the bank term and its own axle observer; dual track: per tire model with the lateral transfer and its own per tire observer (same observer class, same K 1.1, τ 8 s)</td></tr>
+<tr><td>Slip angles</td><td>kinematic, from the odom v<sub>y</sub></td><td>kinematic kept as the reference, plus the bicycle and dual track observer slips</td></tr>
+<tr><td>Forces</td><td>F<sub>x</sub> = m·a<sub>x</sub> by load share, F<sub>y</sub> per axle</td><td>F<sub>x</sub> per tire from the wheel dynamics, F<sub>y</sub> per axle and per tire (normal load split and brush corrected)</td></tr>
+<tr><td>Outputs</td><td>six topics: output, output_filtered, vehicle_state, errors (unused), dualtrack/output, dualtrack/output_filtered</td><td>five: <span class="mono">bicycle/state</span>, <span class="mono">bicycle/debug</span>, <span class="mono">dualtrack/state</span>, <span class="mono">dualtrack/debug</span> (one state and one debug per model) and the node's <span class="mono">errors</span>; no filtered copies, the filters act on the inputs</td></tr>
+<tr><td>Consumers to move</td><td colspan="2"><span class="mono">acceleration_interface</span> ABS: <span class="mono">dualtrack/output</span> (DualTrackSlip slip_ratio_x, slip_ratios_valid) → <span class="mono">dualtrack/state</span> s<sub>x</sub> per tire and the slip ratio valid flags of <span class="mono">dualtrack/debug</span>; <span class="mono">telemetry_web</span>, <span class="mono">basestation_com_v2</span>, <span class="mono">slip_vs_force_plot</span>: <span class="mono">output_filtered</span> → <span class="mono">bicycle/state</span> (and <span class="mono">dualtrack/state</span>)</td></tr>
+</tbody></table></div>
+
+<h4 class="prose" style="font-family: var(--display); margin: 22px 0 6px;">Proposed output messages</h4>
+<p class="prose">Per axle fields are <span class="mono">float64[2]</span> [front, rear], per tire fields <span class="mono">float64[4]</span> [FL, FR, RL, RR], flags <span class="mono">bool</span> (arrays of bool per axle or tire). The exact field names are also in <code>vehicle_model_node_topics.yaml</code>, which the replay comparison uses.</p>
+<div class="tbl"><table>
+<thead><tr><th>Message</th><th>Topic</th><th>Fields</th></tr></thead>
+<tbody>
+<tr><td>BicycleState</td><td class="mono">/control/vehicle_model/bicycle/state</td><td>header; delta (rad); per axle [front, rear]: slip_angle_kin, slip_angle_obs (rad), slip_ratio, fz_model, fz_obs, fx, fy (N); vy_obs (m/s); k_us (rad/(m/s²))</td></tr>
+<tr><td>BicycleDebug</td><td class="mono">/control/vehicle_model/bicycle/debug</td><td>header; moving (v<sub>x</sub> above the slip minimum); slip_angle_valid, slip_ratio_valid; observer_running (v<sub>x</sub> &gt; 10 m/s, inputs fresh); fz_observer_active (tire report received); k_us_valid (|v<sub>x</sub>·r| &gt; 4 m/s²); per axle: brush slip and conditioning, saturated; vy_tire_model</td></tr>
+<tr><td>DualTrackState</td><td class="mono">/control/vehicle_model/dualtrack/state</td><td>header; per tire [FL, FR, RL, RR]: delta, slip_angle_kin, slip_angle_obs (rad), kappa, slip_ratio_x (s<sub>x</sub>, the ABS input), slip_ratio_y, fz_model, fz_obs, fx, fy_load_split, fy_corrected (N); vy_obs (m/s); k_us</td></tr>
+<tr><td>DualTrackDebug</td><td class="mono">/control/vehicle_model/dualtrack/debug</td><td>header; moving; observer_running; fz_observer_active; k_us_valid; per tire: slip_angle_valid, slip_ratio_valid (wheel speed above its minimum), lifted (F<sub>z</sub> &lt; 300 N), locked (κ &lt; −0.5), saturated (|F<sub>y</sub>| ≥ μF<sub>z</sub>), conditioning c<sub>i</sub> (source of the saturated flag). No weights or gain: the dual track observer uses equal weights, gain 1</td></tr>
+<tr><td>ErrorReport</td><td class="mono">/control/vehicle_model/errors</td><td>published by the node: input timeouts per topic, tire report missing, NaN or out of range inputs, with a severity</td></tr>
+</tbody></table></div>
+<p class="note prose">State is what the models estimate, debug is why a value can or cannot be trusted at this sample (car not moving, wheel below its minimum speed, observer not running, tire lifted or saturated) plus the intermediate values to diagnose it, errors is what is wrong with the inputs.</p>
+
+<h3>Review of the two nodes</h3>
+<div class="tbl"><table>
+<thead><tr><th>Node</th><th>Finding</th><th>Against the MATLAB reference</th></tr></thead>
+<tbody>
+<tr><td>both</td><td>l<sub>f</sub> / l<sub>r</sub> 1.6785 / 1.2933 m (MPC values)</td><td>1.724 / 1.248 m (URDF base_link = CG)</td></tr>
+<tr><td>both</td><td>steering bias: bicycle code default −0.333°, both yamls 0.2°</td><td>+0.333° (<span class="mono">steerOffset</span>); the sign and value need one source</td></tr>
+<tr><td>both</td><td>one road wheel angle for both front tires, no toe</td><td>Ackermann table + toe per tire (section 1)</td></tr>
+<tr><td>both</td><td>exponential low pass <span class="mono">1 − e^(−dt/τ)</span>, bicycle 1.3 Hz, dual track 3 Hz, on the outputs only</td><td>Tustin with prewarp on the inputs, 3 Hz; 0.3 / 0.5 Hz on the load observer paths</td></tr>
+<tr><td>both</td><td><span class="mono">create_wall_timer</span>: runs on wall time even with use_sim_time in a bag replay</td><td>–</td></tr>
+<tr><td>bicycle</td><td><span class="mono">az_road = g·cos(pitch)</span>; the roll, bank and pitch curvature terms are commented out (roll, yaw rate, pitch rate and <span class="mono">pitch_curvature_scalar</span> are passed in and unused)</td><td><span class="mono">g·cosθ·cosφ − v_x·r·sinφ</span>: the bank term is what makes C9 / C10 high load</td></tr>
+<tr><td>bicycle</td><td>F<sub>z</sub> observer per axle: gage sums through the 1.3 Hz output filter, model rate unfiltered, K 1.0, leak 0.005 (τ ≈ 2 s); CG height 0.275 m</td><td>per tire, model passed through the same 0.5 Hz filter as the gage, K 1.1, τ 8 s; h 0.35 m</td></tr>
+<tr><td>bicycle</td><td>F<sub>x</sub> per axle = m·a<sub>x</sub> split by the F<sub>z</sub> share, so the undriven front axle gets drive force</td><td>wheel dynamics per tire (torque model), section 3</td></tr>
+<tr><td>bicycle</td><td>F<sub>y</sub> per axle from a<sub>y</sub> (accel_filtered) and ṙ by a 1 step difference, front not rotated into its tire frame</td><td>a<sub>y,tire</sub> = v<sub>x</sub>·r + dv<sub>y</sub>/dt − g<sub>y</sub>, front F<sub>y</sub> rotated by δ</td></tr>
+<tr><td>bicycle</td><td>IMU subscription and the errors publisher are unused</td><td>–</td></tr>
+<tr><td>dual track</td><td>kinematic slip angles and slip ratios only: no loads, forces or observer</td><td>everything in sections 2 to 5</td></tr>
+<tr><td>dual track</td><td>slip ratio denominator is the wheel speed (s<sub>x</sub>), used by the ABS in acceleration_interface</td><td>MATLAB carries both κ (÷ |Vx|) and s<sub>x</sub> (÷ Vw); keep s<sub>x</sub> for the ABS</td></tr>
+</tbody></table></div>
 
 <!-- ============================== 0. OVERVIEW ============================== -->
 <h2>0 · What the package computes</h2>
@@ -168,7 +510,7 @@ svg text { fill: var(--fg); }
 <g class="b out"><rect x="1290" y="248" width="160" height="28" rx="14"/></g>
 <text class="fm" x="1370" y="266" text-anchor="middle">F_z,i observed</text>
 <path class="w" d="M710,262 L1290,262" marker-end="url(#a0)"/>
-<text class="lb" x="1000" y="255" text-anchor="middle">F_z,i (≥ 0 into the tire models), axle sums</text>
+<text class="lb" x="1000" y="255" text-anchor="middle">F_z axle (bicycle obs.), F_z,i (dual track obs.)</text>
 <text class="stage" x="16" y="352">Forces</text>
 <g class="b sen"><rect x="16" y="366" width="180" height="28" rx="14"/></g>
 <text class="fm" x="106" y="384" text-anchor="middle">a_x, a_y, odom (3 Hz)</text>
@@ -220,7 +562,7 @@ svg text { fill: var(--fg); }
 <g class="b flt"><rect x="760" y="576" width="210" height="100" rx="4"/></g>
 <text class="ti" x="865" y="595" text-anchor="middle">Dual track observer</text>
 <text class="fm" x="865" y="619" text-anchor="middle">brush inverse per tire</text>
-<text class="fm" x="865" y="639" text-anchor="middle">w = c² · F_z,i / F_z,ax</text>
+<text class="fm" x="865" y="639" text-anchor="middle">equal weights, gain 1</text>
 <text class="sm" x="865" y="656" text-anchor="middle">IMU predict, τ 0.2 s</text>
 <g class="bdg"><circle cx="772" cy="589" r="9"/><text x="772" y="592.5" text-anchor="middle">9</text></g>
 <g class="b out"><rect x="1020" y="576" width="230" height="100" rx="4"/></g>
@@ -229,8 +571,8 @@ svg text { fill: var(--fg); }
 <text class="fm" x="1135" y="639" text-anchor="middle">k = m(lr·Cr − lf·Cf)/(L·Cf·Cr)</text>
 <text class="sm" x="1135" y="656" text-anchor="middle">bicycle and dual track</text>
 <g class="bdg"><circle cx="1032" cy="589" r="10"/><text x="1032" y="592.5" text-anchor="middle">10</text></g>
-<path class="w" d="M450,626 L500,626" marker-end="url(#a0)"/>
-<text class="lb" x="475" y="619" text-anchor="middle">α_i^B</text>
+<path class="w" d="M786,676 L786,686 L684,686 L684,676" marker-end="url(#a0)"/>
+<text class="lb" x="735" y="700" text-anchor="middle">α_i(k−1)</text>
 <path class="w" d="M710,626 L760,626" marker-end="url(#a0)"/>
 <text class="lb" x="735" y="619" text-anchor="middle">F_y,i</text>
 <path class="w" d="M970,626 L1020,626" marker-end="url(#a0)"/>
@@ -251,7 +593,7 @@ svg text { fill: var(--fg); }
 <text class="lb" x="782.5" y="753" text-anchor="middle">α_f, α_r and F_z axle (bicycle k_us)</text>
 </svg>
 </div>
-<figcaption>Fig. 0. What runs in <code>vehicle_model.m</code>, block by block. Pills on the left are sensor channels, pills on the right are the outputs the on-vehicle package publishes, small pills above a block name the signals it takes from other blocks. Numbers match the sections below.</figcaption>
+<figcaption>Fig. 0. What runs in <code>vehicle_model.m</code>, block by block. Pills on the left are sensor channels, pills on the right are the outputs the on-vehicle package publishes, small pills above a block name the signals it takes from other blocks. Numbers match the sections below. Blocks 1 to 6 are shared, stateless functions of the inputs; block 7 (with the axle F<sub>z</sub> observer) is the bicycle model, blocks 8 and 9 (with the tire F<sub>z</sub> observer) the dual track model, and no arrow runs between the two.</figcaption>
 </figure>
 
 <div class="tbl"><table>
@@ -264,7 +606,7 @@ svg text { fill: var(--fg); }
 <tr><td>–</td><td>strain gages: <span class="mono">tire_report.*_wheel_load</span></td><td>0.5 Hz (<span class="mono">fcObsGage</span>), minus the zero offset</td><td>F<sub>z</sub> observer</td></tr>
 <tr><td>–</td><td>brake pressures, rpm, throttle, gear: <span class="mono">brake_2_report</span>, <span class="mono">pt_report</span></td><td>3 Hz (gear unfiltered)</td><td>wheel dynamics F<sub>x</sub></td></tr>
 </tbody></table></div>
-<p class="note prose">Every filter is a first order Tustin low pass with prewarp (<code>lpf</code>, <code>vehicle_model.m:914</code>): <span class="mono">K = tan(π f<sub>c</sub> T<sub>s</sub>)</span>, <span class="mono">y(k) = (1−K)/(1+K)·y(k−1) + K/(1+K)·(x(k) + x(k−1))</span>, T<sub>s</sub> = 0.01 s. Derivatives are backward differences of filtered signals (<code>ddt</code>, <code>:262</code>).</p>
+<p class="note prose">Every filter is a first order Tustin low pass with prewarp (<code>lpf</code>, <code>vehicle_model.m:998</code>): <span class="mono">K = tan(π f<sub>c</sub> T<sub>s</sub>)</span>, <span class="mono">y(k) = (1−K)/(1+K)·y(k−1) + K/(1+K)·(x(k) + x(k−1))</span>, T<sub>s</sub> = 0.01 s. Derivatives are backward differences of filtered signals (<code>ddt</code>, <code>:273</code>).</p>
 
 <!-- ============================== 1. ANGLES AND KINEMATICS ============================== -->
 <h2>1 · Road wheel angles and kinematic slips</h2>
@@ -272,12 +614,12 @@ svg text { fill: var(--fg); }
 <div class="tbl"><table>
 <thead><tr><th>#</th><th>Quantity</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
 <tbody>
-<tr><td>1</td><td>Road wheel angle</td><td><span class="mono">δ_road = 0.333° + steer / 15.015</span> (deg)</td><td class="mono">vehicle_model.m:248</td></tr>
-<tr><td>1</td><td>Ackermann + toe</td><td><span class="mono">δ_FL = LUT_left(δ_road) − toe_f</span>, <span class="mono">δ_FR = LUT_right(δ_road) + toe_f</span>, <span class="mono">δ_RL = −toe_r</span>, <span class="mono">δ_RR = toe_r</span>. LUT = <span class="mono">yaw_moment/ackerman_sweep_50.xlsx</span> (road_deg → left_deg, right_deg, linear interpolation), toe in deg with − = out (YMD_calc.m convention), toe_f = toe_r = 0 for now (yaw_moment.m: −0.451°). Bicycle <span class="mono">δ = (δ_FL + δ_FR)/2</span>.</td><td class="mono">:50, 117–118, 249–254</td></tr>
-<tr><td>2</td><td>Tire frame velocity</td><td><span class="mono">tireKin</span>: corner speed <span class="mono">Vx_c = v_x ∓ r·t/2</span> (left −, right +), lateral <span class="mono">Vy_c = v_y + l_f·r</span> (front) or <span class="mono">v_y − l_r·r</span> (rear), rotated by δ<sub>i</sub>: <span class="mono">Vx_t = Vx_c cosδ_i + Vy_c sinδ_i</span>, <span class="mono">Vy_t = −Vx_c sinδ_i + Vy_c cosδ_i</span>. t<sub>f</sub> 1.639 m, t<sub>r</sub> 1.524 m, l<sub>f</sub> 1.724 m, l<sub>r</sub> 1.248 m. NaN below v<sub>x</sub> 4 m/s.</td><td class="mono">:280, 946</td></tr>
-<tr><td>2</td><td>Slip angle per tire</td><td><span class="mono">α_i = −atan2(Vy_t, Vx_t)</span> (α &gt; 0 → F<sub>y</sub> &gt; 0). With the localization v<sub>y</sub> this is the reference; with an observer v<sub>y</sub> it is that observer's slip (same function).</td><td class="mono">:284</td></tr>
-<tr><td>2</td><td>Slip angle per axle</td><td><span class="mono">α_f = δ − atan2(v_y + l_f·r, v_x)</span>, <span class="mono">α_r = −atan2(v_y − l_r·r, v_x)</span></td><td class="mono">:290–291</td></tr>
-<tr><td>2</td><td>Slip ratio (kinematic)</td><td><span class="mono">κ_i = (Vw_i − Vx_t,i) / |Vx_t,i|</span>; also <span class="mono">s_x = (Vw − Vx_t)/Vw</span>, <span class="mono">s_y = −Vy_t/Vw</span>; a wheel with κ &lt; −0.5 is locked</td><td class="mono">:298–324</td></tr>
+<tr><td>1</td><td>Road wheel angle</td><td><span class="mono">δ_road = 0.333° + steer / 15.015</span> (deg)</td><td class="mono">vehicle_model.m:260</td></tr>
+<tr><td>1</td><td>Ackermann + toe</td><td><span class="mono">δ_FL = LUT_left(δ_road) − toe_f</span>, <span class="mono">δ_FR = LUT_right(δ_road) + toe_f</span>, <span class="mono">δ_RL = −toe_r</span>, <span class="mono">δ_RR = toe_r</span>. LUT = <span class="mono">yaw_moment/ackerman_sweep_50.xlsx</span> (road_deg → left_deg, right_deg, linear interpolation), toe in deg with − = out (YMD_calc.m convention), toe_f = toe_r = 0 for now (yaw_moment.m: −0.451°). Bicycle <span class="mono">δ = (δ_FL + δ_FR)/2</span>.</td><td class="mono">:43, 79–80, 261–266</td></tr>
+<tr><td>2</td><td>Tire frame velocity</td><td><span class="mono">tireKin</span>: corner speed <span class="mono">Vx_c = v_x ∓ r·t/2</span> (left −, right +), lateral <span class="mono">Vy_c = v_y + l_f·r</span> (front) or <span class="mono">v_y − l_r·r</span> (rear), rotated by δ<sub>i</sub>: <span class="mono">Vx_t = Vx_c cosδ_i + Vy_c sinδ_i</span>, <span class="mono">Vy_t = −Vx_c sinδ_i + Vy_c cosδ_i</span>. t<sub>f</sub> 1.639 m, t<sub>r</sub> 1.524 m, l<sub>f</sub> 1.724 m, l<sub>r</sub> 1.248 m. Slip angles NaN (C++: 0, slip_angle_valid false) below v<sub>x</sub> 4 m/s (<span class="mono">vxMin</span>).</td><td class="mono">:284, 1030</td></tr>
+<tr><td>2</td><td>Slip angle per tire</td><td><span class="mono">α_i = −atan2(Vy_t, Vx_t)</span> (α &gt; 0 → F<sub>y</sub> &gt; 0). With the localization v<sub>y</sub> this is the reference; with an observer v<sub>y</sub> it is that observer's slip (same function).</td><td class="mono">:291</td></tr>
+<tr><td>2</td><td>Slip angle per axle</td><td><span class="mono">α_f = δ − atan2(v_y + l_f·r, v_x)</span>, <span class="mono">α_r = −atan2(v_y − l_r·r, v_x)</span></td><td class="mono">:294–295</td></tr>
+<tr><td>2</td><td>Slip ratio (kinematic)</td><td><span class="mono">s_x = clamp((Vw − Vx_t)/max(|Vw|, 1 m/s), ±1)</span>, <span class="mono">s_y = clamp(−Vy_t/max(|Vw|, 1 m/s), ±1)</span> (the ABS input; floor <span class="mono">vwMin</span>, clamp <span class="mono">slipRatioMax</span>, as the current <span class="mono">slip_ratio_calc</span>), <span class="mono">κ_i = (Vw_i − Vx_t,i)/|Vx_t,i|</span>; all NaN below v<sub>x</sub> 1 m/s (<span class="mono">vxMinRatio</span>), slip_ratio_valid per tire = |Vw| ≥ 1 m/s; a wheel with κ &lt; −0.5 (<span class="mono">kappaLock</span>) is locked</td><td class="mono">:297–317</td></tr>
 </tbody></table></div>
 
 <!-- ============================== 2. NORMAL LOAD ============================== -->
@@ -378,13 +720,13 @@ svg text { fill: var(--fg); }
 <div class="tbl"><table>
 <thead><tr><th>#</th><th>Block</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
 <tbody>
-<tr><td>1</td><td>LPF 0.3 Hz</td><td>Tustin low pass on odom v<sub>x</sub>, v<sub>y</sub>, r, a<sub>x</sub> and the quaternion, the load model inputs only</td><td class="mono">vehicle_model.m:219–226</td></tr>
-<tr><td>2</td><td>Attitude</td><td><span class="mono">quat2eul(q, "ZYX")</span>, θ = −eul(:,2), φ = eul(:,3)</td><td class="mono">:224–226</td></tr>
-<tr><td>3</td><td>Accelerations</td><td><span class="mono">a_y = v_x·r + dv_y/dt + g·cosθ·sinφ</span>, <span class="mono">a_x,long = a_x + g·sinθ</span>, <span class="mono">a_z,road = g·cosθ·cosφ − v_x·r·sinφ</span> (gravity plus the bank centripetal term)</td><td class="mono">:336–338</td></tr>
-<tr><td>4</td><td>Downforce</td><td><span class="mono">DF = ½·1.225·0.58·v_x²</span>, front share 0.33</td><td class="mono">:340–341</td></tr>
-<tr><td>5</td><td>Lateral transfer</td><td><span class="mono">LT_f = m·a_y/t_f·(h_roll·s_f + l_r·rc_f/L)</span>, <span class="mono">LT_r = m·a_y/t_r·(h_roll·(1−s_f) + l_f·rc_r/L)</span>, s<sub>f</sub> = front roll stiffness share (k = wheel rate·t²/2, ARB<sub>f</sub> = 0), <span class="mono">h_roll = h − roll axis height at the CG</span>, rc<sub>f</sub> 0.120 m, rc<sub>r</sub> 0.002 m</td><td class="mono">:357–364</td></tr>
-<tr><td>6</td><td>Axle loads</td><td><span class="mono">Fz_f = m·a_z·l_r/L − m·a_x·h/L + 0.33·DF</span>, <span class="mono">Fz_r = m·a_z·l_f/L + m·a_x·h/L + 0.67·DF</span>; m 815 kg, L 2.9718 m, h 0.35 m</td><td class="mono">:343–344</td></tr>
-<tr><td>7</td><td>Corner split</td><td>axle load × static share (0.5) ∓ lateral transfer, left tires lose load when a<sub>y</sub> &gt; 0</td><td class="mono">:372–375</td></tr>
+<tr><td>1</td><td>LPF 0.3 Hz</td><td>Tustin low pass on odom v<sub>x</sub>, v<sub>y</sub>, r, a<sub>x</sub> and the quaternion, the load model inputs only</td><td class="mono">vehicle_model.m:228–235</td></tr>
+<tr><td>2</td><td>Attitude</td><td><span class="mono">quat2eul(q, "ZYX")</span>, θ = −eul(:,2), φ = eul(:,3)</td><td class="mono">:233–235</td></tr>
+<tr><td>3</td><td>Accelerations</td><td><span class="mono">a_y = v_x·r + dv_y/dt + g·cosθ·sinφ</span>, <span class="mono">a_x,long = a_x + g·sinθ</span>, <span class="mono">a_z,road = g·cosθ·cosφ − v_x·r·sinφ</span> (gravity plus the bank centripetal term)</td><td class="mono">:325–327</td></tr>
+<tr><td>4</td><td>Downforce</td><td><span class="mono">DF = ½·1.225·0.58·v_x²</span>, front share 0.33</td><td class="mono">:329–330</td></tr>
+<tr><td>5</td><td>Lateral transfer</td><td><span class="mono">LT_f = m·a_y/t_f·(h_roll·s_f + l_r·rc_f/L)</span>, <span class="mono">LT_r = m·a_y/t_r·(h_roll·(1−s_f) + l_f·rc_r/L)</span>, s<sub>f</sub> = front roll stiffness share (k = wheel rate·t²/2, ARB<sub>f</sub> = 0), <span class="mono">h_roll = h − roll axis height at the CG</span>, rc<sub>f</sub> 0.120 m, rc<sub>r</sub> 0.002 m</td><td class="mono">:337–343</td></tr>
+<tr><td>6</td><td>Axle loads</td><td><span class="mono">Fz_f = m·a_z·l_r/L − m·a_x·h/L + 0.33·DF</span>, <span class="mono">Fz_r = m·a_z·l_f/L + m·a_x·h/L + 0.67·DF</span>; m 815 kg, L 2.9718 m, h 0.35 m</td><td class="mono">:332–333</td></tr>
+<tr><td>7</td><td>Corner split</td><td>axle load × static share (0.5) ∓ lateral transfer, left tires lose load when a<sub>y</sub> &gt; 0</td><td class="mono">:349–352</td></tr>
 </tbody></table></div>
 
 <h3>2b · Normal force observer (per tire, same structure per axle)</h3>
@@ -460,10 +802,10 @@ svg text { fill: var(--fg); }
 <div class="tbl"><table>
 <thead><tr><th>#</th><th>Block</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
 <tbody>
-<tr><td>1</td><td>Model through the gage filter</td><td><span class="mono">Fz_cmp = lpf(Fz_model, 0.5 Hz)</span>, so the two rates are compared like for like</td><td class="mono">vehicle_model.m:392</td></tr>
-<tr><td>2</td><td>Gage filter and offset</td><td><span class="mono">Fz_meas = lpf(gage, 0.5 Hz) − gageOffset</span>, offset = gage (3 Hz LPF) at sample 100 − static corner load; a constant, the Δ removes it</td><td class="mono">:177–180, 209–212</td></tr>
-<tr><td>3</td><td>Gain</td><td><span class="mono">u(k) = ΔFz_meas(k) − ΔFz_cmp(k)</span>, K = 1.1</td><td class="mono">:383, 905</td></tr>
-<tr><td>4</td><td>Leaky integrator</td><td><span class="mono">c(k) = τ/(τ+dt)·(c(k−1) + K·u(k))</span>, τ = 8 s, <span class="mono">Fz_obs = Fz_model + c</span>, not clamped. The tire models use <span class="mono">max(Fz_obs, 0)</span> and the axle sums of that.</td><td class="mono">:384–396, 893</td></tr>
+<tr><td>1</td><td>Model through the gage filter</td><td><span class="mono">Fz_cmp = lpf(Fz_model, 0.5 Hz)</span>, so the two rates are compared like for like</td><td class="mono">vehicle_model.m:427, 477</td></tr>
+<tr><td>2</td><td>Gage filter and offset</td><td><span class="mono">Fz_meas = lpf(gage, 0.5 Hz) − gageOffset</span>, offset = gage (3 Hz LPF) at sample 100 − static corner load, a calibration constant (on the car: taken at startup at rest, or a parameter); the Δ removes it. A missing gage sample gives a zero rate, so the correction decays toward the model</td><td class="mono">:185–186, 218–221</td></tr>
+<tr><td>3</td><td>Gain</td><td><span class="mono">u(k) = ΔFz_meas(k) − ΔFz_cmp(k)</span>, K = 1.1</td><td class="mono">:115, 988</td></tr>
+<tr><td>4</td><td>Leaky integrator</td><td><span class="mono">c(k) = τ/(τ+dt)·(c(k−1) + K·u(k))</span>, τ = 8 s, <span class="mono">Fz_obs = max(Fz_model + c, 0)</span>: clamped at 0, a tire can not pull on the road (the correction c itself is not clamped). Two copies with their own state: the bicycle model runs it per axle on the axle model and the axle gage sums (<span class="mono">Fz_bike_obs</span>), the dual track model per tire (<span class="mono">Fz_dual_obs</span>). Each model's tire models use its own observer (<span class="mono">FzB</span>, <span class="mono">FzT</span>, :429, 479); before the clamp the observer is linear, so the axle observer equals the sum of the tire observers until a tire reaches 0.</td><td class="mono">:422–430, 474–481, 980</td></tr>
 </tbody></table></div>
 
 <!-- ============================== 3. FORCES ============================== -->
@@ -471,10 +813,10 @@ svg text { fill: var(--fg); }
 <div class="tbl"><table>
 <thead><tr><th>#</th><th>Quantity</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
 <tbody>
-<tr><td>5</td><td>Axle F<sub>y</sub> (force and yaw moment balance)</td><td><span class="mono">a_y,tire = v_x·r + dv_y/dt + g·cosθ·sinφ</span> (3 Hz signals); <span class="mono">Fy_f,veh = (m·l_r·a_y + I_z·ṙ)/L</span>, <span class="mono">Fy_r = (m·l_f·a_y − I_z·ṙ)/L</span>, front into its tire frame <span class="mono">Fy_f = (Fy_f,veh − Fx_f·sinδ)/cosδ</span>; I<sub>z</sub> = 1000 kg m² (placeholder)</td><td class="mono">vehicle_model.m:269, 475–478</td></tr>
-<tr><td>5</td><td>F<sub>x</sub> total (IMU)</td><td><span class="mono">Fx_total = m·a_x + ½ρ·CdA·v_x|v_x| + m·g·sinθ</span>; check against the wheels <span class="mono">Fx_f·cosδ − Fy_f·sinδ + Fx_r</span></td><td class="mono">:481–485</td></tr>
-<tr><td>6</td><td>F<sub>x</sub> per tire (wheel dynamics)</td><td><span class="mono">Fx_i = (T_d,i − T_b,i − I_w·ω̇_i)/R</span>; <span class="mono">T_b = P·4486 mm²·0.444·0.134 m/1000</span>; rear <span class="mono">T_d = G·T_engine(rpm, throttle)·η</span> split ½ / ½ (open diff), minus the engine inertia term; I<sub>w</sub> = thick ring + 0.25 kg m²; a locked wheel is capped at μ<sub>x</sub>·F<sub>z</sub></td><td class="mono">:415–461</td></tr>
-<tr><td>–</td><td>F<sub>x</sub> IMU split (comparison)</td><td>Fx_total split per tire: drive all rear, braking by the caliper pressure bias (0.53 below 75 kPa) with engine braking rear, 50 / 50 left / right</td><td class="mono">:487–513</td></tr>
+<tr><td>5</td><td>Axle F<sub>y</sub> (force and yaw moment balance)</td><td><span class="mono">a_y,tire = v_x·r + dv_y/dt + g·cosθ·sinφ</span> (3 Hz signals); <span class="mono">Fy_f,veh = (m·l_r·a_y + I_z·ṙ)/L</span>, <span class="mono">Fy_r = (m·l_f·a_y − I_z·ṙ)/L</span>, front into its tire frame <span class="mono">Fy_f = (Fy_f,veh − Fx_f·sinδ)/cosδ</span>; I<sub>z</sub> = 1000 kg m² (placeholder)</td><td class="mono">vehicle_model.m:278, 408–410</td></tr>
+<tr><td>5</td><td>F<sub>x</sub> total (IMU)</td><td><span class="mono">Fx_total = m·a_x + ½ρ·CdA·v_x|v_x| + m·g·sinθ</span>; check against the wheels <span class="mono">Fx_f·cosδ − Fy_f·sinδ + Fx_r</span></td><td class="mono">:557–559</td></tr>
+<tr><td>6</td><td>F<sub>x</sub> per tire (wheel dynamics)</td><td><span class="mono">Fx_i = (T_d,i − T_b,i − I_w·ω̇_i)/R</span>; <span class="mono">T_b = P·4486 mm²·0.444·0.134 m/1000</span>; rear <span class="mono">T_d = G·T_engine(rpm, throttle)·η</span> split ½ / ½ (open diff), minus the engine inertia term; I<sub>w</sub> = thick ring + 0.25 kg m²; throttle fraction = (throttle − idle)/(100 − idle), ≤ 0.05 is closed (idle = calibration parameter); a locked wheel is capped at μ<sub>x</sub>·F<sub>z</sub> with the load <em>model</em> F<sub>z</sub> (not an observer), so F<sub>x</sub> and the force balance stay stateless functions of the inputs that both models share</td><td class="mono">:357–403</td></tr>
+<tr><td>–</td><td>F<sub>x</sub> IMU split (comparison)</td><td>Fx_total split per tire: drive all rear, braking by the caliper pressure bias (0.53 below 75 kPa) with engine braking rear, 50 / 50 left / right</td><td class="mono">:561–576</td></tr>
 </tbody></table></div>
 
 <!-- ============================== 4. BICYCLE OBSERVER ============================== -->
@@ -487,12 +829,12 @@ svg text { fill: var(--fg); }
 
 <!-- inputs row 1 -->
 <g class="b"><rect x="16" y="73" width="180" height="34" rx="17"/><text class="fm" x="106" y="94" text-anchor="middle">axle Fy (force balance)</text></g>
-<g class="b"><rect x="16" y="153" width="180" height="34" rx="17"/><text class="fm" x="106" y="174" text-anchor="middle">Fz ×4 (Fig. 1b)</text></g>
+<g class="b"><rect x="16" y="153" width="180" height="34" rx="17"/><text class="fm" x="106" y="174" text-anchor="middle">Fz axle obs (1b)</text></g>
 <path class="w" d="M196,90 H406" marker-end="url(#a3)"/><text class="lb" x="301" y="82" text-anchor="middle">Fy_f, Fy_r</text>
 <path class="w" d="M196,170 H236" marker-end="url(#a3)"/>
 <g class="b"><rect x="236" y="146" width="130" height="48" rx="4"/>
   <text class="fm" x="301" y="166" text-anchor="middle">max(Fz, 0)</text>
-  <text class="fm" x="301" y="184" text-anchor="middle">sum per axle</text></g>
+  <text class="fm" x="301" y="184" text-anchor="middle">own axle obs.</text></g>
 <path class="w" d="M366,170 H406" marker-end="url(#a3)"/><text class="lb" x="386" y="162" text-anchor="middle">Fz_ax</text>
 
 <!-- 1 brush inverse -->
@@ -500,7 +842,7 @@ svg text { fill: var(--fg); }
   <text class="ti" x="516" y="76" text-anchor="middle">Brush inverse, per axle</text>
   <text class="fm" x="420" y="102">closed-form cubic (MPC)</text>
   <text class="fm" x="420" y="122">μ = 1.6</text>
-  <text class="fm" x="420" y="142">Cα = 174k / 290k N/rad</text>
+  <text class="fm" x="420" y="142">Cα = 2·Cα_i(Fz_ax/2)</text>
   <text class="fm" x="420" y="162">Fz = Fz_ax (min 100 N)</text>
   <text class="sm" x="420" y="186">closed form, = controller cubic</text></g>
 <g class="bdg"><circle cx="420" cy="64" r="9"/><text x="420" y="67.5" text-anchor="middle">1</text></g>
@@ -534,10 +876,10 @@ svg text { fill: var(--fg); }
 <path class="w" d="M176,435 H226" marker-end="url(#a3)"/><text class="lb" x="201" y="427" text-anchor="middle">ay</text>
 <g class="b flt"><rect x="226" y="400" width="260" height="70" rx="4"/>
   <text class="ti" x="356" y="422" text-anchor="middle">IMU predict</text>
-  <text class="fm" x="356" y="444" text-anchor="middle">Δvy = (ay − b − vx·r)·Ts</text>
+  <text class="fm" x="356" y="444" text-anchor="middle">Δvy = (ay − vx·r)·Ts</text>
   <text class="sm" x="356" y="462" text-anchor="middle">Ts = 0.01 s</text></g>
 <g class="bdg"><circle cx="240" cy="414" r="9"/><text x="240" y="417.5" text-anchor="middle">4</text></g>
-<g class="b sen"><rect x="286" y="500" width="140" height="28" rx="14"/><text class="fm" x="356" y="518" text-anchor="middle">vx, r, bias b</text></g>
+<g class="b sen"><rect x="286" y="500" width="140" height="28" rx="14"/><text class="fm" x="356" y="518" text-anchor="middle">vx, r</text></g>
 <path class="w" d="M356,500 V470" marker-end="url(#a3)"/>
 
 <path class="w" d="M486,435 H564" marker-end="url(#a3)"/><text class="lb" x="525" y="427" text-anchor="middle">Δvy</text>
@@ -567,50 +909,50 @@ svg text { fill: var(--fg); }
 <g class="bdg"><circle cx="1104" cy="414" r="9"/><text x="1104" y="417.5" text-anchor="middle">6</text></g>
 <g class="b sen"><rect x="1190" y="500" width="100" height="28" rx="14"/><text class="fm" x="1240" y="518" text-anchor="middle">δ, vx, r</text></g>
 <path class="w" d="M1240,500 V470" marker-end="url(#a3)"/>
-<path class="w" d="M1130,470 V544" marker-end="url(#a3)"/><text class="lb" x="1138" y="540">α_f, α_r, α_i^B → Fig. 3</text>
+<path class="w" d="M1130,470 V544" marker-end="url(#a3)"/><text class="lb" x="1138" y="540">α_f, α_r → k_us</text>
 </svg>
 </div>
-<figcaption>Fig. 2. A discrete complementary filter at full trust: above about 1/(2π·0.2 s) ≈ 0.8 Hz v<sub>y</sub> follows the IMU integration, below it the mean of the two axles' brush inverse. The axle slips feed the bicycle k<sub>us</sub>; the same v<sub>y</sub> through the dual track kinematics gives α<sub>i</sub><sup>B</sup>, the slip that corrects the per tire F<sub>y</sub> split in Fig. 3.</figcaption>
+<figcaption>Fig. 2. A discrete complementary filter at full trust: above about 1/(2π·0.2 s) ≈ 0.8 Hz v<sub>y</sub> follows the IMU integration, below it the mean of the two axles' brush inverse. The axle slips feed the bicycle k<sub>us</sub>. Nothing from this observer goes to the dual track model (Fig. 3); the two models are separate.</figcaption>
 </figure>
 <div class="tbl"><table>
 <thead><tr><th>#</th><th>Block</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
 <tbody>
-<tr><td>–</td><td>Brush tire</td><td><span class="mono">|F_y| = μF_z·(1 − (1 − x)³)</span>, <span class="mono">x = |tanα|/t_th</span>, <span class="mono">t_th = 3μF_z/Cα</span>, μF<sub>z</sub> past t<sub>th</sub>; μ 1.6, Cα 174k / 290k N/rad per axle (Cα/2 per tire), F<sub>z</sub> ≥ 100 N. This is the controller's <span class="mono">brush_tire_force</span> written out.</td><td class="mono">vehicle_model.m:976–1001</td></tr>
-<tr><td>1</td><td>Brush inverse</td><td>closed form <span class="mono">α = atan(t_th·(1 − (1 − u)^(1/3)))</span>, <span class="mono">u = |F_y|/(μF_z)</span>, α = atan(t<sub>th</sub>) for u ≥ 1; identical to the controller's <span class="mono">inverse_brush_tire_slip</span> cubic (checked to 1e-13 rad on 400 000 samples). Conditioning <span class="mono">c = (1 − u)^(2/3)</span>, 0 at saturation.</td><td class="mono">:536, 1003</td></tr>
-<tr><td>2</td><td>v<sub>y</sub> from each axle</td><td><span class="mono">vy_F = v_x·tan(δ − α_f) − l_f·r</span>, <span class="mono">vy_R = −v_x·tan(α_r) + l_r·r</span></td><td class="mono">:537</td></tr>
-<tr><td>3</td><td>Blend</td><td><span class="mono">vy_T = (vy_F + vy_R)/2</span>, gain 1</td><td class="mono">:537–538</td></tr>
-<tr><td>4</td><td>IMU predict</td><td><span class="mono">vy ← vy + (a_y − b − v_x·r)·T_s</span>, <span class="mono">b = median(a_y − v_x·r)</span> where |r| &lt; 0.02 rad/s and |a_y| &lt; 2 m/s²</td><td class="mono">:526–527, 958</td></tr>
-<tr><td>5</td><td>Correct</td><td><span class="mono">vy ← vy + (T_s/τ)·w_T·(vy_T − vy)</span> on the predicted value, τ 0.2 s; vy = 0 while v<sub>x</sub> ≤ 10 m/s or an input is missing</td><td class="mono">:958–973</td></tr>
-<tr><td>6</td><td>Slips</td><td><span class="mono">α_f = δ − atan((vy + l_f·r)/v_x)</span>, <span class="mono">α_r = −atan((vy − l_r·r)/v_x)</span>; per tire <span class="mono">α_i^B</span> = tireKin with this v<sub>y</sub> and δ<sub>i</sub></td><td class="mono">:539–544</td></tr>
+<tr><td>–</td><td>Brush tire</td><td><span class="mono">|F_y| = μF_z·(1 − (1 − x)³)</span>, <span class="mono">x = |tanα|/t_th</span>, <span class="mono">t_th = 3μF_z/Cα</span>, μF<sub>z</sub> past t<sub>th</sub>; μ 1.6, F<sub>z</sub> ≥ 100 N. This is the controller's <span class="mono">brush_tire_force</span> written out, with one change used everywhere (both models): a load sensitive cornering stiffness per tire, <span class="mono">Cα_i = Cα/2·(F_z,i/F_z0)^p</span> (<code>brushCa</code>), Cα = 174k / 290k N/rad (the MPC's), F<sub>z0</sub> = 1679 / 2319 N (static corner load), p = 0.76 / 0.78 front / rear. p is the secant of the rig MF 6.2 K<sub>y</sub>(F<sub>z</sub>) (<span class="mono">tires/*.tir</span>, PKY1, PKY2, PKY4) from 800 to 3000 N, not tuned to k<sub>us</sub>. A bicycle axle is two such tires at half the axle load, <span class="mono">Cα_axle = 2·Cα_i(F_z,axle/2)</span>.</td><td class="mono">vehicle_model.m:1113–1160, CaAx / CaTr :416–417</td></tr>
+<tr><td>1</td><td>Brush inverse</td><td>closed form <span class="mono">α = atan(t_th·(1 − (1 − u)^(1/3)))</span>, <span class="mono">u = |F_y|/(μF_z)</span>, α = atan(t<sub>th</sub>) for u ≥ 1; identical to the controller's <span class="mono">inverse_brush_tire_slip</span> cubic (checked to 1e-13 rad on 400 000 samples). Conditioning <span class="mono">c = (1 − u)^(2/3)</span>, 0 at saturation.</td><td class="mono">:438–440, 1147</td></tr>
+<tr><td>2</td><td>v<sub>y</sub> from each axle</td><td><span class="mono">vy_F = v_x·tan(δ − α_f) − l_f·r</span>, <span class="mono">vy_R = −v_x·tan(α_r) + l_r·r</span></td><td class="mono">:441</td></tr>
+<tr><td>3</td><td>Blend</td><td><span class="mono">vy_T = (vy_F + vy_R)/2</span>, gain 1</td><td class="mono">:441–442</td></tr>
+<tr><td>4</td><td>IMU predict</td><td><span class="mono">vy ← vy + (a_y − v_x·r)·T_s</span>; a<sub>y</sub> is <span class="mono">accel_filtered</span> as published, its bias is already removed upstream, so there is no bias term</td><td class="mono">:420, 1042</td></tr>
+<tr><td>5</td><td>Correct</td><td><span class="mono">vy ← vy + (T_s/τ)·w_T·(vy_T − vy)</span> on the predicted value, τ 0.2 s; vy = 0 while v<sub>x</sub> ≤ 10 m/s or an input is missing</td><td class="mono">:1042–1056</td></tr>
+<tr><td>6</td><td>Slips</td><td><span class="mono">α_f = δ − atan((vy + l_f·r)/v_x)</span>, <span class="mono">α_r = −atan((vy − l_r·r)/v_x)</span>; the per tire slip from this v<sub>y</sub> (<span class="mono">alphaB</span>) is only plotted for comparison</td><td class="mono">:443–445</td></tr>
 </tbody></table></div>
 
 <!-- ============================== 5. TIRE FY, DUAL TRACK, KUS ============================== -->
 <h2>5 · Per tire F<sub>y</sub>, dual track v<sub>y</sub> observer and k<sub>us</sub></h2>
-<p class="prose">The axle force is split per tire twice: by normal load, and by normal load corrected with each tire's brush at its bicycle observer slip (Jung &amp; Choi). The corrected split is the per tire F<sub>y</sub> output and the input of the dual track observer. The understeer gradient uses the controller's formula with a secant axle stiffness; the right column shows where the bicycle version differs.</p>
+<p class="prose">The axle force is split per tire twice: by normal load, and by normal load corrected with each tire's brush at the dual track observer's own slip of the previous sample (Jung &amp; Choi). <code>dualTrackObserver</code> runs one sample at a time, like the C++ <code>DualTrackModel::step</code>, and the dual track model takes nothing from the bicycle model. The corrected split is the per tire F<sub>y</sub> output and the input of the dual track observer. The understeer gradient uses the controller's formula with a secant axle stiffness; the right column shows where the bicycle version differs.</p>
 <figure>
 <div class="fig">
-<svg viewBox="0 0 1200 1138" role="img" aria-label="Dual track chain: the axle Fy is split by normal load and corrected with the brush at the bicycle observer slip, each tire runs a brush inverse, gets a weight and a v_y estimate, the weighted v_y feeds the IMU observer, the observed v_y gives each tire slip, each tire brush force, axle stiffness and the understeer gradient.">
+<svg viewBox="0 0 1200 1138" role="img" aria-label="Dual track chain: the axle Fy is split by normal load and corrected with the brush at the dual track slip of the previous sample, each tire runs a brush inverse and gives a v_y estimate, the mean v_y feeds the IMU observer, the observed v_y gives each tire slip, each tire brush force, axle stiffness and the understeer gradient.">
 <defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
 <g class="b sig"><rect x="158" y="12" width="168" height="30" rx="15"/></g>
 <text class="fm" x="242" y="31" text-anchor="middle">F_y axle (force bal.)</text>
 <g class="b sig"><rect x="338" y="12" width="150" height="30" rx="15"/></g>
 <text class="fm" x="413" y="31" text-anchor="middle">F_z,i observed</text>
 <g class="b sig"><rect x="500" y="12" width="150" height="30" rx="15"/></g>
-<text class="fm" x="575" y="31" text-anchor="middle">α_i^B (Fig. 2)</text>
+<text class="fm" x="575" y="31" text-anchor="middle">α_i (k−1), step 7</text>
 <g class="b sen"><rect x="662" y="12" width="136" height="30" rx="15"/></g>
 <text class="fm" x="730" y="31" text-anchor="middle">δ_i, v_x, r</text>
 <g class="b sen"><rect x="810" y="12" width="132" height="30" rx="15"/></g>
-<text class="fm" x="876" y="31" text-anchor="middle">IMU a_y, b</text>
+<text class="fm" x="876" y="31" text-anchor="middle">IMU a_y</text>
 <text class="sm" x="730" y="56" text-anchor="middle">used in 4, 6, 7</text>
 <text class="sm" x="876" y="56" text-anchor="middle">used in 6</text>
 <path class="w" d="M242,42 L242,78" marker-end="url(#a4)"/>
 <path class="w" d="M413,42 L413,78" marker-end="url(#a4)"/>
 <path class="w" d="M575,42 L575,78" marker-end="url(#a4)"/>
 <g class="b tm"><rect x="158" y="78" width="784" height="84" rx="4"/></g>
-<text class="ti" x="550" y="97" text-anchor="middle">Split each axle F_y by normal load, correct with the brush at the bicycle observer slip</text>
-<text class="fm" x="550" y="120.333" text-anchor="middle">F⁰_i = brush(α_i^B, F_z,i, μ 1.6, Cα/2)</text>
+<text class="ti" x="550" y="97" text-anchor="middle">Split each axle F_y by normal load, correct with the brush at the previous sample slip</text>
+<text class="fm" x="550" y="120.333" text-anchor="middle">F⁰_i = brush(α_i(k−1), F_z,i, μ 1.6, Cα_i),  α_i(k−1) from step 7, 0 after a reset</text>
 <text class="fm" x="550" y="139.667" text-anchor="middle">F_y,i = F⁰_i + (F_y,axle − F⁰_L − F⁰_R) · P_i / (P_L + P_R),   P_i = (200 N + 0.2 |F⁰_i|)²</text>
-<text class="sm" x="550" y="156.667" text-anchor="middle">below v_x 10 m/s (no observer slip): the normal load split F_y,axle · F_z,i / (F_z,L + F_z,R)</text>
+<text class="sm" x="550" y="156.667" text-anchor="middle">below v_x 10 m/s (observer off): the normal load split F_y,axle · F_z,i / (F_z,L + F_z,R)</text>
 <g class="bdg"><circle cx="170" cy="91" r="9"/><text x="170" y="94.5" text-anchor="middle">1</text></g>
 <path class="w" d="M250,162 L250,200" marker-end="url(#a4)"/>
 <text class="lb" x="258" y="185">F_y,i</text>
@@ -619,20 +961,20 @@ svg text { fill: var(--fg); }
 <path class="w" d="M850,162 L850,200" marker-end="url(#a4)"/>
 <g class="b tm"><rect x="158" y="200" width="184" height="64" rx="4"/></g>
 <text class="ti" x="250" y="219" text-anchor="middle">FL: brush inverse</text>
-<text class="fm" x="250" y="242" text-anchor="middle">Cα/2 = 87k N/rad</text>
+<text class="fm" x="250" y="242" text-anchor="middle">87k·(F_z/1679)^0.76</text>
 <text class="sm" x="250" y="259" text-anchor="middle">μ 1.6, F_z = F_z,FL</text>
 <g class="bdg"><circle cx="170" cy="213" r="9"/><text x="170" y="216.5" text-anchor="middle">2</text></g>
 <g class="b tm"><rect x="358" y="200" width="184" height="64" rx="4"/></g>
 <text class="ti" x="450" y="219" text-anchor="middle">FR: brush inverse</text>
-<text class="fm" x="450" y="242" text-anchor="middle">Cα/2 = 87k N/rad</text>
+<text class="fm" x="450" y="242" text-anchor="middle">87k·(F_z/1679)^0.76</text>
 <text class="sm" x="450" y="259" text-anchor="middle">μ 1.6, F_z = F_z,FR</text>
 <g class="b tm"><rect x="558" y="200" width="184" height="64" rx="4"/></g>
 <text class="ti" x="650" y="219" text-anchor="middle">RL: brush inverse</text>
-<text class="fm" x="650" y="242" text-anchor="middle">Cα/2 = 145k N/rad</text>
+<text class="fm" x="650" y="242" text-anchor="middle">145k·(F_z/2319)^0.78</text>
 <text class="sm" x="650" y="259" text-anchor="middle">μ 1.6, F_z = F_z,RL</text>
 <g class="b tm"><rect x="758" y="200" width="184" height="64" rx="4"/></g>
 <text class="ti" x="850" y="219" text-anchor="middle">RR: brush inverse</text>
-<text class="fm" x="850" y="242" text-anchor="middle">Cα/2 = 145k N/rad</text>
+<text class="fm" x="850" y="242" text-anchor="middle">145k·(F_z/2319)^0.78</text>
 <text class="sm" x="850" y="259" text-anchor="middle">μ 1.6, F_z = F_z,RR</text>
 <path class="w" d="M250,264 L250,300" marker-end="url(#a4)"/>
 <text class="lb" x="258" y="286">α_i</text>
@@ -640,28 +982,28 @@ svg text { fill: var(--fg); }
 <path class="w" d="M650,264 L650,300" marker-end="url(#a4)"/>
 <path class="w" d="M850,264 L850,300" marker-end="url(#a4)"/>
 <g class="b calc"><rect x="158" y="300" width="184" height="82" rx="4"/></g>
-<text class="ti" x="250" y="319" text-anchor="middle">FL: weight</text>
+<text class="ti" x="250" y="319" text-anchor="middle">FL: conditioning</text>
 <text class="fm" x="250" y="341.667" text-anchor="middle">c = (1−|tanα_i|/t_th)²</text>
-<text class="fm" x="250" y="360.333" text-anchor="middle">w_i = c² · F_z,i/F_z,ax</text>
-<text class="sm" x="250" y="377.333" text-anchor="middle">t_th = 3μF_z,i/(Cα/2)</text>
+<text class="fm" x="250" y="360.333" text-anchor="middle">w_i = 1 (no weighting)</text>
+<text class="sm" x="250" y="377.333" text-anchor="middle">t_th = 3μF_z,i/Cα_i</text>
 <g class="bdg"><circle cx="170" cy="313" r="9"/><text x="170" y="316.5" text-anchor="middle">3</text></g>
 <g class="b calc"><rect x="358" y="300" width="184" height="82" rx="4"/></g>
-<text class="ti" x="450" y="319" text-anchor="middle">FR: weight</text>
+<text class="ti" x="450" y="319" text-anchor="middle">FR: conditioning</text>
 <text class="fm" x="450" y="341.667" text-anchor="middle">c = (1−|tanα_i|/t_th)²</text>
-<text class="fm" x="450" y="360.333" text-anchor="middle">w_i = c² · F_z,i/F_z,ax</text>
+<text class="fm" x="450" y="360.333" text-anchor="middle">w_i = 1 (no weighting)</text>
 <text class="sm" x="450" y="377.333" text-anchor="middle">c = 0 if |F_y,i| ≥ μF_z,i</text>
 <g class="b calc"><rect x="558" y="300" width="184" height="82" rx="4"/></g>
-<text class="ti" x="650" y="319" text-anchor="middle">RL: weight</text>
+<text class="ti" x="650" y="319" text-anchor="middle">RL: conditioning</text>
 <text class="fm" x="650" y="341.667" text-anchor="middle">c = (1−|tanα_i|/t_th)²</text>
-<text class="fm" x="650" y="360.333" text-anchor="middle">w_i = c² · F_z,i/F_z,ax</text>
-<text class="sm" x="650" y="377.333" text-anchor="middle">lifted tire → w ≈ 0</text>
+<text class="fm" x="650" y="360.333" text-anchor="middle">w_i = 1 (no weighting)</text>
+<text class="sm" x="650" y="377.333" text-anchor="middle">debug: saturated if c = 0</text>
 <g class="b calc"><rect x="758" y="300" width="184" height="82" rx="4"/></g>
-<text class="ti" x="850" y="319" text-anchor="middle">RR: weight</text>
+<text class="ti" x="850" y="319" text-anchor="middle">RR: conditioning</text>
 <text class="fm" x="850" y="341.667" text-anchor="middle">c = (1−|tanα_i|/t_th)²</text>
-<text class="fm" x="850" y="360.333" text-anchor="middle">w_i = c² · F_z,i/F_z,ax</text>
-<text class="sm" x="850" y="377.333" text-anchor="middle">saturated tire → w ≈ 0</text>
+<text class="fm" x="850" y="360.333" text-anchor="middle">w_i = 1 (no weighting)</text>
+<text class="sm" x="850" y="377.333" text-anchor="middle">debug: saturated if c = 0</text>
 <path class="w" d="M250,382 L250,418" marker-end="url(#a4)"/>
-<text class="lb" x="258" y="404">α_i, w_i</text>
+<text class="lb" x="258" y="404">α_i</text>
 <path class="w" d="M450,382 L450,418" marker-end="url(#a4)"/>
 <path class="w" d="M650,382 L650,418" marker-end="url(#a4)"/>
 <path class="w" d="M850,382 L850,418" marker-end="url(#a4)"/>
@@ -683,20 +1025,20 @@ svg text { fill: var(--fg); }
 <text class="fm" x="850" y="461" text-anchor="middle">Vx_i·tan(δ_i−α_i) + lr·r</text>
 <text class="sm" x="850" y="478" text-anchor="middle">Vx_i = vx + r·t_r/2</text>
 <path class="w" d="M250,484 L250,520" marker-end="url(#a4)"/>
-<text class="lb" x="258" y="506">vy_i, w_i</text>
+<text class="lb" x="258" y="506">vy_i</text>
 <path class="w" d="M450,484 L450,520" marker-end="url(#a4)"/>
 <path class="w" d="M650,484 L650,520" marker-end="url(#a4)"/>
 <path class="w" d="M850,484 L850,520" marker-end="url(#a4)"/>
 <g class="b calc"><rect x="158" y="520" width="784" height="60" rx="4"/></g>
-<text class="ti" x="550" y="539" text-anchor="middle">Weighted blend of the four tires</text>
-<text class="fm" x="550" y="563" text-anchor="middle">vy_T = Σ w_i·vy_i / Σ w_i,   w_T = max(w_FL + w_FR, w_RL + w_RR)</text>
+<text class="ti" x="550" y="539" text-anchor="middle">Mean of the four tires (equal weights)</text>
+<text class="fm" x="550" y="563" text-anchor="middle">vy_T = (vy_FL + vy_FR + vy_RL + vy_RR) / 4,   w_T = 1</text>
 <g class="bdg"><circle cx="170" cy="533" r="9"/><text x="170" y="536.5" text-anchor="middle">5</text></g>
 <path class="w" d="M550,580 L550,616" marker-end="url(#a4)"/>
-<text class="lb" x="558" y="602">vy_T, w_T</text>
+<text class="lb" x="558" y="602">vy_T</text>
 <g class="b flt"><rect x="158" y="616" width="784" height="80" rx="4"/></g>
 <text class="ti" x="550" y="635" text-anchor="middle">IMU observer loop (Fig. 2, blocks 4 and 5)</text>
-<text class="fm" x="550" y="659" text-anchor="middle">predict: vy⁻ = vy(k−1) + (a_y − b − v_x·r)·Ts</text>
-<text class="fm" x="550" y="679" text-anchor="middle">correct: vy = vy⁻ + (Ts/τ)·w_T·(vy_T − vy⁻),   τ = 0.2 s,   vy = 0 while v_x ≤ 10 m/s</text>
+<text class="fm" x="550" y="659" text-anchor="middle">predict: vy⁻ = vy(k−1) + (a_y − v_x·r)·Ts</text>
+<text class="fm" x="550" y="679" text-anchor="middle">correct: vy = vy⁻ + (Ts/τ)·(vy_T − vy⁻),   τ = 0.2 s,   vy = 0 while v_x ≤ 10 m/s</text>
 <g class="bdg"><circle cx="170" cy="629" r="9"/><text x="170" y="632.5" text-anchor="middle">6</text></g>
 <path class="w" d="M250,696 V732" marker-end="url(#a4)"/>
 <text class="lb" x="258" y="718">vy</text>
@@ -728,20 +1070,20 @@ svg text { fill: var(--fg); }
 <g class="b tm"><rect x="158" y="838" width="184" height="64" rx="4"/></g>
 <text class="ti" x="250" y="857" text-anchor="middle">FL: tire force</text>
 <text class="fm" x="250" y="880" text-anchor="middle">F_i = |brush(|α_i|)|</text>
-<text class="sm" x="250" y="897" text-anchor="middle">μ 1.6, Cα/2, F_z,FL</text>
+<text class="sm" x="250" y="897" text-anchor="middle">μ 1.6, Cα_i(F_z,FL)</text>
 <g class="bdg"><circle cx="170" cy="851" r="9"/><text x="170" y="854.5" text-anchor="middle">8</text></g>
 <g class="b tm"><rect x="358" y="838" width="184" height="64" rx="4"/></g>
 <text class="ti" x="450" y="857" text-anchor="middle">FR: tire force</text>
 <text class="fm" x="450" y="880" text-anchor="middle">F_i = |brush(|α_i|)|</text>
-<text class="sm" x="450" y="897" text-anchor="middle">μ 1.6, Cα/2, F_z,FR</text>
+<text class="sm" x="450" y="897" text-anchor="middle">μ 1.6, Cα_i(F_z,FR)</text>
 <g class="b tm"><rect x="558" y="838" width="184" height="64" rx="4"/></g>
 <text class="ti" x="650" y="857" text-anchor="middle">RL: tire force</text>
 <text class="fm" x="650" y="880" text-anchor="middle">F_i = |brush(|α_i|)|</text>
-<text class="sm" x="650" y="897" text-anchor="middle">μ 1.6, Cα/2, F_z,RL</text>
+<text class="sm" x="650" y="897" text-anchor="middle">μ 1.6, Cα_i(F_z,RL)</text>
 <g class="b tm"><rect x="758" y="838" width="184" height="64" rx="4"/></g>
 <text class="ti" x="850" y="857" text-anchor="middle">RR: tire force</text>
 <text class="fm" x="850" y="880" text-anchor="middle">F_i = |brush(|α_i|)|</text>
-<text class="sm" x="850" y="897" text-anchor="middle">μ 1.6, Cα/2, F_z,RR</text>
+<text class="sm" x="850" y="897" text-anchor="middle">μ 1.6, Cα_i(F_z,RR)</text>
 <path class="w" d="M250,902 L250,938" marker-end="url(#a4)"/>
 <text class="lb" x="258" y="924">F_i, α_i</text>
 <path class="w" d="M450,902 L450,938" marker-end="url(#a4)"/>
@@ -776,10 +1118,10 @@ svg text { fill: var(--fg); }
 <g class="b cmp"><rect x="990" y="200" width="200" height="284" rx="4"/></g>
 <text class="sm" x="1002" y="224">Steps 1–4 replaced by:</text>
 <text class="fm" x="1002" y="242">one brush inverse per</text>
-<text class="fm" x="1002" y="260">axle at F_z,ax, full Cα</text>
+<text class="fm" x="1002" y="260">axle, 2·Cα_i(F_z,ax/2)</text>
 <text class="fm" x="1002" y="296">vy_F, vy_R from axle</text>
 <text class="fm" x="1002" y="314">kinematics, mean δ</text>
-<text class="fm" x="1002" y="350">no weights: vy_T = mean,</text>
+<text class="fm" x="1002" y="350">vy_T = mean of the axles,</text>
 <text class="fm" x="1002" y="368">w_T = 1</text>
 <text class="sm" x="1002" y="404">Steps 5 and 6 are the</text>
 <text class="sm" x="1002" y="422">same in both.</text>
@@ -789,7 +1131,7 @@ svg text { fill: var(--fg); }
 <text class="fm" x="1002" y="792">the bicycle observer</text>
 <text class="fm" x="1002" y="828">C_axle =</text>
 <text class="fm" x="1002" y="846">|brush(α_axle, F_z,ax,</text>
-<text class="fm" x="1002" y="864">μ 1.6, Cα)| / tan α_axle</text>
+<text class="fm" x="1002" y="864">μ 1.6, Cα_ax)| / tan α</text>
 <text class="sm" x="1002" y="900">One axle tire at the axle</text>
 <text class="sm" x="1002" y="918">load: no left / right load</text>
 <text class="sm" x="1002" y="936">transfer penalty.</text>
@@ -800,83 +1142,244 @@ svg text { fill: var(--fg); }
 <text class="sm" x="1002" y="1112">localization slips</text>
 </svg>
 </div>
-<figcaption>Fig. 3. The per tire F<sub>y</sub> and the dual track chain to k<sub>us</sub>. Front and rear lanes run the same steps with their own track width, road wheel angle δ<sub>i</sub> and Cα/2. The weight is c² with c already squared, so each tire counts as (1 − |tanα|/t<sub>th</sub>)<sup>4</sup> times its load share.</figcaption>
+<figcaption>Fig. 3. The per tire F<sub>y</sub> and the dual track chain to k<sub>us</sub>. Front and rear lanes run the same steps with their own track width, road wheel angle δ<sub>i</sub> and load sensitive Cα<sub>i</sub> = Cα/2·(F<sub>z,i</sub>/F<sub>z0</sub>)<sup>p</sup> (p 0.76 / 0.78 from the rig .tir files). The four tires are averaged with equal weights (the conditioning weights made v<sub>y</sub> worse with this brush, 0.214 vs 0.190 m/s). Step 1 uses the slip of step 7 from the previous sample (<code>dualTrackObserver</code>, one sample at a time), so the chain needs nothing from the bicycle model.</figcaption>
 </figure>
 <div class="tbl"><table>
 <thead><tr><th>#</th><th>Step</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
 <tbody>
-<tr><td>1</td><td>F<sub>y</sub> split + correction</td><td>normal load: <span class="mono">Fy_i = Fy_axle·Fz_i/(Fz_L + Fz_R)</span> (0.5 if both 0); corrected: <span class="mono">F⁰_i = brush(α_i^B, Fz_i, μ, Cα/2)</span>, residual <span class="mono">r = Fy_axle − F⁰_L − F⁰_R</span>, <span class="mono">Fy_i = F⁰_i + r·P_i/(P_L + P_R)</span>, <span class="mono">P_i = (200 + 0.2|F⁰_i|)²</span> (axleCorrect). Where the observer is off: the normal load split.</td><td class="mono">vehicle_model.m:546–577, 934</td></tr>
-<tr><td>2</td><td>Brush inverse per tire</td><td>the same closed form with Cα/2 and the tire's own F<sub>z</sub></td><td class="mono">:593</td></tr>
-<tr><td>3</td><td>Weight</td><td><span class="mono">c_i = (1 − u_i)^(2/3)</span> = (1 − |tanα<sub>i</sub>|/t<sub>th</sub>)², <span class="mono">w_i = c_i² · Fz_i / Fz_axle</span></td><td class="mono">:595–596</td></tr>
-<tr><td>4</td><td>v<sub>y</sub> per tire</td><td><span class="mono">vy_i = Vx_c,i·tan(δ_i − α_i) − x_i·r</span>, x<sub>i</sub> = l<sub>f</sub> (front) or −l<sub>r</sub> (rear), the exact inverse of tireKin</td><td class="mono">:589–594</td></tr>
-<tr><td>5</td><td>Blend</td><td><span class="mono">vy_T = Σ w_i·vy_i / Σ w_i</span>, <span class="mono">w_T = max(w_FL + w_FR, w_RL + w_RR)</span></td><td class="mono">:598–599</td></tr>
-<tr><td>6</td><td>Observer</td><td>Fig. 2 blocks 4–5 with gain w<sub>T</sub>, τ 0.2 s</td><td class="mono">:600</td></tr>
-<tr><td>7</td><td>Slip per tire</td><td><span class="mono">α_i = −atan2(Vy_t, Vx_t)</span> from tireKin with the observed v<sub>y</sub> and δ<sub>i</sub>; axle slip = mean of the two tires (left minus right differs by 0.08° rms front, the mean equals the axle centre slip to 0.001°)</td><td class="mono">:601–604</td></tr>
-<tr><td>8–9</td><td>Axle stiffness</td><td>dual track <span class="mono">C = (|F_L| + |F_R|)/tan(max(|α_axle|, 0.1°))</span>, <span class="mono">F_i = brush(max(|α_i|, 0.1°), Fz_i, μ, Cα/2)</span>; bicycle <span class="mono">C = |brush(α_axle, Fz_axle, μ, Cα)|/tan α_axle</span> at the bicycle observer slip</td><td class="mono">:615–626</td></tr>
-<tr><td>10</td><td>k<sub>us</sub></td><td><span class="mono">k_us = m·(l_r·C_r − l_f·C_f)/(L·C_f·C_r)</span>, m 815 kg, l<sub>f</sub> 1.724 m, l<sub>r</sub> 1.248 m; only where v<sub>x</sub> &gt; 10 m/s and |v<sub>x</sub>·r| &gt; 4 m/s². Measured reference <span class="mono">(α_f − α_r − offset)/a_y</span> from the localization slips, offset = median on straights.</td><td class="mono">:627–631</td></tr>
+<tr><td>1</td><td>F<sub>y</sub> split + correction</td><td>normal load: <span class="mono">Fy_i = Fy_axle·Fz_i/(Fz_L + Fz_R)</span> (0.5 if both 0); corrected: <span class="mono">F⁰_i = brush(α_i(k−1), Fz_i, μ, Cα_i(Fz_i))</span>, α<sub>i</sub>(k−1) = step 7 of the previous sample (0 after a reset), residual <span class="mono">r = Fy_axle − F⁰_L − F⁰_R</span>, <span class="mono">Fy_i = F⁰_i + r·P_i/(P_L + P_R)</span>, <span class="mono">P_i = (200 + 0.2|F⁰_i|)²</span> (axleCorrect). Where the observer is off: the normal load split, the slips reset to 0.</td><td class="mono">vehicle_model.m:483–496, 1071–1075, 1018</td></tr>
+<tr><td>2</td><td>Brush inverse per tire</td><td>the same closed form with the tire's own F<sub>z</sub> and Cα<sub>i</sub>(F<sub>z,i</sub>)</td><td class="mono">:1080</td></tr>
+<tr><td>3</td><td>Weight</td><td><span class="mono">w_i = 1</span> for every tire (<span class="mono">obs.dtWeights = false</span>). The conditioning <span class="mono">c_i = (1 − u_i)^(2/3)</span> is kept for the debug saturated flag only. With the rig brush the old weights <span class="mono">c_i²·Fz_i/Fz_axle</span> made v<sub>y</sub> worse (0.214 vs 0.190 m/s; sweep of c<sup>0.5..4</sup>, with and without load share, floors 0.1 / 0.3: equal weights best on all samples, saturated samples and the fastest lap); kept as the comparison in the plots.</td><td class="mono">:1078</td></tr>
+<tr><td>4</td><td>v<sub>y</sub> per tire</td><td><span class="mono">vy_i = Vx_c,i·tan(δ_i − α_i) − x_i·r</span>, x<sub>i</sub> = l<sub>f</sub> (front) or −l<sub>r</sub> (rear), the exact inverse of tireKin</td><td class="mono">:1076, 1081</td></tr>
+<tr><td>5</td><td>Blend</td><td><span class="mono">vy_T = mean(vy_FL, vy_FR, vy_RL, vy_RR)</span>, <span class="mono">w_T = 1</span> (full trust, as the bicycle)</td><td class="mono">:1087–1089</td></tr>
+<tr><td>6</td><td>Observer</td><td>Fig. 2 blocks 4–5, gain 1, τ 0.2 s</td><td class="mono">:1090–1091</td></tr>
+<tr><td>7</td><td>Slip per tire</td><td><span class="mono">α_i = −atan2(Vy_t, Vx_t)</span> from tireKin with the observed v<sub>y</sub> and δ<sub>i</sub>; axle slip = mean of the two tires (left minus right differs by 0.08° rms front, the mean equals the axle centre slip to 0.001°)</td><td class="mono">:512–514, 1093–1094</td></tr>
+<tr><td>8–9</td><td>Axle stiffness</td><td>dual track <span class="mono">C = (|F_L| + |F_R|)/tan(max(|α_axle|, 0.1°))</span>, <span class="mono">F_i = brush(max(|α_i|, 0.1°), Fz_i, μ, Cα_i(Fz_i))</span>; bicycle <span class="mono">C = |brush(α_axle, Fz_axle, μ, Cα_axle(Fz_axle))|/tan α_axle</span> at the bicycle observer slip</td><td class="mono">:452–458, 520, 1099</td></tr>
+<tr><td>10</td><td>k<sub>us</sub></td><td><span class="mono">k_us = m·(l_r·C_r − l_f·C_f)/(L·C_f·C_r)</span>, m 815 kg, l<sub>f</sub> 1.724 m, l<sub>r</sub> 1.248 m; only where v<sub>x</sub> &gt; 10 m/s and |v<sub>x</sub>·r| &gt; 4 m/s². Measured reference <span class="mono">(α_f − α_r − offset)/a_y</span> from the localization slips, offset = median on straights.</td><td class="mono">:419, 521</td></tr>
 </tbody></table></div>
-<p class="note prose">2026-09-03 log, v<sub>x</sub> &gt; 10 m/s: v<sub>y</sub> rms against the localization 0.202 m/s (bicycle) and 0.172 m/s (dual track); per tire slip 0.30° rms on all four tires; k<sub>us</sub> median |error| against the measured 0.00021 (bicycle) and 0.00045 (dual track). The bicycle k<sub>us</sub> is the one to use; the dual track one still reads high (front load transfer).</p>
+<p class="note prose">2026-09-03 log, v<sub>x</sub> &gt; 10 m/s: v<sub>y</sub> rms against the localization 0.202 m/s (bicycle) and 0.190 m/s (dual track); per tire slip 0.32° rms; k<sub>us</sub> median |error| against the measured 0.00027 (bicycle) and 0.00026 (dual track), fastest lap 0.00031 for the dual track. With the load sensitive brush the two k<sub>us</sub> agree: the dual track no longer doubles in the high load transfer corners (C10 median 0.00141 with a fixed Cα per tire; the light inside front saturated at ~2°).</p>
+<p class="note prose">History on this log: fixed Cα per tire and conditioning weights gave v<sub>y</sub> 0.172 m/s but a dual track k<sub>us</sub> error of 0.00046 (0.00079 above 12 m/s²) and a bicycle k<sub>us</sub> error of 0.00021. The scores are against the localization v<sub>y</sub> and the measured k<sub>us</sub>; neither is ground truth, and the tire model is set from the rig data, not from them.</p>
+<p class="note prose">Coupling (changed 2026-10-04): step 1 used the bicycle observer slip α<sub>i</sub><sup>B</sup> before, which tied the two models together. The dual track observer does the same without it: 0.172 → 0.173 m/s v<sub>y</sub> rms and 0.00045 → 0.00046 k<sub>us</sub> |error| with its own previous-sample slip (the plain normal load split gives 0.168 m/s, 0.00046). <code>vehicle_model.m</code> now uses its own previous-sample slip, the bicycle model uses its own axle F<sub>z</sub> observer, and the locked wheel F<sub>x</sub> cap uses the load model, so the two models share only stateless functions of the inputs (Fig. P2).</p>
 <p class="note warn prose">One path to the localization stays: the axle F<sub>y</sub> uses <span class="mono">a_y,tire = v_x·r + dv_y/dt − g_y</span>, and dv<sub>y</sub>/dt is the derivative of the localization v<sub>y</sub>. The observers never use its level.</p>
 
 <!-- ============================== 6. OUTPUTS ============================== -->
 <h2>6 · Outputs of the package</h2>
+<p class="prose">Every published value has a MATLAB variable, so every field can be compared against the replayed node (Phase 3 of 7.6). Topics are the proposed ones of Fig. P2.</p>
 <div class="tbl"><table>
-<thead><tr><th>#</th><th>Output</th><th>Per</th><th>MATLAB variable</th><th>From</th></tr></thead>
+<thead><tr><th>#</th><th>Output</th><th>MATLAB variable</th><th>Model</th><th>Proposed topic</th></tr></thead>
 <tbody>
-<tr><td>1</td><td>Road wheel angle (rad)</td><td>tire, and the bicycle δ</td><td class="mono">delta_fl, delta_fr, delta</td><td>section 1</td></tr>
-<tr><td>2</td><td>Kinematic slip angle (rad), reference</td><td>tire, axle</td><td class="mono">alpha_fl ... alpha_rr, alpha_f, alpha_r</td><td>section 1</td></tr>
-<tr><td>3</td><td>Slip ratio κ, s<sub>x</sub>, s<sub>y</sub> (kinematic), locked flag</td><td>tire</td><td class="mono">kappa_*, sx_*, sy_*, locked_*</td><td>section 1</td></tr>
-<tr><td>4</td><td>Observed normal load (N), model load</td><td>tire, axle</td><td class="mono">Fz_dual_obs, Fz_bike_obs, Fz_dual_model</td><td>section 2</td></tr>
-<tr><td>5</td><td>F<sub>x</sub> (N), wheel dynamics; F<sub>x</sub> total (IMU)</td><td>tire, axle, vehicle</td><td class="mono">Fx_fl ... Fx_rr, Fxf, Fxr, Fx_total</td><td>section 3</td></tr>
-<tr><td>6</td><td>F<sub>y</sub> (N), force balance</td><td>axle</td><td class="mono">Fyf, Fyr</td><td>section 3</td></tr>
-<tr><td>7</td><td>F<sub>y</sub> (N), normal load split and corrected split</td><td>tire</td><td class="mono">Fy_fl ... Fy_rr, Fy_tm</td><td>section 5</td></tr>
-<tr><td>8</td><td>Observed v<sub>y</sub> (m/s)</td><td>vehicle (bicycle, dual track)</td><td class="mono">vy_bike_obs, vy_dual_obs</td><td>sections 4, 5</td></tr>
-<tr><td>9</td><td>Observed slip angle (rad)</td><td>axle (bicycle), tire (dual track)</td><td class="mono">alpha_f_obs, alpha_r_obs, alpha_obs</td><td>sections 4, 5</td></tr>
-<tr><td>10</td><td>Understeer gradient (rad/(m/s²))</td><td>vehicle (bicycle, dual track, measured)</td><td class="mono">k_us_bike, k_us_dual, k_us_meas</td><td>section 5</td></tr>
+<tr><td>1</td><td>Road wheel angle (rad)</td><td class="mono">delta; delta_fl ... (dW)</td><td>bicycle; dual track</td><td class="mono">bicycle/state; dualtrack/state</td></tr>
+<tr><td>2</td><td>Kinematic slip angle (rad), reference</td><td class="mono">alpha_f, alpha_r; alpha_fl ... alpha_rr</td><td>bicycle; dual track</td><td class="mono">bicycle/state; dualtrack/state</td></tr>
+<tr><td>3</td><td>Slip ratio κ, s<sub>x</sub>, s<sub>y</sub> (kinematic)</td><td class="mono">sx_f, sx_r; kappa_*, sx_*, sy_*</td><td>bicycle; dual track</td><td class="mono">bicycle/state; dualtrack/state (s<sub>x</sub> = the ABS input)</td></tr>
+<tr><td>4</td><td>Normal load (N), model and observed</td><td class="mono">Fz_f, Fz_r, Fz_bike_obs; Fz_fl ..., Fz_dual_obs</td><td>bicycle; dual track</td><td class="mono">bicycle/state; dualtrack/state</td></tr>
+<tr><td>5</td><td>F<sub>x</sub> (N), wheel dynamics</td><td class="mono">Fxf, Fxr; Fx_fl ... Fx_rr</td><td>bicycle; dual track</td><td class="mono">bicycle/state; dualtrack/state</td></tr>
+<tr><td>6</td><td>F<sub>y</sub> (N)</td><td class="mono">Fyf, Fyr; Fy_fl ... Fy_rr, Fy_tm</td><td>bicycle (axle); dual track (2 splits)</td><td class="mono">bicycle/state; dualtrack/state</td></tr>
+<tr><td>7</td><td>Observed v<sub>y</sub> (m/s)</td><td class="mono">vy_bike_obs; vy_dual_obs</td><td>bicycle; dual track</td><td class="mono">bicycle/state; dualtrack/state</td></tr>
+<tr><td>8</td><td>Observed slip angle (rad)</td><td class="mono">alpha_f_obs, alpha_r_obs; alpha_obs</td><td>bicycle; dual track</td><td class="mono">bicycle/state; dualtrack/state</td></tr>
+<tr><td>9</td><td>Understeer gradient (rad/(m/s²))</td><td class="mono">k_us_bike; k_us_dual</td><td>bicycle; dual track</td><td class="mono">bicycle/state; dualtrack/state</td></tr>
+<tr><td>10</td><td>Validity flags and intermediates</td><td class="mono">dbgB; dbgD</td><td>bicycle; dual track</td><td class="mono">bicycle/debug; dualtrack/debug</td></tr>
+<tr><td>–</td><td>k<sub>us</sub> measured, F<sub>x</sub> IMU split, F<sub>x</sub> total</td><td class="mono">k_us_meas, Fx_*_fb, Fx_total</td><td>–</td><td>MATLAB checks only, not published</td></tr>
 </tbody></table></div>
+<p class="note prose">Debug flags (<code>vehicle_model.m:460–472, 523–535</code>): moving = v<sub>x</sub> &gt; 4 m/s (else the kinematic slips are NaN); slip ratio valid = v<sub>x</sub> &gt; 1 m/s and the wheel speed it divides by ≥ 1 m/s (as the current ABS slip ratio); observer running = v<sub>x</sub> &gt; 10 m/s with every input finite (else v<sub>y</sub> = 0); F<sub>z</sub> observer active = gages present; k<sub>us</sub> valid = running and |v<sub>x</sub>·r| &gt; 4 m/s²; lifted = observed F<sub>z</sub> &lt; 300 N; locked = κ &lt; −0.5; saturated = brush conditioning 0. On the 2026 log: moving 66.5 %, both observers running 59.6 % of the samples</p>
+<p class="note prose"><b>Saturated</b> means the tire's F<sub>y</sub> is at or above what its brush can give at its load, |F<sub>y,i</sub>| ≥ μ·F<sub>z,i</sub> (μ 1.6): the brush inverse has no unique slip (it returns the peak slip). It is a flag on the tire model, not proof the tire slides, and since the observer now uses equal weights it does not change v<sub>y</sub>. With the rig brush (load sensitive Cα) on the 2026 log: FL 4.1 %, FR 4.3 %, RL 2.0 %, RR 1.4 % of observer samples (7.1 / 7.4 / 3.5 / 2.4 % above |a<sub>y</sub>| 4 m/s²), 71 % of them the inner tire at a median 310 N. With the fixed Cα it was 15 / 10 / 6 / 3 %, because a light tire saturated at ~2° slip.</p>
 
 <!-- ============================== 7. BUILD PLAN ============================== -->
-<h2>7 · Plan: building the dual track model in on-vehicle <code>vehicle_model</code></h2>
-<p class="prose">Today the on-vehicle dual track node (<code>src/control/vehicle_model</code>, <code>dynamic_dualtrack_model</code>) publishes kinematic slip angles and slip ratios from the odom at 3 Hz with one front road wheel angle, and the bicycle node has an axle load model and observer. The plan below brings the node to exactly what <code>vehicle_model.m</code> does, one tested piece at a time, with the MATLAB script as the golden reference.</p>
+<h2>7 · Building the on-vehicle <code>vehicle_model</code> package</h2>
+<p class="prose">Target: <code>on-vehicle/src/control/vehicle_model</code>, rebuilt as one node that wraps two model classes (Fig. P2). Today it holds two nodes (<code>dynamic_bicycle_model</code>, <code>dynamic_dualtrack_model</code>) with the differences listed in the review table. This section is written so an engineer or an agent can start cold: the rules, the file layout, the node structure, the model API, the MATLAB to C++ map, then the phases.</p>
+
+<h3>7.1 · Rules</h3>
+<div class="phase"><span class="tag">Read first</span><h4>The math is <code>vehicle_model.m</code>, exactly</h4>
+<ul>
+<li><b>Every equation, constant, gate, clamp and flag the package uses is in <code>vehicle_model.m</code> and the C++ must give the same numbers.</b> No extra filtering, no extra clamps, no "improvements" in the C++. A change goes into <code>vehicle_model.m</code> first (and into this page and the README), then the C++ follows, and the bag replay comparison (Phase 3 of 7.6) is run again.</li>
+<li><b>What is in the package:</b> everything in <code>vehicle_model.m</code> above the section <span class="mono">NOT IN THE PACKAGE</span> (line 537): settings and parameters, calibrations (as parameters), input conditioning, the <span class="mono">SHARED, STATELESS</span> sections, the <span class="mono">BICYCLE MODEL</span> sections and the <span class="mono">DUAL TRACK MODEL</span> sections, plus the functions they call. Below that line (alphaB, the weighted observer, k<sub>us</sub> measured, the F<sub>x</sub> IMU split, the save, the plots) is research only.</li>
+<li><b>The two models share no state</b> and never read each other's outputs. They share stateless functions only. Each has its own F<sub>z</sub> observer instance and its own v<sub>y</sub> observer state.</li>
+<li><b>The node holds no model math.</b> It subscribes, checks message timeouts, conditions the inputs (units, calibrations, filters, road wheel angles) into one input struct, runs both models on the same sample, publishes their outputs and its own errors.</li>
+<li><b>Same names and units as MATLAB.</b> Parameter names follow <code>vehicleParams</code> in snake_case; SI and radians everywhere; signs as MATLAB (α &gt; 0 → F<sub>y</sub> &gt; 0, δ &gt; 0 = left turn, the controller's brush sign flipped in <code>brushFy</code>).</li>
+<li><b>Verification is a bag replay:</b> the comp2 bag played at 1× through the node, the recorded outputs converted to CSV and plotted against <code>vehicle_model.m</code> run on the same log (Phase 3 of 7.6).</li>
+<li><b>Nothing changes for the car until the consumers are switched on purpose</b> (shadow mode, Phase 4).</li>
+</ul></div>
+
+<h3>7.2 · Package layout and code style</h3>
+<p class="prose">Follow <code>src/control/acceleration_interface</code>: it is the reference for structure and coding style in this repo. Read <code>acceleration_interface_node.hpp</code> / <code>.cpp</code>, <code>acceleration_interface.hpp</code> / <code>.cpp</code>, <code>Powertrain/EngineMapCsvLoader</code>, <code>Powertrain/RosIceStateProvider</code>, <code>Brakes/BrakeBiasMap</code> and <code>config/params.yaml</code> before writing code.</p>
+<div class="tbl"><table>
+<thead><tr><th>Path</th><th>What goes there</th><th>acceleration_interface example</th></tr></thead>
+<tbody>
+<tr><td class="mono">include/vehicle_model/vehicle_model_node.hpp</td><td>the node class: callbacks, subscribers, publishers, timers, clock, last message times, latest inputs, the two model instances</td><td class="mono">acceleration_interface_node.hpp</td></tr>
+<tr><td class="mono">include/vehicle_model/vehicle_model_types.hpp</td><td>structs only: <span class="mono">VehicleModelInput</span>, <span class="mono">BicycleOutput</span>, <span class="mono">BicycleDebug</span>, <span class="mono">DualTrackOutput</span>, <span class="mono">DualTrackDebug</span>, and the parameter structs (<span class="mono">VehicleParams</span>, <span class="mono">TireParams</span>, <span class="mono">ObserverParams</span>, <span class="mono">GateParams</span>) mirroring <code>vehicleParams</code></td><td class="mono">AccelInterfaceInput, Step_Params, AccelInterfaceOutput in acceleration_interface.hpp</td></tr>
+<tr><td class="mono">include/vehicle_model/shared/*.hpp</td><td>declarations of the stateless functions and the small stateful helpers: <span class="mono">TustinLPF</span>, <span class="mono">road_wheel_angles</span> + <span class="mono">AckermannLut</span>, <span class="mono">tire_kin</span>, <span class="mono">slip_ratios</span>, <span class="mono">load_model</span>, <span class="mono">wheel_dynamics_fx</span>, <span class="mono">force_balance_fy</span>, <span class="mono">brush_fy</span> / <span class="mono">brush_inv</span> / <span class="mono">brush_ca</span> / <span class="mono">axle_correct</span>, <span class="mono">FzObserver</span>, <span class="mono">VyObserver</span></td><td class="mono">Aero/, Brakes/, Powertrain/ headers</td></tr>
+<tr><td class="mono">include/vehicle_model/bicycle_model.hpp, dual_track_model.hpp</td><td>the two model classes: <span class="mono">setInput</span>, <span class="mono">step</span>, <span class="mono">getOutput</span>, <span class="mono">getDebug</span>, <span class="mono">setParams</span>, private state</td><td class="mono">class AccelerationInterface</td></tr>
+<tr><td class="mono">include/vehicle_model/lut/*.hpp</td><td>LUT structs and loaders: <span class="mono">AckermannLut</span> (road_deg → left_deg, right_deg), the engine map (reuse <span class="mono">IceEngineMap</span> / <span class="mono">load_engine_map_csv</span> or copy their form)</td><td class="mono">BrakeBiasMap.hpp, EngineMapCsvLoader.hpp</td></tr>
+<tr><td class="mono">src/**/*.cpp</td><td>the function bodies, one .cpp per .hpp, same folder names</td><td class="mono">src/Brakes/*.cpp ...</td></tr>
+<tr><td class="mono">src/vehicle_model_node.cpp, src/main.cpp</td><td>node implementation; <span class="mono">main()</span> only in main.cpp (acceleration_interface has a second <span class="mono">main</span> in the node .cpp and includes the .cpp from main.cpp; do not copy that)</td><td class="mono">acceleration_interface_node.cpp, main.cpp</td></tr>
+<tr><td class="mono">config/params.yaml</td><td>every parameter value, nested by block (<span class="mono">vehicle</span>, <span class="mono">steering</span>, <span class="mono">aero</span>, <span class="mono">brakes</span>, <span class="mono">driveline</span>, <span class="mono">tire</span>, <span class="mono">fz_observer</span>, <span class="mono">observer</span>, <span class="mono">gates</span>, <span class="mono">calibration</span>, <span class="mono">node</span>), values from <code>vehicle_model.m</code></td><td class="mono">config/params.yaml (brakes:, aero:, powertrain:)</td></tr>
+<tr><td class="mono">config/ackermann_lut.csv</td><td>the Ackermann table exported from <code>yaw_moment/ackerman_sweep_50.xlsx</code>; path as a parameter, relative to the package share directory</td><td class="mono">config/brake_bias_map_grid.csv, engine_map_*.csv</td></tr>
+<tr><td class="mono">test/*.cpp</td><td>small gtests where useful (brush forward / inverse round trip, filter coefficients, Ackermann lookup); the acceptance test is the bag replay comparison against <code>vehicle_model.m</code> (Phase 3 of 7.6)</td><td class="mono">test/test_*.cpp</td></tr>
+</tbody></table></div>
+<ul class="prose">
+<li><b>.hpp declares, .cpp executes.</b> Headers hold structs, classes, function signatures and member variables (including the parameter and LUT structs); the bodies live in the matching .cpp. Only one-line getters and setters inline in the header, as in <span class="mono">AccelerationInterface</span>.</li>
+<li><b>Parameters and LUTs</b> are declared as structs in <code>include/</code> and filled from <code>config/params.yaml</code> and the CSVs by the node (or a provider class, as <span class="mono">RosIceStateProvider</span> loads the engine map). The model classes never touch ROS.</li>
+<li><b>Clean and short:</b> minimal comments, in the style of <code>vehicle_model.m</code> and the current <code>vehicle_model</code> / <code>acceleration_interface</code> sources: a one-line comment per block, <span class="mono">// ASSUMPTION:</span> where the MATLAB has one, a short <span class="mono">/** @brief */</span> on public functions as in <code>acceleration_interface.hpp</code>. Names follow MATLAB where possible (<span class="mono">fz_bike_obs</span>, <span class="mono">vy_dual_obs</span>, <span class="mono">alpha_obs</span>, <span class="mono">k_us</span>).</li>
+<li>C++17 or 20 as acceleration_interface (<span class="mono">CMAKE_CXX_STANDARD 20</span>), <span class="mono">-Wall -Wextra -Wpedantic</span> clean, doubles, <span class="mono">std::array&lt;double, 4&gt;</span> for per tire values in FL, FR, RL, RR order and <span class="mono">std::array&lt;double, 2&gt;</span> for front, rear.</li>
+</ul>
+
+<h3>7.3 · The node (same structure as <code>acceleration_interface_node.cpp</code>)</h3>
+<p class="prose">Copy its shape: a constructor that only logs, <span class="mono">initialize()</span> that creates subscribers, publishers, parameters, timers, the clock and the model instances; callbacks that store the latest value and stamp the arrival time; <span class="mono">checkMsgTimeouts()</span> that builds an <span class="mono">ErrorReport</span>; a 100 Hz <span class="mono">controlCallback()</span> that runs the models; a 1 s <span class="mono">updateParamsCallback()</span> for live tunables.</p>
+<div class="tbl"><table>
+<thead><tr><th>Subscription</th><th>Type</th><th>Callback stores</th><th>Timeout (<span class="mono">max_msg_timeout_s</span>)</th></tr></thead>
+<tbody>
+<tr><td class="mono">/odometry/global_filtered</td><td>nav_msgs/Odometry</td><td>v<sub>x</sub>, v<sub>y</sub>, r, quaternion; <span class="mono">last_odom_time_</span></td><td>ERROR_FATAL: models not stepped, outputs invalid</td></tr>
+<tr><td class="mono">/novatel_bottom/accel_filtered</td><td>geometry_msgs/AccelStamped</td><td>a<sub>x</sub>, a<sub>y</sub>; <span class="mono">last_accel_time_</span></td><td>ERROR_FATAL</td></tr>
+<tr><td class="mono">/raptor_dbw_interface/steering_extended_report</td><td>raptor_dbw_msgs/SteeringReportExtd</td><td>steering wheel angle (deg); <span class="mono">last_steering_time_</span></td><td>ERROR_FATAL</td></tr>
+<tr><td class="mono">/raptor_dbw_interface/wheel_speed_report</td><td>raptor_dbw_msgs/WheelSpeedReport</td><td>four wheel speeds (km/h); <span class="mono">last_wheel_speed_time_</span></td><td>ERROR_FATAL for the slip ratios and F<sub>x</sub>; slip ratio valid flags false</td></tr>
+<tr><td class="mono">/raptor_dbw_interface/tire_report</td><td>deep_orange_msgs/TireReport</td><td>four strain gage loads; <span class="mono">last_tire_report_time_</span></td><td>ERROR_SOFT_FAULT: gage input missing, the F<sub>z</sub> observers see a zero rate (MATLAB: missing gage sample), <span class="mono">fz_observer_active</span> false</td></tr>
+<tr><td class="mono">/raptor_dbw_interface/brake_2_report</td><td>raptor_dbw_msgs/Brake2Report</td><td>front, rear brake pressure (kPa); <span class="mono">last_brake_time_</span></td><td>ERROR_SOFT_FAULT: F<sub>x</sub> per tire invalid</td></tr>
+<tr><td class="mono">/raptor_dbw_interface/pt_report</td><td>deep_orange_msgs/PtReport</td><td>engine rpm, throttle, gear; <span class="mono">last_pt_report_time_</span></td><td>ERROR_SOFT_FAULT: F<sub>x</sub> per tire invalid</td></tr>
+</tbody></table></div>
+<p class="prose">Publishers: <span class="mono">/control/vehicle_model/bicycle/state</span>, <span class="mono">/bicycle/debug</span>, <span class="mono">/dualtrack/state</span>, <span class="mono">/dualtrack/debug</span>, <span class="mono">/control/vehicle_model/errors</span> (the topic the current bicycle node already declares). QoS as acceleration_interface: <span class="mono">rclcpp::SensorDataQoS()</span> for sensor subscriptions, depth 1 for publishers. Clock: <span class="mono">get_clock()</span> with <span class="mono">use_sim_time</span>, else <span class="mono">RCL_STEADY_TIME</span>, exactly as acceleration_interface (bag replay must run on sim time).</p>
+<pre class="code"><code>void VehicleModelNode::controlCallback()
+{
+    if (!bicycle_ || !dual_track_) {return;}
+
+    checkMsgTimeouts();                 // ErrorReport, sets input_valid_ / gage_valid_ / fx_valid_
+    if (!input_valid_) {return;}
+
+    conditioner_.update(raw_, model_input_);   // units, calibrations, Tustin filters, road wheel angles
+
+    bicycle_->setInput(model_input_);
+    bicycle_->step();
+    dual_track_->setInput(model_input_);
+    dual_track_->step();
+
+    publishBicycle(bicycle_->getOutput(), bicycle_->getDebug());
+    publishDualTrack(dual_track_->getOutput(), dual_track_->getDebug());
+}
+
+void VehicleModelNode::checkMsgTimeouts()
+{
+    blackandgold_msgs::msg::ErrorReport error_msg;
+    error_msg.header.stamp = this->now();
+    error_msg.origin = "vehicle_model_node";
+    error_msg.module = "control";
+    error_msg.lifetime = 1.0;
+
+    input_valid_ = true;
+    if ((this->clock->now() - this->last_odom_time_).seconds() &gt; max_msg_timeout_s) {
+        input_valid_ = false;
+        error_msg.description = "Odometry message timeout! Vehicle model outputs invalid.";
+        error_msg.severity = blackandgold_msgs::msg::ErrorReport::ERROR_FATAL;
+    }
+    // ... accel, steering, wheel speed (fatal); tire_report, brake, pt (soft fault) the same way
+
+    if (!input_valid_ || soft_fault_) {
+        pubError_-&gt;publish(error_msg);
+    }
+}</code></pre>
+
+<h3>7.4 · The model classes</h3>
+<pre class="code"><code>class BicycleModel {
+public:
+    BicycleModel(const VehicleParams&amp; params);          // precompute filter coefficients, Ca, k_phi as acceleration_interface does
+    void setInput(const VehicleModelInput&amp; in) { input_ = in; }
+    void setParams(const VehicleParams&amp; params) { params_ = params; }
+    void step();                                         // axle Fz observer, v_y observer, axle slips, k_us, debug
+    const BicycleOutput&amp; getOutput() const { return output_; }
+    const BicycleDebug&amp;  getDebug()  const { return debug_; }
+
+private:
+    VehicleParams params_;
+    VehicleModelInput input_{};
+    BicycleOutput output_{};
+    BicycleDebug  debug_{};
+    FzObserver fz_observer_;                             // 2 channels, its own state
+    VyObserver vy_observer_;                             // its own state
+};
+
+class DualTrackModel { ... same API ...                // per tire Fz observer, Fy split, v_y observer, slips, k_us
+    FzObserver fz_observer_;                             // 4 channels, its own state
+    VyObserver vy_observer_;
+    std::array&lt;double, 4&gt; alpha_prev_{};                // tire slips of the previous sample (Fy split correction)
+};</code></pre>
+<p class="prose"><span class="mono">VehicleModelInput</span> carries the conditioned sample both models read: v<sub>x</sub>, v<sub>y</sub>, r, roll, pitch, a<sub>x</sub>, a<sub>y</sub>, the 0.3 Hz load model copies (v<sub>x</sub>, v<sub>y</sub>, r, a<sub>x</sub>, roll, pitch), dv<sub>y</sub>/dt and ṙ, δ<sub>i</sub>[4] and δ, wheel speeds[4] (m/s, calibrated), gage loads[4] (0.5 Hz, offset removed), brake pressures (zeroed), rpm, throttle fraction, gear, dt.</p>
+
+<h3>7.5 · MATLAB to C++ map</h3>
+<div class="tbl"><table>
+<thead><tr><th><code>vehicle_model.m</code></th><th>Line</th><th>C++</th></tr></thead>
+<tbody>
+<tr><td>vehicle parameters</td><td class="mono">:45</td><td>config/params.yaml → parameter structs in vehicle_model_types.hpp</td></tr>
+<tr><td>calibrations (wheelCal, R_f, R_r, brake zero, throttle idle, gage offset)</td><td class="mono">:139</td><td>offline: computed in MATLAB, printed, stored in params.yaml <span class="mono">calibration:</span>. The gage offset may also be taken at startup with the car at rest (gage − static corner load)</td></tr>
+<tr><td>input conditioning</td><td class="mono">:197</td><td>node: <span class="mono">InputConditioner</span> (owns the <span class="mono">TustinLPF</span> states) → <span class="mono">VehicleModelInput</span></td></tr>
+<tr><td>SHARED: road wheel angles</td><td class="mono">:256</td><td>shared/road_wheel_angles + lut/AckermannLut (linear interpolation, linear extrapolation as <span class="mono">interp1 "extrap"</span>)</td></tr>
+<tr><td>SHARED: accelerations</td><td class="mono">:268</td><td>shared/load_model, shared/force_balance (<span class="mono">ddt</span> = backward difference of the filtered signal over dt)</td></tr>
+<tr><td>SHARED: tire kinematics, kinematic slips</td><td class="mono">:281</td><td>shared/tire_kinematics <span class="mono">tire_kin</span> (<code>tireKin</code> :1030)</td></tr>
+<tr><td>SHARED: slip ratios and kappa</td><td class="mono">:297</td><td>shared/slip_ratios (vw_min floor, ±1 clamp, 1 m/s gate: same as the current <span class="mono">slip_ratio_calc</span>, with δ<sub>i</sub>)</td></tr>
+<tr><td>SHARED: load model</td><td class="mono">:319</td><td>shared/load_model (axle and per tire model loads)</td></tr>
+<tr><td>SHARED: Fx per wheel</td><td class="mono">:357</td><td>shared/wheel_dynamics (engine map: bilinear in rpm and throttle, nearest outside the table, as <span class="mono">griddedInterpolant("linear", "nearest")</span>)</td></tr>
+<tr><td>SHARED: axle Fy</td><td class="mono">:405</td><td>shared/force_balance</td></tr>
+<tr><td>SHARED: tire model</td><td class="mono">:412, 1113–1147</td><td>shared/brush_tire (<span class="mono">brush_fy</span>, <span class="mono">brush_inv</span>, <span class="mono">brush_ca</span>), shared/axle_correct (<code>axleCorrect</code> :1018)</td></tr>
+<tr><td>BICYCLE: axle F<sub>z</sub> observer</td><td class="mono">:422, 980</td><td><span class="mono">BicycleModel::step</span> → <span class="mono">FzObserver</span> (2 channels)</td></tr>
+<tr><td>BICYCLE: v<sub>y</sub> observer, slips</td><td class="mono">:432, 1042</td><td><span class="mono">BicycleModel::step</span> → <span class="mono">VyObserver</span></td></tr>
+<tr><td>BICYCLE: k<sub>us</sub>, debug</td><td class="mono">:447, 460</td><td><span class="mono">BicycleModel::step</span> → BicycleOutput, BicycleDebug</td></tr>
+<tr><td>DUAL TRACK: tire F<sub>z</sub> observer</td><td class="mono">:474</td><td><span class="mono">DualTrackModel::step</span> → <span class="mono">FzObserver</span> (4 channels)</td></tr>
+<tr><td>DUAL TRACK: F<sub>y</sub> split, v<sub>y</sub> observer</td><td class="mono">:483, 498, 1060</td><td><span class="mono">DualTrackModel::step</span>; <code>dualTrackObserver</code> is already one sample at a time, port its loop body line for line (the <span class="mono">useWeights</span> branch is comparison only, leave it out)</td></tr>
+<tr><td>DUAL TRACK: k<sub>us</sub>, debug</td><td class="mono">:516, 1099, 523</td><td><span class="mono">DualTrackModel::step</span> → DualTrackOutput, DualTrackDebug</td></tr>
+<tr><td>low pass filter</td><td class="mono">:998</td><td>shared/filters <span class="mono">TustinLPF</span>: K = tan(π f<sub>c</sub> T<sub>s</sub>), a1 = (1−K)/(1+K), b = K/(1+K), y = a1·y + b·(x + x<sub>prev</sub>); first sample y = x; a missing sample holds the last input. acceleration_interface's <span class="mono">computeTustinLowPassCoeffs</span> is the same filter</td></tr>
+</tbody></table></div>
+<p class="note prose">Vectorised MATLAB vs a per sample node: every block in <code>vehicle_model.m</code> is causal (only past and present samples) so it maps to one call per 100 Hz sample. Where MATLAB writes NaN (car not moving, observer not running) the C++ sets the output to 0 and the matching valid flag false. The offline calibrations are the only non causal part, and they are parameters on the vehicle.</p>
+
+<h3>7.6 · Phases</h3>
 <div class="plan">
-<div class="phase"><span class="tag">Phase 1</span><h4>Golden data from MATLAB</h4>
-<ol>
-<li>Add an export to <code>vehicle_model.m</code>: inputs at 100 Hz exactly as the node receives them (odom v<sub>x</sub>, v<sub>y</sub>, r, quaternion, accel_filtered a<sub>x</sub>, a<sub>y</sub>, steering angle, wheel speeds, gages, brake pressures, rpm, throttle, gear) and every output of section 6, as CSV.</li>
-<li>Cut two short windows (a few laps of the 2026-09-03 log and one braking / lock-up window) for unit tests.</li>
-</ol></div>
-<div class="phase"><span class="tag">Phase 2</span><h4>Pure C++ blocks, no ROS, each with a unit test against the golden CSV</h4>
+<div class="phase"><span class="tag">Phase 1</span><h4>C++ blocks and the two model classes, no ROS</h4>
 <ol>
 <li><b>Filters:</b> a Tustin prewarped first order low pass to match <code>lpf</code> (the node's current <code>lowPassFilter</code> is the exponential form, slightly different); 3 Hz shared, 0.3 Hz load model inputs, 0.5 Hz gages and the model compare copy.</li>
 <li><b>Road wheel angles:</b> load the Ackermann table as a CSV parameter, linear interpolation, toe parameters; δ<sub>i</sub> for all four tires and the bicycle δ.</li>
 <li><b>Kinematics:</b> one <code>tire_kin(vx, vy, r, δ[4])</code> used for the reference slips, the slip ratios and both observers; replace the single steering angle in <code>calculate_slip_angles</code> and <code>slip_ratio_calc</code> with δ<sub>i</sub>.</li>
 <li><b>Load model:</b> the bicycle loads with <code>a_z = g·cosθ·cosφ − v_x·r·sinφ</code> (the C++ bicycle model has the bank term commented out), downforce, the dual track lateral transfer and the corner split.</li>
-<li><b>F<sub>z</sub> observer:</b> per tire, the model passed through the gage filter before the rate compare; c(k) = a·(c(k−1) + K·u). The existing <code>vehicle_model::Observer</code> computes c = (1−leak)·c + K·e, which matches with <span class="mono">leak = 1 − τ/(τ + dt) = 0.00125</span> and <span class="mono">K_c++ = K·τ/(τ + dt) = 1.0986</span> at τ 8 s, K 1.1, dt 0.01 s.</li>
-<li><b>Forces:</b> axle F<sub>y</sub> force and yaw moment balance with the front in its tire frame; F<sub>x</sub> total; F<sub>x</sub> per tire from the wheel dynamics (engine map CSV, gear and diff ratios and efficiencies, brake gain, inertias, locked cap).</li>
-<li><b>Brush:</b> forward, closed form inverse and conditioning as one small header shared with <code>fbl_mpc_controller</code> (the closed form equals its cubic).</li>
-<li><b>Bicycle v<sub>y</sub> observer</b>, <b>F<sub>y</sub> split + correction</b>, <b>dual track v<sub>y</sub> observer</b>, <b>k<sub>us</sub></b>, in that order, each tested on the golden CSV (tolerance: v<sub>y</sub> 1e-3 m/s, slips 1e-3 deg, k<sub>us</sub> 1e-6).</li>
+<li><b>F<sub>z</sub> observer:</b> one class, two instances with their own state (axle in the bicycle model, per tire in the dual track model), the model passed through the gage filter before the rate compare; c(k) = a·(c(k−1) + K·u). The existing <code>vehicle_model::Observer</code> computes c = (1−leak)·c + K·e, which matches with <span class="mono">leak = 1 − τ/(τ + dt) = 0.00125</span> and <span class="mono">K_c++ = K·τ/(τ + dt) = 1.0986</span> at τ 8 s, K 1.1, dt 0.01 s.</li>
+<li><b>Forces:</b> axle F<sub>y</sub> force and yaw moment balance with the front in its tire frame; F<sub>x</sub> total; F<sub>x</sub> per tire from the wheel dynamics (engine map CSV, gear and diff ratios and efficiencies, brake gain, inertias, locked cap at μ<sub>x</sub> times the load <em>model</em> F<sub>z</sub>, so it stays stateless and shared).</li>
+<li><b>Brush:</b> forward, closed form inverse, conditioning and the load sensitive <span class="mono">Cα_i = Cα/2·(F_z,i/F_z0)^p</span> as one small header; the same header in <code>fbl_mpc_controller</code> so the controller and the package use one tire model (the closed form equals its cubic).</li>
+<li><b>Two model classes</b> on those functions, each with its own state and one <code>step()</code>:
+  <span class="mono">BicycleModel::step() (after setInput(in), read with getOutput() / getDebug())</span> (axle kinematics, axle load model + F<sub>z</sub> observer, axle forces, bicycle v<sub>y</sub> observer, k<sub>us</sub>) and
+  <span class="mono">DualTrackModel::step() (same API)</span> (tire kinematics and slip ratios, tire load model + F<sub>z</sub> observer, F<sub>x</sub> per tire, F<sub>y</sub> split + correction at its own previous-sample slip, dual track v<sub>y</sub> observer, k<sub>us</sub>). Neither reads the other.</li>
+<li>Build in the order of the MATLAB sections (7.5); each block is a line for line port of its section.</li>
 </ol></div>
-<div class="phase"><span class="tag">Phase 3</span><h4>Node, parameters, message</h4>
+<div class="phase"><span class="tag">Phase 2</span><h4>Node, parameters, messages</h4>
 <ol>
+<li>One node as the wrapper: subscriptions → input conditioning (units, calibrations, filters, road wheel angles) into <span class="mono">VehicleModelInput</span> → <span class="mono">bicycle_->step()</span>, <span class="mono">dual_track_->step()</span> → publish. The node holds no model math.</li>
 <li>Subscriptions: <code>/odometry/global_filtered</code>, <code>/novatel_bottom/accel_filtered</code>, <code>steering_extended_report</code>, <code>wheel_speed_report</code>, <code>tire_report</code>, <code>brake_2_report</code>, <code>pt_report</code>; one 100 Hz update.</li>
-<li>Parameters from <code>vehicle_model.m</code>: l<sub>f</sub> 1.724 / l<sub>r</sub> 1.248 m (URDF base_link), tracks, m, h, I<sub>z</sub>, aero, roll centres and wheel rates, steering ratio and offset, Ackermann table, toe, brush μ and Cα, observer τ, K, gains and speed gates.</li>
-<li>Message: extend <code>DualTrackSlip</code> (or a new <code>DualTrackState</code>) with every output of section 6 and valid flags (observer running, tire unloaded, wheel locked).</li>
+<li>Parameters from <code>vehicle_model.m</code>: l<sub>f</sub> 1.724 / l<sub>r</sub> 1.248 m (URDF base_link), tracks, m, h, I<sub>z</sub>, aero, roll centres and wheel rates, steering ratio and offset, Ackermann table, toe, brush μ, Cα, F<sub>z0</sub> and p (0.76 / 0.78 from the rig .tir), observer τ, K, the dual track weights switch (off) and speed gates.</li>
+<li>Messages: <span class="mono">BicycleState</span>, <span class="mono">BicycleDebug</span>, <span class="mono">DualTrackState</span>, <span class="mono">DualTrackDebug</span> in <code>blackandgold_msgs</code> (fields in the table above); each model returns its state and debug struct from <code>step()</code>, the node copies them into the messages and publishes <span class="mono">errors</span> itself.</li>
+
 </ol></div>
-<div class="phase"><span class="tag">Phase 4</span><h4>Validation</h4>
+<div class="phase"><span class="tag">Phase 3</span><h4>Verify: replay the comp2 bag through the node, compare with <code>vehicle_model.m</code></h4>
 <ol>
-<li>Bag replay of the 2026-09-03 log through the node, outputs against <code>vehicle_model.m</code> on the whole log.</li>
-<li>A second log (2025 comp) to check that nothing was tuned to one session.</li>
+<li>MATLAB side: <code>vehicle_model.m</code> on <code>bags/lagoona/comp2/compition_bags/2026-09-03_121638_merged.csv</code>, which is <code>rosbag2_merged_2026-09-03_121638</code> merged by <code>merge_rosbag2_folder_to_csv_v3.py</code> onto a 0.01 s grid (merge report: t0 = 1788463010.696 s, no filter).</li>
+<li>C++ side: <span class="mono">ros2 bag play rosbag2_merged_2026-09-03_121638 --clock</span> <b>at 1× speed</b> (the node runs on a 100 Hz timer and checks message timeouts, so a faster replay is not the same experiment), playing only the input topics (leave the bag's own <span class="mono">/control/vehicle_model/*</span> out), with the node on <span class="mono">use_sim_time:=true</span>; <span class="mono">ros2 bag record --use-sim-time</span> the four output topics and <span class="mono">/control/vehicle_model/errors</span> (the merge script times every sample by the recorder's log time, so the recorder must run on bag time too).</li>
+<li>Same numbers on both sides: <code>params.yaml</code> holds the <code>vehicle_model.m</code> parameters and the calibrations it prints (<span class="mono">calibration: wheelCal, R_f, R_r, brake zero, throttle idle, gage offset</span>). Replay from the start of the bag, so the node starts its observers (and any startup gage zero) on the same samples as MATLAB.</li>
+<li>Convert the recorded bag: <span class="mono">python3 merge_rosbag2_folder_to_csv_v3.py -i &lt;recording&gt; -o &lt;out&gt; -t 0.01 --time-mode union --topics-file vehicle_model_node_topics.yaml</span>, with the workspace sourced so the new <code>blackandgold_msgs</code> types decode, and no <span class="mono">-f</span> (that filter is zero phase and would change the outputs). <code>vehicle_model_node_topics.yaml</code> (in <code>Vehicle_modeling/</code>) maps every message field to a CSV column; if the messages change, change it and the signal list in the comparison script together. The CSV <span class="mono">time_s</span> is absolute bag time, the same clock as the comp2 CSV (which starts at 1788463010.696 s).</li>
+<li>Compare in MATLAB with plots: node vs <code>vehicle_model.m</code> for every output (road wheel angles, slips, slip ratios, F<sub>z</sub>, F<sub>x</sub>, F<sub>y</sub>, v<sub>y</sub>, observed slips, k<sub>us</sub>, debug flags), overlay plus the difference, whole log and the fastest lap with C1 to C11 marked: <code>compare_vehicle_model_node.m</code>. It runs <code>vehicle_model.m</code> (plots off), reads the node CSV (<span class="mono">nodeCsv</span> at the top), interpolates it onto the MATLAB samples (linear, flags previous), scores only where MATLAB is finite, and prints per signal: rms and p99 of node − MATLAB, rms / rms, the best lag within ±0.5 s and the rms at that lag (a pure timing offset shows as a lag with a small rms at lag; a math error keeps a large rms at lag), and the % of samples where each debug flag disagrees. Tabs: summary bars, one tab per group (overlay | difference), fastest lap. Tested on a synthetic node CSV (10 ms delay, noise, a 5 % k<sub>us</sub> error, flipped flags, a missing column): all four were found.</li>
+<li>What to expect: the MATLAB inputs are linearly interpolated onto a fixed 10 ms grid while the node sees each message at its own rate and steps on its own 100 Hz timer with the latest values, so the two differ at the noise level even when the code is right. A real mismatch shows as an offset, a sign, a lag, a drift or a diverging observer in the difference trace.</li>
+</ol></div>
+<div class="phase"><span class="tag">Phase 4</span><h4>Second log, shadow mode, migration</h4>
+<ol>
+<li>The same replay comparison on a second log (2025 comp) to check that nothing was tuned to one session.</li>
+
 <li>On the car in shadow mode: published, not used by the controller.</li>
+<li>Migrate the readers before retiring the old topics: <code>acceleration_interface</code> ABS to <span class="mono">dualtrack/state</span> slip_ratio_x and <span class="mono">dualtrack/debug</span> slip_ratio_valid (same s<sub>x</sub> definition, checked on the bench before the switch to the Ackermann δ<sub>i</sub>); <code>telemetry_web</code>, <code>basestation_com_v2</code>, <code>slip_vs_force_plot</code> to <span class="mono">bicycle/state</span>. Publish old and new topics side by side for one test day, then remove output, output_filtered, vehicle_state, dualtrack/output, dualtrack/output_filtered.</li>
 </ol></div>
 <div class="phase"><span class="tag">Phase 5</span><h4>Use in the MPC</h4>
 <ol>
-<li><code>fbl_mpc_controller</code>: take the bicycle k<sub>us</sub> (or the observed axle F<sub>z</sub> and slip into its own <code>effective_stiffness</code>) in place of the fixed load brush; replace the 0.0012 clamp with a hold or rate limit when |F|/μF<sub>z</sub> &gt; ~0.9.</li>
+<li><code>fbl_mpc_controller</code>: take the bicycle k<sub>us</sub> (or the observed axle F<sub>z</sub> and slip into its own <code>effective_stiffness</code>) in place of the fixed load brush, and its own brush with the same load sensitive Cα (a fixed Cα at the observed load would not be the tire model the k<sub>us</sub> was computed with); replace the 0.0012 clamp with a hold or rate limit when |F|/μF<sub>z</sub> &gt; ~0.9.</li>
 </ol></div>
 <div class="phase"><span class="tag">Open items</span><h4>To settle on the car or in the data</h4>
 <ul>
 <li>Static toe: yaw_moment.m has −0.451° front and rear, set to 0 here until confirmed.</li>
 <li>Wheel speed calibration: the 2026 log has too few free rolling samples (289 &lt; 300), wheelCal = 1.</li>
 <li>I<sub>z</sub> (placeholder 1000 kg m²), CG height, front ARB rate.</li>
-<li>The dual track k<sub>us</sub> reads high against the measured one; the bicycle k<sub>us</sub> is the one for the MPC.</li>
+<li>Bicycle and dual track k<sub>us</sub> now agree (0.00027 / 0.00026 median |error|); the bicycle k<sub>us</sub> got slightly worse with the load sensitive brush (0.00021 before). Which one the MPC takes is open; the bicycle is simpler.</li>
+<li>Brake pressure source on AV24: <code>brake_2_report</code> is marked deprecated in raptor_dbw_can but is in the 2026 logs.</li>
+<li>Saturated flag: now 1–4 % per tire, mostly the inner tire at ~310 N (section 6); check the inner tire load and the split before the flag is used for anything.</li>
+<li>Message and topic names (<span class="mono">bicycle/state</span>, <span class="mono">BicycleState</span>, ...) are proposals; settle them with the controls team before Phase 3.</li>
+<li><code>tire_fit_data_*.mat</code> caches predate the 2026-10-04 split; rebuild them before using tire_fit.m or tire_fz_plots.m.</li>
 </ul></div>
 </div>
 

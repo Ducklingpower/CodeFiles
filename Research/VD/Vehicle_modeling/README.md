@@ -1,7 +1,8 @@
 # Vehicle_modeling: load-aware slip angle and understeer gradient for the fbl_mpc controller
 
 This folder holds the vehicle dynamics research for Purdue's autonomous race car (Dallara IAC-type, Firestone Firehawk slicks,
-815 kg) on Laguna Seca. It is written so a new agent (or person) can pick the work up cold. Read sections 1 to 3 first.
+815 kg) on Laguna Seca. It is written so a new agent (or person) can pick the work up cold. Read sections 1 to 3 first; to build the
+on-vehicle package, section 2a and `observer_block_diagrams.html` section 7.
 
 All numbers below come from the 2026-09-03 comp log unless stated, evaluated on near pure cornering or on all samples
 above 10 m/s as noted. Dates: the work ran 2026-09-28 to 2026-10-01.
@@ -25,13 +26,155 @@ not from v_y. The measured slip (from odom v_y) is used only as the reference to
 holds the final product of the slip work: road wheel angles from the Ackermann table (`yaw_moment/ackerman_sweep_50.xlsx`)
 + static toe (0 until confirmed, yaw_moment.m has -0.451 deg) in every per tire calculation; lf / lr 1.724 / 1.248 m (URDF);
 fc 3 Hz (the Fz observer keeps 0.3 / 0.5 Hz); the bicycle v_y observer (MPC brush at the observed axle Fz, full trust,
-tau 0.2 s) and bicycle k_us; the per tire Fy split by normal load and corrected with the brush at the bicycle observer slip;
-the dual track v_y observer fed by that corrected split, and dual track k_us. The brush inverse is the closed form
+tau 0.2 s) and bicycle k_us; the per tire Fy split by normal load and corrected with the brush at the dual track observer's own slip of the
+previous sample; the dual track v_y observer fed by that corrected split, and dual track k_us. The brush inverse is the closed form
 `alpha = atan(t_th (1 - (1 - |F|/(mu Fz))^(1/3)))`, identical to the controller's cubic. Plots are one tabbed window.
-2026 log: v_y rms 0.202 (bicycle) / 0.172 m/s (dual track), per tire slip 0.30 deg, k_us median |error| 0.00021 / 0.00045.
+2026 log: v_y rms 0.202 (bicycle) / 0.173 m/s (dual track), per tire slip 0.30 deg, k_us median |error| 0.00021 / 0.00046.
+
+**2026-10-04: the bicycle and dual track models are fully separate** (the architecture of the on-vehicle package, section
+2a). The dual track Fy correction used the bicycle observer slip before; it now uses its own previous-sample slip
+(`dualTrackObserver`, one sample at a time), for the same accuracy (0.172 -> 0.173 m/s, 0.00045 -> 0.00046; the plain normal
+load split gives 0.168 m/s, 0.00046). The bicycle model uses its own axle Fz observer (`FzB`), the dual track model its own
+tire observer (`FzT`), and the locked wheel Fx cap uses the load model, so the two share only stateless functions of the
+inputs. Debug flags per model (`dbgB`, `dbgD`) are computed and saved.
+
+Later on 2026-10-04: **no a_y bias term** (accel_filtered a_y is already bias corrected upstream), the **Fz observer output
+is clamped at 0** (`max(model + correction, 0)`, a tire can not pull on the road; the correction state is not clamped), and
+a **Fastest lap** tab (Fz, Fy per tire, v_y, axle slips, k_us, a_y with C1 to C11 marked, lap timed at C11). Results:
+v_y rms 0.201 / 0.172 m/s, k_us |error| 0.00021 / 0.00046.
+
+**Load sensitive brush, rig exponent, equal weights (later 2026-10-04).** One tire model everywhere (both models, observer
+and k_us): per tire `Ca_i = Ca/2 (Fz_i / Fz0)^p` (`brushCa`), Ca = MPC 174k / 290k N/rad, Fz0 = static corner load
+1679 / 2319 N, **p = 0.76 / 0.78 from the rig MF 6.2 files** (secant of Ky(Fz) = PKY1 Fz0 sin(PKY4 atan(Fz / (PKY2 Fz0)))
+from 800 to 3000 N; local exponent falls from ~0.97 at 600 N to ~0.35 at 3500 N). A bicycle axle is two such tires at half
+the axle load. p was first swept against the measured k_us (0.7 matched); the rig value is what is used. With a fixed Ca
+the light inside front (~640 N in C10) saturated at ~2 deg and the dual track k_us doubled in the high transfer corners.
+The dual track weights were retuned for this brush: **equal weights, gain 1** (`obs.dtWeights = false`) beat every
+conditioning / load share / floor variant (v_y 0.190 vs 0.214 m/s with c^2 x share); the weighted version stays as the
+comparison in the plots. Results: v_y rms 0.202 (bicycle) / 0.190 m/s (dual), slip 0.32 deg, k_us |error| 0.00027 /
+0.00026 (before: 0.172 m/s, 0.00021 / 0.00046). The two k_us now agree; scores are against the localization v_y and the
+measured k_us, which are references, not ground truth.
+
+**Saturated flag** (fixed Ca numbers; with the rig brush 1 to 4 % per tire, 71 % inner, median 310 N): |Fy_i| >= mu Fz_i in the brush, so the inverse has no unique slip and the tire's observer weight is 0.
+Set on 15 / 10 / 6 / 3 % (FL / FR / RL / RR) of observer samples, 93.5 % of them the inner tire at a median 450 N with
+|Fy| / mu Fz 1.15 to 1.22: the split gives the unloaded inner front more force than its load allows. Open question.
 `observer_block_diagrams.html` documents every block with its math and line, the outputs, and the build plan for the C++.
 `debug_slip_angle.m` stays as the exploration script (its own copies of the observers, 1.3 Hz era, MPC lf / lr).
-The `tire_fit_data_*.mat` caches were built before this change; delete them to rebuild with the new `vehicle_model.m`.
+The `tire_fit_data_*.mat` caches were built before the 2026-10-02 and 10-04 changes; delete them to rebuild with the new
+`vehicle_model.m`.
+
+## 2a. On-vehicle `vehicle_model` package update (start here to build it)
+
+Target: `on-vehicle/src/control/vehicle_model`. The full guide is `observer_block_diagrams.html`: Fig. P (the package
+today) and Fig. P2 (the proposed package), the topic and message field tables, sections 0 to 6 (every equation with its
+`vehicle_model.m` line), and **section 7: rules, file layout, code style, node structure, model API, MATLAB to C++ map,
+build phases, open items**. This section is the short version.
+
+**Rule: the math must be exactly the math in `vehicle_model.m`.** Every equation, constant, gate, clamp and debug flag the
+C++ uses is in it and the C++ must reproduce its numbers. No extra filters, clamps or fixes in the C++. A change goes into
+`vehicle_model.m` first (then the HTML and this README), then the C++ follows, then the bag replay comparison is run
+again (phase 3 below).
+
+**What `vehicle_model.m` contains (2026-10-04, tightened to the package):** in the order the node runs it
+
+1. `settings`, `load file`, `vehicle parameters (the package params.yaml)`: every package parameter in `vehicleParams`.
+2. `calibrations`: wheel speed calibration, R_f / R_r, brake pressure zero, throttle idle, gage offset. Offline in MATLAB
+   (printed as `calibration: ...`), **parameters on the vehicle** (the gage offset may be taken at startup at rest).
+3. `input conditioning`: units, calibrations, Tustin filters (3 Hz every input, 0.3 Hz load model inputs, 0.5 Hz gages).
+4. `SHARED, STATELESS` sections: road wheel angles (Ackermann LUT + toe), accelerations, tire kinematics and kinematic
+   slips, slip ratios (vw_min 1 m/s floor, +/-1 clamp, 1 m/s gate: the current ABS slip ratio, now with delta_i) and
+   kappa, load model, Fx per wheel, axle Fy force balance, the tire model (load sensitive MPC brush).
+5. `BICYCLE MODEL` sections: axle Fz observer, v_y observer and axle slips, k_us, debug flags (`dbgB`).
+6. `DUAL TRACK MODEL` sections: per tire Fz observer, Fy split, v_y observer (`dualTrackObserver`, already one sample at
+   a time: port its loop), k_us, debug flags (`dbgD`).
+7. `NOT IN THE PACKAGE`: references and comparisons (alphaB, the old weighted observer, measured k_us, the Fx IMU split),
+   the save for the research scripts (with the Pacejka coefficients), then the plots. Do not port these.
+
+Every block is causal, so it maps to one call per 100 Hz sample; where MATLAB writes NaN the C++ writes 0 and clears the
+matching valid flag. Results on the 2026-09-03 log: v_y rms 0.202 (bicycle) / 0.190 m/s (dual track), k_us median
+|error| 0.00027 / 0.00026.
+
+**Architecture: one node wrapping two separate model classes.**
+
+* The node subscribes, checks message timeouts, conditions the inputs into one `VehicleModelInput`, runs
+  `bicycle_->setInput(in); bicycle_->step();` and `dual_track_->setInput(in); dual_track_->step();` on the same sample,
+  publishes `getOutput()` / `getDebug()` of each, and publishes its own `ErrorReport`. It holds no model math.
+* `BicycleModel` and `DualTrackModel` have the API of `AccelerationInterface` (`setInput`, `step`, `getOutput`,
+  `setParams`, plus `getDebug`), their own state (each its own `FzObserver` and `VyObserver`), no ROS, and never read each
+  other. They share stateless functions only.
+
+**Structure and style: follow `src/control/acceleration_interface`.** Read `acceleration_interface_node.hpp/.cpp`,
+`acceleration_interface.hpp/.cpp`, `Powertrain/EngineMapCsvLoader`, `Powertrain/RosIceStateProvider`,
+`Brakes/BrakeBiasMap` and `config/params.yaml` first; the new node should look like `acceleration_interface_node.cpp`:
+
+* constructor only logs; `initialize()` creates the subscriptions (`rclcpp::SensorDataQoS()`, `std::bind` to
+  `receive_*` callbacks), the publishers, declares the parameters into the parameter structs, creates the control timer
+  (`control_dt_s` 0.01 s) and the param timer (`ts_param` 1 s), picks the clock (`get_clock()` with `use_sim_time`, else
+  `RCL_STEADY_TIME`), stamps every `last_*_time_`, then builds the model instances;
+* each `receive_*` callback stores the latest values and `last_*_time_ = this->clock->now()`;
+* `checkMsgTimeouts()` exactly like acceleration_interface: one `blackandgold_msgs::msg::ErrorReport` (origin
+  `vehicle_model_node`, module `control`, lifetime 1.0), compare `clock->now() - last_*_time_` with `max_msg_timeout_s`,
+  set the description and severity per topic (odom, accel, steering, wheel speeds: ERROR_FATAL, outputs invalid;
+  tire_report, brake_2_report, pt_report: ERROR_SOFT_FAULT, Fz observer active / Fx valid false), publish when set;
+* `controlCallback()`: guard, `checkMsgTimeouts()`, condition the inputs, step both models, publish;
+* `updateParamsCallback()`: re-read the live tunables and push them with `setParams`;
+* `main()` only in `main.cpp` (`rclcpp::init`, `make_shared`, `initialize()`, `spin`).
+
+Files: `.hpp` declares (structs, classes, function signatures, member variables, the parameter and LUT structs), `.cpp`
+executes (the bodies); parameter values in `config/params.yaml` (nested blocks as acceleration_interface), LUTs as CSV in
+`config/` (`ackermann_lut.csv` from `yaw_moment/ackerman_sweep_50.xlsx`, the engine map) loaded into structs declared in
+`include/` (as `BrakeBiasMap` / `EngineMapCsvLoader`). Minimal comments, same style as `vehicle_model.m` and the current
+`vehicle_model` / `acceleration_interface` sources: one line per block, `// ASSUMPTION:` where MATLAB has one, a short
+`/** @brief */` on public functions. Names follow MATLAB. Per tire values as `std::array<double, 4>` (FL, FR, RL, RR).
+
+Topics (proposed names, settle with the controls team):
+
+| Topic | Message | Contents | Readers |
+|---|---|---|---|
+| `/control/vehicle_model/bicycle/state` | `BicycleState` | delta; per axle slip kinematic / observed, slip ratio, Fz model / observed, Fx, Fy; v_y, k_us | fbl_mpc_controller, telemetry |
+| `/control/vehicle_model/bicycle/debug` | `BicycleDebug` | moving, slip angle / ratio valid, observer running, Fz observer active, k_us valid; brush slip, conditioning, saturated, v_y tire model | debugging |
+| `/control/vehicle_model/dualtrack/state` | `DualTrackState` | per tire delta, slip kinematic / observed, kappa, s_x, s_y, Fz model / observed, Fx, Fy (2 splits); v_y, k_us | acceleration_interface (ABS), telemetry |
+| `/control/vehicle_model/dualtrack/debug` | `DualTrackDebug` | per tire valid flags, lifted (< 300 N), locked (kappa < -0.5), saturated, conditioning (no weights: equal weights, gain 1) | debugging |
+| `/control/vehicle_model/errors` | `ErrorReport` | input timeouts per topic, NaN inputs (from the node) | error handling |
+
+Inputs: `/odometry/global_filtered`, `/novatel_bottom/accel_filtered`, `steering_extended_report`, `wheel_speed_report`,
+`tire_report`, and new `brake_2_report`, `pt_report` (wheel dynamics Fx); the unused `imu/data_raw` subscription goes.
+
+Build phases (detail in the HTML section 7):
+
+1. C++ blocks and the two model classes without ROS, in the order of the MATLAB sections, each a line for line port.
+2. The node, params.yaml (the `vehicle_model.m` parameters and the calibrations it prints), the four new messages in
+   `blackandgold_msgs`.
+3. **Verify by bag replay against `vehicle_model.m`:**
+   * MATLAB: `vehicle_model.m` on `bags/lagoona/comp2/compition_bags/2026-09-03_121638_merged.csv`, which is the bag
+     `rosbag2_merged_2026-09-03_121638` merged by `merge_rosbag2_folder_to_csv_v3.py` onto a 0.01 s grid (merge report:
+     t0 = 1788463010.696 s, no filter).
+   * Node: `ros2 bag play rosbag2_merged_2026-09-03_121638 --clock` **at 1x speed** (the node runs a 100 Hz timer and
+     checks timeouts, a faster replay is a different experiment), input topics only (leave the bag's own
+     `/control/vehicle_model/*` out), node on `use_sim_time:=true`, replay from the start of the bag so the observers
+     start on the same samples as MATLAB; `ros2 bag record --use-sim-time` the four output topics and
+     `/control/vehicle_model/errors` (the merge script times samples by the recorder's log time).
+   * Convert: `python3 merge_rosbag2_folder_to_csv_v3.py -i <recording> -o <out> -t 0.01 --time-mode union
+     --topics-file vehicle_model_node_topics.yaml`, workspace sourced for the new message types, no `-f` (zero phase
+     filter). `vehicle_model_node_topics.yaml` maps every message field to a column; keep it, the messages and the
+     comparison script's signal list in step. `time_s` is absolute bag time, the same clock as the comp2 CSV.
+   * Compare: `compare_vehicle_model_node.m` (set `nodeCsv` at the top). It runs `vehicle_model.m` with plots off,
+     interpolates the node CSV onto the MATLAB samples, scores where MATLAB is finite (rms and p99 of node - MATLAB,
+     rms / rms, best lag within +/-0.5 s and the rms at that lag, % disagreement per debug flag) and plots a summary, one
+     tab per group (overlay | difference) and the fastest lap with the corners. A timing offset shows as a lag with a
+     small rms at lag; a math error keeps a large rms at lag. Tested on a synthetic node CSV (delay, noise, a 5 % k_us
+     error, flipped flags, a missing column).
+   * Expect noise level differences (the CSV inputs are interpolated onto a fixed grid, the node sees each message at
+     its own rate on its own timer); a real mismatch is an offset, a sign, a lag, a drift or a diverging observer.
+4. The same comparison on a second log (2025 comp), shadow mode on the car, then migrate the readers before retiring the
+   old topics (`output`, `output_filtered`, `vehicle_state`, `dualtrack/output`, `dualtrack/output_filtered`):
+   `acceleration_interface` ABS to `dualtrack/state` s_x + `dualtrack/debug` slip ratio valid; `telemetry_web`,
+   `basestation_com_v2`, `slip_vs_force_plot` to `bicycle/state`. Old and new side by side for one test day.
+5. The MPC takes the bicycle k_us (with the same load sensitive brush) and the 0.0012 clamp is replaced by a utilization
+   based hold.
+
+Open before the port: static toe, the AV24 brake pressure topic (`brake_2_report` is marked deprecated in raptor_dbw_can),
+the saturated flag (1 to 4 % per tire, mostly the unloaded inner tire), Iz, CG height, ARB_f, the topic / message names.
 
 ### Earlier state (2026-10-01)
 
@@ -54,7 +197,9 @@ load transfer than the rear and the tire models punish that too hard (see 8). Bi
 
 | File | What it is |
 |---|---|
-| `vehicle_model.m` | Main estimator: calibrations, slip angles, normal force model + observer, per wheel Fx, axle Fy from force balance, per tire Fy splits (normal load, tire model corrected), plots. Writes `tire_fit_data*.mat` when `saveFitData = true`. |
+| `vehicle_model.m` | **The MATLAB reference for the on-vehicle package** (section 2a): parameters, calibrations, input conditioning, shared stateless functions, bicycle model, dual track model, then comparisons not in the package, the save for the research scripts (`saveFitData = true`) and the tabbed plots. |
+| `compare_vehicle_model_node.m` | Replay check of the on-vehicle node: node output CSV vs `vehicle_model.m` on the comp2 log, scores and tabbed plots (section 2a, phase 3). |
+| `vehicle_model_node_topics.yaml` | `--topics-file` for `merge_rosbag2_folder_to_csv_v3.py`: the node's output message fields as CSV columns. |
 | `tire_fit.m` | Fits the Firestone MF 6.2 `.tir` scaling to data, then fits Pacejka 1987 coefficients. Writes `tires/adjusted/*.tir`, `tire_coeffs.csv`. |
 | `tire_fz_plots.m` | Load sensitivity evidence, MPC brush port, MPC understeer gradient port, slip / Fy / Fz debug tabs, corner analysis over 8 Laguna logs. Builds the `tire_fit_data_*.mat` files itself by running a temp copy of `vehicle_model.m`. |
 | `debug_slip_angle.m` | **The current work.** Slip and k_us without v_y: brush models, MF, v_y observers (bicycle and dual track), trust / tau sweeps, k_us per corner, old vs new comparison. |
@@ -107,35 +252,36 @@ drawn in **white** (`cObM`, dark theme; reference lines are white too, no black 
   removed from the code (2026-10-02): it had unflagged bursts of bad readings.
 * `est_steer_torque_nm` is the steering actuator effort (unsigned, spikes at every turn in), **not** tire aligning torque; the aligning moment method was dropped.
 
-## 5. vehicle_model.m (the estimator)
+## 5. vehicle_model.m (the estimator, the MATLAB reference for the package; structure in section 2a)
 
-Pipeline, all signals low passed with a first order Tustin filter (`lpf`, fc 1.3 Hz) unless noted:
+Pipeline (line numbers and every equation: `observer_block_diagrams.html`, sections 1 to 6). All signals low passed with a
+first order Tustin filter (`lpf`, **fc 3 Hz**), the Fz observer paths at 0.3 Hz (model inputs) and 0.5 Hz (gages).
+
+Shared, stateless functions of the inputs:
 
 1. Wheel speed calibration on free rolling; rear rolling radius from engine speed; brake pressure and gage zeros.
-2. Slip angles per tire from odom vx, vy, yaw rate with **dual track kinematics** (corner speeds vx -/+ r t/2, front corners
-   rotated by delta). `delta = steerOffset + steer / steerRatio` (0.333 deg, 15.015). Axle (bicycle) slips too.
-3. **Normal force model**: bicycle `Fz_f = m az_road lr/L - m ax_long h/L + aeroBal_f downforce` (+ rear), dual track adds
-   steady state lateral transfer from roll stiffness (wheel rates, `ARB_f = 0` TBD) and roll centres (front 0.120 m, rear
-   0.002 m, so the front takes most of the transfer).
-4. **Normal force observer** (`fzDerivativeObserver`): model sets the level, strain gages add their rate,
-   `correction = leaky integral of K (gage rate - model rate)`, output = model + correction. **Not clamped** (a negative
-   value is kept, a lifted tire). Current settings: model inputs **fcObsModel 0.3 Hz**, gages **fcObsGage 0.5 Hz** (the model
-   is passed through the same filter before the rates are compared), **K 1.1**, **tau 8 s**. History: K was 1.5 (amplified
-   gage noise 1.5x), then the filters were split per path.
-5. Per wheel Fx from wheel dynamics (engine map, gear ratios, brake gain, inertias), locked wheel cap.
+2. Road wheel angles: `delta_road = steerOffset + steer / steerRatio` (0.333 deg, 15.015), then the **Ackermann table**
+   (`yaw_moment/ackerman_sweep_50.xlsx`) for left / right and the static toe (0 until confirmed). Bicycle delta = mean front.
+3. Kinematic slips per tire (`tireKin`: corner speeds vx -/+ r t/2, each tire rotated by its own delta_i) and per axle,
+   from the odom v_y: the reference only. Slip ratios kappa, s_x, s_y stay kinematic.
+4. **Normal force model**: bicycle `Fz_f = m az_road lr/L - m ax_long h/L + aeroBal_f downforce` (+ rear), az_road with the
+   bank term; dual track adds steady state lateral transfer (wheel rates, `ARB_f = 0` TBD, roll centres 0.120 / 0.002 m).
+5. Per wheel Fx from wheel dynamics (engine map, gear ratios, brake gain, inertias); a locked wheel is capped at
+   mu_x times the load **model** Fz.
 6. **Axle Fy**: force and yaw moment balance, `Fyf = (m lr a_y + Iz r_dot)/L` (into the steered tire frame), `Fyr = (m lf
-   a_y - Iz r_dot)/L`, saved as `Fyf`, `Fyr`. `Iz = 1000` is a placeholder and sets the front / rear split in transients.
-   The random walk Kalman filter (Rezaeian eqs 38 to 53) that used to refine it was removed on 2026-10-02: it did not
-   make the per tire split better, and the debug_slip_angle.m results are unchanged without it (k_us error 0.00024).
-7. Per tire Fy, two methods only: (1) normal load split, (2) tire model corrected split: each tire's Pacejka force at
-   its own slip and observed load sets the shape, `axleCorrect` brings the pair to the axle total (still has a friction
-   ellipse term in this file). The friction circle split was removed.
-8. Figure "Observed loads vs raw gage": raw gage (shifted to overlap) vs dual track model (red) vs observer. The plain
-   "Normal force observers" figure was removed.
+   a_y - Iz r_dot)/L`. `Iz = 1000` is a placeholder.
 
-Known issues: the consumers of `Fz_dual_obs` (locked wheel Fx cap, normal load split) assume Fz >= 0
-and misbehave on the now negative samples (~0.5 to 1 % of samples, down to -670 N). Suggested fix: `max(Fz, 0)` at those
-consumers only. `fitDataFile` once pointed at `tire_fit.m` by mistake (fixed).
+Bicycle model (own state): axle **Fz observer** (`fzDerivativeObserver` on the axle model and gage sums, K 1.1, tau 8 s,
+output clamped at 0, `FzB` into the brush); **bicycle v_y observer** (MPC brush inverse at FzB, full trust,
+tau 0.2 s); observed axle slips; **bicycle k_us**; `dbgB`. The brush everywhere has the load sensitive Ca (section 2).
+
+Dual track model (own state): per tire **Fz observer** (`FzT`, clamped at 0); Fy per tire by (1) normal load split
+and (2) normal load split + brush correction at the dual track slip of the previous sample (`axleCorrect`); **dual track
+v_y observer** (`dualTrackObserver`, per tire brush inverse, equal weights); observed tire slips; **dual track
+k_us**; `dbgD`.
+
+Removed: the random walk Kalman filter on the axle Fy (2026-10-02, it did not improve the split), the friction circle and
+Pacejka splits, the Fz clamp issue (consumers now use max(Fz, 0)).
 
 ### Observer tuning (`observer_tuning.m`)
 
@@ -202,7 +348,7 @@ inverse     alpha_axle from the tire model at the trusted axle Fy and observed l
 trust       conditioning = local slope / initial slope of the tire curve at that slip (brush exact: (1 - |tan a|/t_th)^2)
             trust = max(trustFloor, conditioning^trustPow), current trustPow 1, trustFloor 1 (full trust)
 v_y         rear  vy_r = -vx tan(alpha_r) + lr r,  front  vy_f = vx tan(delta - alpha_f) - lf r,  blended by axle trust
-predict     vy <- vy + (a_y - bias - vx r) Ts         (IMU a_y channel, gravity compensated, bias -0.003 m/s^2 from straights)
+predict     vy <- vy + (a_y - bias - vx r) Ts         (debug_slip_angle.m; vehicle_model.m has no bias term, a_y is already corrected)
 correct     vy <- vy + (Ts / tau) trust (vy_tire - vy),   tau 0.2 s (brTau, tauObs)
 output      alpha_f = delta - atan((vy + lf r)/vx),  alpha_r = -atan((vy - lr r)/vx)
 ```
@@ -217,7 +363,8 @@ front steering asymmetry below.
 
 Each tire: axle Fy split by observed load share, the tire's own MPC brush (Ca/2, mu 1.6, its Fz) inverted, then **its own
 kinematics** give a v_y (corner speed vx -/+ r t/2). Weight `w_i = conditioning_i^2 x Fz_i / Fz_axle`: a lifted tire carries
-no weight, a saturated tire carries little. Same IMU integration, tau 0.2 s (`dtTrustPow 2`, `dtTrustFloor 0`, `dtTau 0.2`).
+no weight, a saturated tire carries little. (That is `debug_slip_angle.m` with the fixed Ca brush; `vehicle_model.m` now uses the rig load sensitive brush and
+equal weights, section 2.) Same IMU integration, tau 0.2 s (`dtTrustPow 2`, `dtTrustFloor 0`, `dtTau 0.2`).
 **Full trust breaks it** (v_y 0.38 m/s, 1.9 deg at the limit): one saturated loaded tire then sets v_y. Results:
 v_y 0.166 vs 0.194 m/s (bicycle); per tire slip FL 0.28 / 0.41 / 0.49 (all / limit / tire below 300 N) vs 0.34 / 0.66 / 0.74.
 The single front tire inverses are poor inputs (0.6 to 0.9 m/s) and the rear ones good (0.27 to 0.32 m/s); the weighting
@@ -312,11 +459,11 @@ ratio vs mu_x per tire and per axle (wheel torque, IMU split, brush, fused).
    k_us (no v_y needed). A plausible exponent -> the tire models' load sensitivity is the issue; none -> the front load
    transfer (roll centres, ARB_f) is.
 2. Use the **dual track observer** slips for the dual track k_us once (1) is understood; try the refit brush per tire there.
-3. **Port to C++**: in `effective_stiffness` feed the observed axle Fz instead of `normal_load`, take the slip from the
-   observer instead of the inverse, keep the MPC formula; replace the fixed clamp with a utilization based hold (freeze or
-   rate limit k_us when |F| / mu Fz > ~0.9). Everything in the chosen path is closed form.
+3. **Port to C++**: build the `vehicle_model` package per section 2a and the HTML plan, then in `effective_stiffness`
+   feed the observed axle Fz and the observer slip (or take the published bicycle k_us), keep the MPC formula; replace the
+   fixed clamp with a utilization based hold (freeze or rate limit k_us when |F| / mu Fz > ~0.9).
 4. Steering calibration on the car (offset and left / right ratio); lever arm check of the localization v_y (error vs r).
-5. Clamp `Fz_dual_obs` at 0 where `vehicle_model.m` consumers need it; consider lowering the observer lag (fcObsModel 0.3 Hz).
+5. The saturated inner front (split vs load, see 2); consider lowering the Fz observer lag (fcObsModel 0.3 Hz).
 6. Combined slip in the comparisons (braking / throttle samples), the ~640 N rear MF force bias, and refitting the brush
    mu / Ca against the **observer slip** so no fit uses the odom v_y.
 7. Iz (placeholder 1000) sets the front / rear axle Fy split in transients (force balance); measure it.

@@ -1,0 +1,117 @@
+# merge_rosbag2_folder_to_csv_v3.py --topics-file for the recorded vehicle_model node outputs
+# field names = the proposed BicycleState / BicycleDebug / DualTrackState / DualTrackDebug messages
+# (observer_block_diagrams.html "Proposed output messages"); change both here and in compare_vehicle_model_node.m
+# if the messages change. Per axle arrays are [front, rear], per tire arrays [FL, FR, RL, RR].
+
+/control/vehicle_model/bicycle/state:
+  bike_delta: delta
+  bike_vy_obs: vy_obs
+  bike_k_us: k_us
+  bike_slip_angle_kin_f: slip_angle_kin[0]
+  bike_slip_angle_kin_r: slip_angle_kin[1]
+  bike_slip_angle_obs_f: slip_angle_obs[0]
+  bike_slip_angle_obs_r: slip_angle_obs[1]
+  bike_slip_ratio_f: slip_ratio[0]
+  bike_slip_ratio_r: slip_ratio[1]
+  bike_fz_model_f: fz_model[0]
+  bike_fz_model_r: fz_model[1]
+  bike_fz_obs_f: fz_obs[0]
+  bike_fz_obs_r: fz_obs[1]
+  bike_fx_f: fx[0]
+  bike_fx_r: fx[1]
+  bike_fy_f: fy[0]
+  bike_fy_r: fy[1]
+
+/control/vehicle_model/bicycle/debug:
+  bikedbg_moving: moving
+  bikedbg_slip_angle_valid: slip_angle_valid
+  bikedbg_observer_running: observer_running
+  bikedbg_fz_observer_active: fz_observer_active
+  bikedbg_k_us_valid: k_us_valid
+  bikedbg_vy_tire_model: vy_tire_model
+  bikedbg_slip_ratio_valid_f: slip_ratio_valid[0]
+  bikedbg_slip_ratio_valid_r: slip_ratio_valid[1]
+  bikedbg_brush_slip_f: brush_slip[0]
+  bikedbg_brush_slip_r: brush_slip[1]
+  bikedbg_conditioning_f: conditioning[0]
+  bikedbg_conditioning_r: conditioning[1]
+  bikedbg_saturated_f: saturated[0]
+  bikedbg_saturated_r: saturated[1]
+
+/control/vehicle_model/dualtrack/state:
+  dual_vy_obs: vy_obs
+  dual_k_us: k_us
+  dual_delta_fl: delta[0]
+  dual_delta_fr: delta[1]
+  dual_delta_rl: delta[2]
+  dual_delta_rr: delta[3]
+  dual_slip_angle_kin_fl: slip_angle_kin[0]
+  dual_slip_angle_kin_fr: slip_angle_kin[1]
+  dual_slip_angle_kin_rl: slip_angle_kin[2]
+  dual_slip_angle_kin_rr: slip_angle_kin[3]
+  dual_slip_angle_obs_fl: slip_angle_obs[0]
+  dual_slip_angle_obs_fr: slip_angle_obs[1]
+  dual_slip_angle_obs_rl: slip_angle_obs[2]
+  dual_slip_angle_obs_rr: slip_angle_obs[3]
+  dual_kappa_fl: kappa[0]
+  dual_kappa_fr: kappa[1]
+  dual_kappa_rl: kappa[2]
+  dual_kappa_rr: kappa[3]
+  dual_slip_ratio_x_fl: slip_ratio_x[0]
+  dual_slip_ratio_x_fr: slip_ratio_x[1]
+  dual_slip_ratio_x_rl: slip_ratio_x[2]
+  dual_slip_ratio_x_rr: slip_ratio_x[3]
+  dual_slip_ratio_y_fl: slip_ratio_y[0]
+  dual_slip_ratio_y_fr: slip_ratio_y[1]
+  dual_slip_ratio_y_rl: slip_ratio_y[2]
+  dual_slip_ratio_y_rr: slip_ratio_y[3]
+  dual_fz_model_fl: fz_model[0]
+  dual_fz_model_fr: fz_model[1]
+  dual_fz_model_rl: fz_model[2]
+  dual_fz_model_rr: fz_model[3]
+  dual_fz_obs_fl: fz_obs[0]
+  dual_fz_obs_fr: fz_obs[1]
+  dual_fz_obs_rl: fz_obs[2]
+  dual_fz_obs_rr: fz_obs[3]
+  dual_fx_fl: fx[0]
+  dual_fx_fr: fx[1]
+  dual_fx_rl: fx[2]
+  dual_fx_rr: fx[3]
+  dual_fy_load_split_fl: fy_load_split[0]
+  dual_fy_load_split_fr: fy_load_split[1]
+  dual_fy_load_split_rl: fy_load_split[2]
+  dual_fy_load_split_rr: fy_load_split[3]
+  dual_fy_corrected_fl: fy_corrected[0]
+  dual_fy_corrected_fr: fy_corrected[1]
+  dual_fy_corrected_rl: fy_corrected[2]
+  dual_fy_corrected_rr: fy_corrected[3]
+
+/control/vehicle_model/dualtrack/debug:
+  dualdbg_moving: moving
+  dualdbg_observer_running: observer_running
+  dualdbg_fz_observer_active: fz_observer_active
+  dualdbg_k_us_valid: k_us_valid
+  dualdbg_slip_angle_valid_fl: slip_angle_valid[0]
+  dualdbg_slip_angle_valid_fr: slip_angle_valid[1]
+  dualdbg_slip_angle_valid_rl: slip_angle_valid[2]
+  dualdbg_slip_angle_valid_rr: slip_angle_valid[3]
+  dualdbg_slip_ratio_valid_fl: slip_ratio_valid[0]
+  dualdbg_slip_ratio_valid_fr: slip_ratio_valid[1]
+  dualdbg_slip_ratio_valid_rl: slip_ratio_valid[2]
+  dualdbg_slip_ratio_valid_rr: slip_ratio_valid[3]
+  dualdbg_lifted_fl: lifted[0]
+  dualdbg_lifted_fr: lifted[1]
+  dualdbg_lifted_rl: lifted[2]
+  dualdbg_lifted_rr: lifted[3]
+  dualdbg_locked_fl: locked[0]
+  dualdbg_locked_fr: locked[1]
+  dualdbg_locked_rl: locked[2]
+  dualdbg_locked_rr: locked[3]
+  dualdbg_saturated_fl: saturated[0]
+  dualdbg_saturated_fr: saturated[1]
+  dualdbg_saturated_rl: saturated[2]
+  dualdbg_saturated_rr: saturated[3]
+  dualdbg_conditioning_fl: conditioning[0]
+  dualdbg_conditioning_fr: conditioning[1]
+  dualdbg_conditioning_rl: conditioning[2]
+  dualdbg_conditioning_rr: conditioning[3]
