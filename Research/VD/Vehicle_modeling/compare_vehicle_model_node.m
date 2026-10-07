@@ -3,8 +3,8 @@
 % 2 the node output CSV is read and interpolated onto the same time base (absolute time_s)
 % 3 every output is scored (rms and p99 of node - MATLAB, best lag) and plotted, one tab per group
 % making the node CSV (README section 2a, observer_block_diagrams.html section 7.6 phase 3):
-%   ros2 bag play rosbag2_merged_2026-09-03_121638 --clock (1x, input topics only), node with use_sim_time:=true
-%   ros2 bag record --use-sim-time /control/vehicle_model/bicycle/state /control/vehicle_model/bicycle/debug
+%   ros2 bag play rosbag2_merged_2026-09-03_121638 --clock 200 (1x, input topics only), node with use_sim_time:=true
+%   ros2 bag record --use-sim-time -s mcap /control/vehicle_model/bicycle/state /control/vehicle_model/bicycle/debug
 %       /control/vehicle_model/dualtrack/state /control/vehicle_model/dualtrack/debug /control/vehicle_model/errors
 %   python3 merge_rosbag2_folder_to_csv_v3.py -i <recording> -o <out> -t 0.01 --time-mode union
 %       --topics-file vehicle_model_node_topics.yaml          (no -f: that filter is zero phase)
@@ -16,7 +16,7 @@ setenv("VM_NO_PLOTS", "");
 
 %% settings
 
-nodeCsv = "/home/elijah/PurdueRacing/bags/lagoona/comp2/node_replay/vehicle_model_node_merged.csv";   % converted recording
+nodeCsv = "/home/elijah/PurdueRacing/bags/lagoona/comp2/node_replay/rec_vehicle_model_node_merged.csv";   % converted recording
 maxLag  = 0.5;    % (s) lag search range node vs MATLAB
 
 %% node outputs on the MATLAB time base
@@ -134,6 +134,19 @@ for k = 1:numel(S)
             S(k).rmsD * S(k).scale, S(k).p99 * S(k).scale, S(k).rel, S(k).lag, S(k).rmsLag * S(k).scale);
     end
 end
+
+%% node accuracy against the references, the same scores vehicle_model.m prints
+
+nodeOf = @(name) S(string({S.name}) == name).n;
+vyB = nodeOf("v_y bicycle");  vyD = nodeOf("v_y dual track");
+okB = obsOkB & isfinite(vyB);  okD = obsOkD & isfinite(vyD);
+fprintf("\nv_y rms vs the localization (v > %g m/s): node bicycle %.3f, dual track %.3f m/s; vehicle_model.m %.3f, %.3f\n", obs.vMin, ...
+    rms(vyB(okB) - Fvy(okB)), rms(vyD(okD) - Fvy(okD)), rms(vy_bike_obs(okB) - Fvy(okB)), rms(vy_dual_obs(okD) - Fvy(okD)));
+kB = nodeOf("k_us bicycle");     kB(~kusOkB) = NaN;
+kD = nodeOf("k_us dual track");  kD(~kusOkD) = NaN;
+fprintf("k_us median |k - measured| (|vx r| > %g): node bicycle %.5f, dual track %.5f; vehicle_model.m %.5f, %.5f\n\n", obs.kAyMin, ...
+    median(abs(kB - k_us_meas), "omitnan"), median(abs(kD - k_us_meas), "omitnan"), ...
+    median(abs(k_us_bike - k_us_meas), "omitnan"), median(abs(k_us_dual - k_us_meas), "omitnan"));
 
 %% plots, one window, one tab per group
 

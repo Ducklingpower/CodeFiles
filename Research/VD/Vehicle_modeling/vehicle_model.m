@@ -75,7 +75,7 @@ vehicleParams.staticCornerLoad = [1679, 1679, 2318.6, 2318.6];   % [FL FR RL RR]
 
 % steering, road wheel angle = steerOffset + steer / steerRatio, then the Ackermann table and static toe
 vehicleParams.steerRatio  = 15.015;         % steering wheel -> road wheel
-vehicleParams.steerOffset = 0.333;          % road wheel angle offset (deg)
+vehicleParams.steerOffset = 0.222;          % road wheel angle offset (deg): the MPC steering_bias -0.222 (its command) as a measurement offset
 vehicleParams.toe_f       = 0;              % static toe (deg, - = out), yaw_moment.m has -0.451, 0 until confirmed
 vehicleParams.toe_r       = 0;
 
@@ -126,7 +126,9 @@ vehicleParams.obs.smallA = deg2rad(0.1);        % (rad) slip floor of the secant
 vehicleParams.obs.tauB   = 0.2;                 % (s) bicycle observer pull time to the tire model
 vehicleParams.obs.tauD   = 0.2;                 % (s) dual track observer pull time
 vehicleParams.obs.vMin   = 10;                  % (m/s) observers run above this, v_y reset to 0 below
-vehicleParams.obs.kAyMin = 4;                   % (m/s^2) understeer gradient only where |vx r| is above this
+vehicleParams.obs.kAyMin = 0.1;                 % (m/s^2) understeer gradient only where |vx r| is above this (was 4, 2026-10-06)
+vehicleParams.obs.kusStatic = 0.00034;          % (rad/(m/s^2)) k_us where the dynamic value is not valid (|vx r| < kAyMin,
+                                                %   observer off): linear k_us of the brush at the static corner loads (0.000337)
 vehicleParams.obs.sigA   = 200;                 % (N) Fy split correction: prior floor of each tire's brush force
 vehicleParams.obs.sigR   = 0.2;                 % (-) Fy split correction: prior fraction of each tire's brush force
 vehicleParams.obs.dtWeights = false;            % dual track tire weights, false (package): all 1; true: comparison only
@@ -181,12 +183,8 @@ Pr_zero = median(Pr_all(throttleOn));
 % throttle idle reading
 throttleIdle = prctile(lpf(data.throttle_pct, fc, Ts), 1);
 
-% strain gage zero: gage at sample 100 minus the static corner load (on vehicle: at startup, car at rest)
-gageZero   = lpf([data.fl_load_n, data.fr_load_n, data.rl_load_n, data.rr_load_n], fc, Ts);
-gageOffset = gageZero(min(100, height(data)), :) - vehicleParams.staticCornerLoad;
-
-fprintf("calibration: wheelCal %s, R_f %.4f, R_r %.4f m, brake zero %.1f / %.1f kPa, throttle idle %.2f %%, gage offset %s N\n", ...
-    sprintf("%.4f ", wheelCal), vehicleParams.R_f, vehicleParams.R_r, Pf_zero, Pr_zero, throttleIdle, sprintf("%.0f ", gageOffset));
+fprintf("calibration: wheelCal %s, R_f %.4f, R_r %.4f m, brake zero %.1f / %.1f kPa, throttle idle %.2f %%\n", ...
+    sprintf("%.4f ", wheelCal), vehicleParams.R_f, vehicleParams.R_r, Pf_zero, Pr_zero, throttleIdle);
 
 %% time window
 
@@ -215,10 +213,11 @@ Vw_fr = lpf(data.fr_speed_kmh, fc, Ts) ./ 3.6 ./ wheelCal(2);
 Vw_rl = lpf(data.rl_speed_kmh, fc, Ts) ./ 3.6 ./ wheelCal(3);
 Vw_rr = lpf(data.rr_speed_kmh, fc, Ts) ./ 3.6 ./ wheelCal(4);
 
-Fz_fl_meas = lpf(data.fl_load_n, fcObsGage, Ts) - gageOffset(1);
-Fz_fr_meas = lpf(data.fr_load_n, fcObsGage, Ts) - gageOffset(2);
-Fz_rl_meas = lpf(data.rl_load_n, fcObsGage, Ts) - gageOffset(3);
-Fz_rr_meas = lpf(data.rr_load_n, fcObsGage, Ts) - gageOffset(4);
+% strain gages: the observers use only their change, so no zero offset is needed
+Fz_fl_meas = lpf(data.fl_load_n, fcObsGage, Ts);
+Fz_fr_meas = lpf(data.fr_load_n, fcObsGage, Ts);
+Fz_rl_meas = lpf(data.rl_load_n, fcObsGage, Ts);
+Fz_rr_meas = lpf(data.rr_load_n, fcObsGage, Ts);
 
 Fq    = lpf([data.odom_qw, data.odom_qx, data.odom_qy, data.odom_qz], fc, Ts);
 Feul  = quat2eul(Fq, "ZYX");   % [yaw pitch roll]
@@ -227,9 +226,9 @@ roll  =  Feul(:,3);
 
 % load model inputs, filtered at fcObsModel
 Fvx_o   = lpf(data.odom_vx_mps,  fcObsModel, Ts);
-Fvy_o   = lpf(data.odom_vy_mps,  fcObsModel, Ts);
 Fwz_o   = lpf(data.odom_wz_rads, fcObsModel, Ts);
 Fax_o   = lpf(data.a_x,          fcObsModel, Ts);
+Fay_o   = lpf(data.a_y,          fcObsModel, Ts);
 Feul_o  = quat2eul(lpf([data.odom_qw, data.odom_qx, data.odom_qy, data.odom_qz], fcObsModel, Ts), "ZYX");
 pitch_o = -Feul_o(:,2);
 roll_o  =  Feul_o(:,3);
@@ -272,10 +271,9 @@ dt = [Ts; diff(t)];
 dt(dt <= 0) = Ts;
 ddt = @(x) [0; diff(x)] ./ dt;          % backward difference of the filtered signal
 
-dvy_dt = ddt(Fvy);
 rdot   = ddt(Fwz);
 
-ay_tire  = Fvx .* Fwz + dvy_dt + g .* cos(pitch) .* sin(roll);       % lateral, bank corrected
+ay_tire  = Fay;                                                      % lateral: measured accel_filtered a_y, no bank term
 az_road  = g .* cos(pitch) .* cos(roll) - Fvx .* Fwz .* sin(roll);   % normal, gravity + bank centripetal
 
 %% SHARED, STATELESS: tire kinematics, kinematic slip angles (localization v_y, the reference)
@@ -322,7 +320,7 @@ locked_fl = locked4(:,1);  locked_fr = locked4(:,2);  locked_rl = locked4(:,3); 
 % ASSUMPTION: steady state roll, roll stiffness from wheel rates (no ARB yet), left/right by static corner loads
 % runs on the fcObsModel inputs
 
-ay_tire_o = Fvx_o .* Fwz_o + ddt(Fvy_o) + g .* cos(pitch_o) .* sin(roll_o);
+ay_tire_o = Fay_o;                                                   % lateral: measured accel_filtered a_y
 ax_long_o = Fax_o + g .* sin(pitch_o);
 az_road_o = g .* cos(pitch_o) .* cos(roll_o) - Fvx_o .* Fwz_o .* sin(roll_o);
 
@@ -404,6 +402,8 @@ Fxr = Fx_rl + Fx_rr;
 
 %% SHARED, STATELESS: axle Fy (force and yaw moment balance), front in its tire frame
 % ASSUMPTION: Iz = 1000 placeholder; front axle in the frame of the mean front road wheel angle
+% ASSUMPTION: a_y is the measured accel_filtered a_y (as the old bicycle node): no road bank term (the localization roll
+%   reads about -1 deg even at rest, and its g sin(roll) put a -40 / -60 N bias on Fy on the straights)
 
 Fyf_vehicle = (m .* lr .* ay_tire + Iz .* rdot) ./ L;
 Fyr         = (m .* lf .* ay_tire - Iz .* rdot) ./ L;
@@ -446,7 +446,7 @@ alpha_f_obs(~obsOkB) = NaN;  alpha_r_obs(~obsOkB) = NaN;
 
 %% BICYCLE MODEL: understeer gradient
 % secant axle stiffness C = |brush(alpha_obs, Fz_axle)| / tan|alpha_obs|, k_us = m (lr C_r - lf C_f) / (L C_f C_r)
-% valid where the observer runs and |vx r| > kAyMin
+% valid where the observer runs and |vx r| > kAyMin, else the static fallback kusStatic (always published)
 
 kusOkB = obsOkB & abs(Fvx .* Fwz) > obs.kAyMin;
 aBk = [alpha_f_obs, alpha_r_obs];
@@ -455,14 +455,14 @@ for ax = 1:2
     a1 = max(abs(aBk(:,ax)), smallA);
     C_bike(:,ax) = abs(brushFy(a1, FzB(:,ax), muB(ax), CaAx(FzB(:,ax), ax))) ./ tan(a1);
 end
-k_us_bike = kusFn(C_bike);  k_us_bike(~kusOkB) = NaN;
+k_us_bike = kusFn(C_bike);  k_us_bike(~kusOkB) = obs.kusStatic;
 
 %% BICYCLE MODEL: debug flags (bicycle/debug)
 
 dbgB = struct( ...
     "moving",           moving, ...
     "slipAngleValid",   moving & isfinite(alpha_f) & isfinite(alpha_r), ...
-    "slipRatioValid",   movingRatio & [abs(Vw_front), abs(Vw_rear)] >= vehicleParams.vwMin, ...
+    "slipRatioValid",   [movingRatio, movingRatio], ...     % vehicle vx only: a locked wheel stays valid (the ABS needs it)
     "observerRunning",  obsOkB, ...
     "fzObserverActive", all(isfinite(Fz_bike_meas), 2), ...
     "kusValid",         kusOkB, ...
@@ -515,17 +515,18 @@ alpha_obs_ax = [mean(alpha_obs(:,1:2), 2), mean(alpha_obs(:,3:4), 2)];
 
 %% DUAL TRACK MODEL: understeer gradient
 % C_axle = (|brush(alpha_L, Fz_L)| + |brush(alpha_R, Fz_R)|) / tan(mean slip), same k_us formula
+% valid where the observer runs and |vx r| > kAyMin, else the static fallback kusStatic (always published)
 
 kusOkD = obsOkD & abs(Fvx .* Fwz) > obs.kAyMin;
 C_dual = dualStiffness(alpha_obs, FzT, muB, CaTr, smallA);
-k_us_dual = kusFn(C_dual);  k_us_dual(~kusOkD) = NaN;
+k_us_dual = kusFn(C_dual);  k_us_dual(~kusOkD) = obs.kusStatic;
 
 %% DUAL TRACK MODEL: debug flags (dualtrack/debug)
 
 dbgD = struct( ...
     "moving",           moving, ...
     "slipAngleValid",   moving & isfinite(alphaKin), ...
-    "slipRatioValid",   movingRatio & abs(Vw4) >= vehicleParams.vwMin, ...
+    "slipRatioValid",   repmat(movingRatio, 1, 4), ...      % vehicle vx only: a locked wheel stays valid (the ABS needs it)
     "observerRunning",  obsOkD, ...
     "fzObserverActive", all(isfinite(Fz_dual_meas), 2), ...
     "kusValid",         kusOkD, ...
@@ -581,7 +582,7 @@ fprintf("v_y rms vs the localization (v > %g m/s): bicycle %.3f, dual track %.3f
 fprintf("per tire slip rms vs the localization slip (deg), dual track: %s\n", ...
     sprintf("%.2f ", rad2deg(rms(alpha_obs(obsOkD,:) - alphaKin(obsOkD,:), "omitnan"))));
 fprintf("k_us (|vx r| > %g): median measured %.5f, bicycle %.5f, dual track %.5f; median |k - measured| bicycle %.5f, dual track %.5f\n", ...
-    obs.kAyMin, median(k_us_meas, "omitnan"), median(k_us_bike, "omitnan"), median(k_us_dual, "omitnan"), ...
+    obs.kAyMin, median(k_us_meas, "omitnan"), median(k_us_bike(kusOkB)), median(k_us_dual(kusOkD)), ...
     median(abs(k_us_bike - k_us_meas), "omitnan"), median(abs(k_us_dual - k_us_meas), "omitnan"));
 fprintf("debug: moving %.1f %%, observers running %.1f / %.1f %%, a tire saturated %.2f %%\n", ...
     100 * mean(moving), 100 * mean(obsOkB), 100 * mean(obsOkD), 100 * mean(any(dbgD.saturated, 2)));
@@ -724,7 +725,7 @@ yline(0.0012, "w--", "MPC clamp");
 grid on
 ylim([-0.002 0.005]);
 ylabel("k_{us} [rad/(m/s^2)]");
-title(sprintf("Understeer gradient, |v_x r| > %g m/s^2", obs.kAyMin));
+title(sprintf("Understeer gradient, |v_x r| > %g m/s^2 (static fallback %g below)", obs.kAyMin, obs.kusStatic));
 legend("measured from the localization slips, steering offset removed", "bicycle (MPC brush, observed axle F_z, observer slip)", ...
     "dual track (MPC brush per tire, observed tire F_z, observer slip)", "Location", "best");
 axK(2) = nexttile(tl);
@@ -871,7 +872,7 @@ plot(tLap, k_us_meas(lap), "-", "Color", cRef, "LineWidth", 1.5);
 plot(tLap, k_us_bike(lap), "-", "Color", cBk);
 plot(tLap, k_us_dual(lap), "-", "Color", cDt);
 yline(0.0012, "w--", "MPC clamp");
-grid on;  ylim([-0.002 0.005]);  ylabel("k_{us} [rad/(m/s^2)]");  title(sprintf("Understeer gradient, |v_x r| > %g m/s^2", obs.kAyMin));
+grid on;  ylim([-0.002 0.005]);  ylabel("k_{us} [rad/(m/s^2)]");  title(sprintf("Understeer gradient, |v_x r| > %g m/s^2 (static fallback %g below)", obs.kAyMin, obs.kusStatic));
 legend("measured", "bicycle", "dual track", "Location", "eastoutside");
 axL(7) = nexttile(tl);
 plot(tLap, Fvx(lap) .* Fwz(lap), "w-");

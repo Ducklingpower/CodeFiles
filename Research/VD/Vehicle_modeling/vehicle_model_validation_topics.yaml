@@ -1,8 +1,5 @@
-# merge_rosbag2_folder_to_csv_v3.py --topics-file for the recorded vehicle_model node outputs
-# field names = the proposed BicycleState / BicycleDebug / DualTrackState / DualTrackDebug messages
-# (observer_block_diagrams.html "Proposed output messages"); change both here and in compare_vehicle_model_node.m
-# if the messages change. Per axle values are nested messages (alpha_front, alpha_rear, ...), per tire values
-# nested messages (alpha_fl, alpha_fr, alpha_rl, alpha_rr, ...).
+# merge_rosbag2_folder_to_csv_v3.py --topics-file for plot_vehicle_model_validation.m: the vehicle_model node outputs
+# (same columns as vehicle_model_node_topics.yaml) plus the acceleration_interface ABS debug replayed next to it
 
 /control/vehicle_model/bicycle/state:
   bike_delta: delta
@@ -116,3 +113,14 @@
   dualdbg_conditioning_fr: conditioning.conditioning_fr
   dualdbg_conditioning_rl: conditioning.conditioning_rl
   dualdbg_conditioning_rr: conditioning.conditioning_rr
+
+# acceleration_interface (MPC) replayed next to the node: ABS activations and the brake command it sends
+/control/fbl_mpc/acceleration_interface/debug_abs_front_trigger_count:
+  abs_front_count: data
+
+/control/fbl_mpc/acceleration_interface/debug_abs_rear_trigger_count:
+  abs_rear_count: data
+
+/control/fbl_mpc/replay_fbl_mpc_command:
+  cmd_frt_brake: frt_brake_cmd
+  cmd_rear_brake: rear_brake_cmd

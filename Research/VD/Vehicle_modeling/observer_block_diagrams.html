@@ -112,8 +112,32 @@ pre.code code { background: none; padding: 0; }
   <span><i class="sw out"></i>Output</span>
 </div>
 
+<!-- ============================== STATUS AND NEXT STEPS ============================== -->
+<h2>Status and next steps (2026-10-05)</h2>
+<p class="prose">The package is built, matches <code>vehicle_model.m</code> and runs in the stack in place of the old nodes (branch <code>Elijah_Vehicle_Model_dualtrack</code>, commit <code>4d6387515</code>). The full status and the detail of each step are in README section 0.</p>
+<div class="phase"><span class="tag">Done</span><h4>Where it stands</h4>
+<ul>
+<li><b>Reference:</b> <code>vehicle_model.m</code>: steering offset 0.222° (the MPC steering_bias), measured accel_filtered a<sub>y</sub> in the force balance and the lateral transfer (no bank term), strain gage change only (no offset), slip ratio valid = vehicle v<sub>x</sub> &gt; 1 m/s only (a locked wheel stays valid), the original inverse dual track observer, k<sub>us</sub> always published (static fallback 0.00034). Comp2: v<sub>y</sub> 0.196 / 0.181 m/s, k<sub>us</sub> |error| 0.00028 / 0.00027.</li>
+<li><b>Package:</b> one <code>vehicle_model_node</code> (Fig. P2), C++ = MATLAB (raw CSV pipeline and comp2 bag replay), live old vs new check agreed.</li>
+<li><b>Stack:</b> old nodes and their messages removed; the <code>acceleration_interface</code> ABS reads <span class="mono">dualtrack/state</span> slip_ratio_x; telemetry_web, slip_vs_force_plot and the base station read the new topics; <code>control.launch.py</code> runs the node. Nobody uses k<sub>us</sub> yet; not tested on the car.</li>
+</ul></div>
+<div class="phase"><span class="tag">Step 0</span><h4>Clean the package (nit pick)</h4>
+<ul><li>A package README, naming consistency in the node, comments, unused parameters, <code>package.xml</code> test dependencies, warnings clean. Math changes go into <code>vehicle_model.m</code> first.</li></ul></div>
+<div class="phase"><span class="tag">Step 1</span><h4>Test the vehicle model with the stack</h4>
+<ul>
+<li>Full workspace build (delete the 0 byte <code>.o</code> files under <code>native_build/on-vehicle/build</code> first), then <code>control.launch.py</code> with a bag: node at 100 Hz, errors quiet, observers running at speed, the ABS subscribed, telemetry showing data.</li>
+<li>Car: timing and CPU, <b><code>brake_2_report</code> on AV24</b> (without it the observers and the dynamic k<sub>us</sub> stay off), the ABS with the new slip input, the base station rebuilt with the new messages.</li>
+</ul></div>
+<div class="phase"><span class="tag">Step 2</span><h4>New branch: MPC k<sub>us</sub> switch (its own vs the vehicle model)</h4>
+<ul>
+<li>Start from the branch the car runs (the 0.0012 clamp and the <span class="mono">clamp_k_ug</span> toggle are on <code>humble_integrated_acc</code>, not on this branch) and merge this package in.</li>
+<li><code>fbl_mpc_controller</code> subscribes to <span class="mono">bicycle/state</span> k<sub>us</sub>; a parameter / base station toggle picks the vehicle model k<sub>us</sub> (when fresh) or the MPC's own static load k<sub>us</sub> in <code>linearization_law</code>; <span class="mono">debug_understeer</span> reports the source. Check offline in MATLAB first.</li>
+<li>If the vehicle model k<sub>us</sub> works: remove the switch and make it permanent (the static load path and the 0.0012 clamp go, keep a stale message fallback).</li>
+</ul></div>
+
 <!-- ============================== P. PACKAGE OVERVIEW ============================== -->
 <h2>The on-vehicle package at a glance</h2>
+<p class="note prose"><b>Replacement done (2026-10-05).</b> The package is now the single <code>vehicle_model_node</code> of Fig. P2: the two old nodes (<code>dynamic_bicycle_model</code>, <code>dynamic_dualtrack_model</code>), their configs and tests are removed, and so are the messages <code>VehicleModelOutput</code>, <code>DualTrackSlip</code> and <code>VehicleState</code>. Readers moved: the <code>acceleration_interface</code> ABS reads <span class="mono">dualtrack/state</span> slip_ratio_x (vx gate: ABSLogic <span class="mono">min_velocity</span>; a locked wheel reaches it as s<sub>x</sub> = −1), <code>telemetry_web</code> and <code>slip_vs_force_plot</code> read <span class="mono">bicycle/state</span>, <code>basestation_com_v2</code> relays <span class="mono">bicycle/state</span> and <span class="mono">dualtrack/state</span>. The node always runs in <code>control.launch.py</code>; its errors stay on <span class="mono">/control/vehicle_model/errors</span> (not the safety module). Fig. P below is the package before the replacement. Still to do: the MPC taking k<sub>us</sub> (Phase 5).</p>
 <p class="prose">What feeds <code>src/control/vehicle_model</code> today, what it publishes, and the two models inside it. The rest of this page is the MATLAB reference these nodes are being brought up to (sections 0 to 6) and the plan to get there (section 7).</p>
 <figure>
 <div class="fig">
@@ -297,7 +321,7 @@ pre.code code { background: none; padding: 0; }
 <text class="ti" x="505" y="89" text-anchor="middle">Input conditioning</text>
 <text class="fm" x="432" y="118">units: km/h → m/s</text>
 <text class="fm" x="432" y="140">wheel speed cal.</text>
-<text class="fm" x="432" y="162">gage zero offset</text>
+<text class="fm" x="432" y="162">brake / throttle zero</text>
 <text class="fm" x="432" y="184">Tustin low pass:</text>
 <text class="fm" x="432" y="206">  3 Hz every input</text>
 <text class="fm" x="432" y="228">  0.3 Hz load model</text>
@@ -420,14 +444,14 @@ pre.code code { background: none; padding: 0; }
 </tbody></table></div>
 
 <h4 class="prose" style="font-family: var(--display); margin: 22px 0 6px;">Proposed output messages</h4>
-<p class="prose">Per axle fields are <span class="mono">float64[2]</span> [front, rear], per tire fields <span class="mono">float64[4]</span> [FL, FR, RL, RR], flags <span class="mono">bool</span> (arrays of bool per axle or tire). The exact field names are also in <code>vehicle_model_node_topics.yaml</code>, which the replay comparison uses.</p>
+<p class="prose">Per axle and per tire values are nested messages, one type per quantity with explicit names (2026-10-05): e.g. <span class="mono">slip_angle_hat</span> is a <span class="mono">TireSlipAngle</span> with <span class="mono">alpha_fl, alpha_fr, alpha_rl, alpha_rr</span> in <span class="mono">DualTrackState</span> and an <span class="mono">AxleSlipAngle</span> with <span class="mono">alpha_front, alpha_rear</span> in <span class="mono">BicycleState</span> (22 small <span class="mono">Axle*</span> / <span class="mono">Tire*</span> types in <span class="mono">blackandgold_msgs</span>, same serialized size as the old arrays). Flags are <span class="mono">bool</span>, nested the same way. Observer outputs end in <span class="mono">_hat</span> (<span class="mono">fz_hat</span>, <span class="mono">vy_hat</span>, <span class="mono">slip_angle_hat</span>), as in the C++. The exact field names are also in <code>vehicle_model_node_topics.yaml</code>, which the replay comparison uses.</p>
 <div class="tbl"><table>
 <thead><tr><th>Message</th><th>Topic</th><th>Fields</th></tr></thead>
 <tbody>
-<tr><td>BicycleState</td><td class="mono">/control/vehicle_model/bicycle/state</td><td>header; delta (rad); per axle [front, rear]: slip_angle_kin, slip_angle_obs (rad), slip_ratio, fz_model, fz_obs, fx, fy (N); vy_obs (m/s); k_us (rad/(m/s²))</td></tr>
-<tr><td>BicycleDebug</td><td class="mono">/control/vehicle_model/bicycle/debug</td><td>header; moving (v<sub>x</sub> above the slip minimum); slip_angle_valid, slip_ratio_valid; observer_running (v<sub>x</sub> &gt; 10 m/s, inputs fresh); fz_observer_active (tire report received); k_us_valid (|v<sub>x</sub>·r| &gt; 4 m/s²); per axle: brush slip and conditioning, saturated; vy_tire_model</td></tr>
-<tr><td>DualTrackState</td><td class="mono">/control/vehicle_model/dualtrack/state</td><td>header; per tire [FL, FR, RL, RR]: delta, slip_angle_kin, slip_angle_obs (rad), kappa, slip_ratio_x (s<sub>x</sub>, the ABS input), slip_ratio_y, fz_model, fz_obs, fx, fy_load_split, fy_corrected (N); vy_obs (m/s); k_us</td></tr>
-<tr><td>DualTrackDebug</td><td class="mono">/control/vehicle_model/dualtrack/debug</td><td>header; moving; observer_running; fz_observer_active; k_us_valid; per tire: slip_angle_valid, slip_ratio_valid (wheel speed above its minimum), lifted (F<sub>z</sub> &lt; 300 N), locked (κ &lt; −0.5), saturated (|F<sub>y</sub>| ≥ μF<sub>z</sub>), conditioning c<sub>i</sub> (source of the saturated flag). No weights or gain: the dual track observer uses equal weights, gain 1</td></tr>
+<tr><td>BicycleState</td><td class="mono">/control/vehicle_model/bicycle/state</td><td>header; delta (rad); per axle [front, rear]: slip_angle_kin, slip_angle_hat (rad), slip_ratio, fz_model, fz_hat, fx, fy (N); vy_hat (m/s); k_us (rad/(m/s²))</td></tr>
+<tr><td>BicycleDebug</td><td class="mono">/control/vehicle_model/bicycle/debug</td><td>header; moving (v<sub>x</sub> above the slip minimum); slip_angle_valid, slip_ratio_valid; observer_running (v<sub>x</sub> &gt; 10 m/s, inputs fresh); fz_observer_active (tire report received); k_us_valid (|v<sub>x</sub>·r| &gt; 4 m/s²: the dynamic k<sub>us</sub>; false: k<sub>us</sub> holds the static fallback); per axle: brush slip and conditioning, saturated; vy_tire_model</td></tr>
+<tr><td>DualTrackState</td><td class="mono">/control/vehicle_model/dualtrack/state</td><td>header; per tire [FL, FR, RL, RR]: delta, slip_angle_kin, slip_angle_hat (rad), kappa, slip_ratio_x (s<sub>x</sub>, the ABS input), slip_ratio_y, fz_model, fz_hat, fx, fy_load_split, fy_corrected (N); vy_hat (m/s); k_us</td></tr>
+<tr><td>DualTrackDebug</td><td class="mono">/control/vehicle_model/dualtrack/debug</td><td>header; moving; observer_running; fz_observer_active; k_us_valid; per tire: slip_angle_valid, slip_ratio_valid (vehicle v<sub>x</sub> above 1 m/s, a locked wheel stays valid), lifted (F<sub>z</sub> &lt; 300 N), locked (κ &lt; −0.5), saturated (|F<sub>y</sub>| ≥ μF<sub>z</sub>), conditioning c<sub>i</sub> (source of the saturated flag). No weights or gain: the dual track observer uses equal weights, gain 1</td></tr>
 <tr><td>ErrorReport</td><td class="mono">/control/vehicle_model/errors</td><td>published by the node: input timeouts per topic, tire report missing, NaN or out of range inputs, with a severity</td></tr>
 </tbody></table></div>
 <p class="note prose">State is what the models estimate, debug is why a value can or cannot be trusted at this sample (car not moving, wheel below its minimum speed, observer not running, tire lifted or saturated) plus the intermediate values to diagnose it, errors is what is wrong with the inputs.</p>
@@ -437,14 +461,14 @@ pre.code code { background: none; padding: 0; }
 <thead><tr><th>Node</th><th>Finding</th><th>Against the MATLAB reference</th></tr></thead>
 <tbody>
 <tr><td>both</td><td>l<sub>f</sub> / l<sub>r</sub> 1.6785 / 1.2933 m (MPC values)</td><td>1.724 / 1.248 m (URDF base_link = CG)</td></tr>
-<tr><td>both</td><td>steering bias: bicycle code default −0.333°, both yamls 0.2°</td><td>+0.333° (<span class="mono">steerOffset</span>); the sign and value need one source</td></tr>
+<tr><td>both</td><td>steering bias: bicycle code default −0.333°, both yamls 0.2°</td><td>+0.222° (<span class="mono">steerOffset</span>, 2026-10-05): the MPC's <span class="mono">steering_bias</span> −0.222° is added to its command, so the measured angle reads 0.222° low</td></tr>
 <tr><td>both</td><td>one road wheel angle for both front tires, no toe</td><td>Ackermann table + toe per tire (section 1)</td></tr>
 <tr><td>both</td><td>exponential low pass <span class="mono">1 − e^(−dt/τ)</span>, bicycle 1.3 Hz, dual track 3 Hz, on the outputs only</td><td>Tustin with prewarp on the inputs, 3 Hz; 0.3 / 0.5 Hz on the load observer paths</td></tr>
 <tr><td>both</td><td><span class="mono">create_wall_timer</span>: runs on wall time even with use_sim_time in a bag replay</td><td>–</td></tr>
 <tr><td>bicycle</td><td><span class="mono">az_road = g·cos(pitch)</span>; the roll, bank and pitch curvature terms are commented out (roll, yaw rate, pitch rate and <span class="mono">pitch_curvature_scalar</span> are passed in and unused)</td><td><span class="mono">g·cosθ·cosφ − v_x·r·sinφ</span>: the bank term is what makes C9 / C10 high load</td></tr>
 <tr><td>bicycle</td><td>F<sub>z</sub> observer per axle: gage sums through the 1.3 Hz output filter, model rate unfiltered, K 1.0, leak 0.005 (τ ≈ 2 s); CG height 0.275 m</td><td>per tire, model passed through the same 0.5 Hz filter as the gage, K 1.1, τ 8 s; h 0.35 m</td></tr>
 <tr><td>bicycle</td><td>F<sub>x</sub> per axle = m·a<sub>x</sub> split by the F<sub>z</sub> share, so the undriven front axle gets drive force</td><td>wheel dynamics per tire (torque model), section 3</td></tr>
-<tr><td>bicycle</td><td>F<sub>y</sub> per axle from a<sub>y</sub> (accel_filtered) and ṙ by a 1 step difference, front not rotated into its tire frame</td><td>a<sub>y,tire</sub> = v<sub>x</sub>·r + dv<sub>y</sub>/dt − g<sub>y</sub>, front F<sub>y</sub> rotated by δ</td></tr>
+<tr><td>bicycle</td><td>F<sub>y</sub> per axle from a<sub>y</sub> (accel_filtered) and ṙ by a 1 step difference, front not rotated into its tire frame</td><td>the same measured a<sub>y</sub> (accel_filtered, no bank term, since 2026-10-05), front F<sub>y</sub> rotated by δ</td></tr>
 <tr><td>bicycle</td><td>IMU subscription and the errors publisher are unused</td><td>–</td></tr>
 <tr><td>dual track</td><td>kinematic slip angles and slip ratios only: no loads, forces or observer</td><td>everything in sections 2 to 5</td></tr>
 <tr><td>dual track</td><td>slip ratio denominator is the wheel speed (s<sub>x</sub>), used by the ABS in acceleration_interface</td><td>MATLAB carries both κ (÷ |Vx|) and s<sub>x</sub> (÷ Vw); keep s<sub>x</sub> for the ABS</td></tr>
@@ -599,11 +623,11 @@ pre.code code { background: none; padding: 0; }
 <div class="tbl"><table>
 <thead><tr><th>Input</th><th>Channel (CSV / ROS topic)</th><th>Filter</th><th>Used by</th></tr></thead>
 <tbody>
-<tr><td>–</td><td>odom v<sub>x</sub>, v<sub>y</sub>, r, attitude: <span class="mono">/odometry/global_filtered</span></td><td>3 Hz (<span class="mono">fc</span>); 0.3 Hz copy for the load model (<span class="mono">fcObsModel</span>)</td><td>kinematics, force balance, load model, observers (v<sub>x</sub>, r only)</td></tr>
-<tr><td>–</td><td>a<sub>x</sub>, a<sub>y</sub>: <span class="mono">/novatel_bottom/accel_filtered</span> (gravity removed)</td><td>3 Hz; a<sub>x</sub> also 0.3 Hz</td><td>force balance (a<sub>x</sub>), load model, v<sub>y</sub> observers (a<sub>y</sub>)</td></tr>
+<tr><td>–</td><td>odom v<sub>x</sub>, v<sub>y</sub>, r, attitude: <span class="mono">/odometry/global_filtered</span></td><td>3 Hz (<span class="mono">fc</span>); 0.3 Hz copy for the load model (<span class="mono">fcObsModel</span>)</td><td>kinematics (v<sub>y</sub>: the reference slips only), force balance and load model (v<sub>x</sub>, r, attitude), observers (v<sub>x</sub>, r)</td></tr>
+<tr><td>–</td><td>a<sub>x</sub>, a<sub>y</sub>: <span class="mono">/novatel_bottom/accel_filtered</span> (gravity removed)</td><td>3 Hz; also 0.3 Hz for the load model</td><td>axle F<sub>y</sub> force balance (a<sub>y</sub>), load model (a<sub>x</sub> pitch transfer, a<sub>y</sub> lateral transfer), v<sub>y</sub> observers (a<sub>y</sub>)</td></tr>
 <tr><td>–</td><td>steering wheel angle: <span class="mono">steering_extended_report.primary_steering_angle_fbk</span></td><td>3 Hz</td><td>road wheel angles</td></tr>
 <tr><td>–</td><td>wheel speeds (km/h): <span class="mono">wheel_speed_report</span></td><td>3 Hz, ÷ 3.6 ÷ wheelCal</td><td>slip ratios, wheel dynamics</td></tr>
-<tr><td>–</td><td>strain gages: <span class="mono">tire_report.*_wheel_load</span></td><td>0.5 Hz (<span class="mono">fcObsGage</span>), minus the zero offset</td><td>F<sub>z</sub> observer</td></tr>
+<tr><td>–</td><td>strain gages: <span class="mono">tire_report.*_wheel_load</span></td><td>0.5 Hz (<span class="mono">fcObsGage</span>); no zero offset, the observer uses only the change</td><td>F<sub>z</sub> observer</td></tr>
 <tr><td>–</td><td>brake pressures, rpm, throttle, gear: <span class="mono">brake_2_report</span>, <span class="mono">pt_report</span></td><td>3 Hz (gear unfiltered)</td><td>wheel dynamics F<sub>x</sub></td></tr>
 </tbody></table></div>
 <p class="note prose">Every filter is a first order Tustin low pass with prewarp (<code>lpf</code>, <code>vehicle_model.m:998</code>): <span class="mono">K = tan(π f<sub>c</sub> T<sub>s</sub>)</span>, <span class="mono">y(k) = (1−K)/(1+K)·y(k−1) + K/(1+K)·(x(k) + x(k−1))</span>, T<sub>s</sub> = 0.01 s. Derivatives are backward differences of filtered signals (<code>ddt</code>, <code>:273</code>).</p>
@@ -614,12 +638,12 @@ pre.code code { background: none; padding: 0; }
 <div class="tbl"><table>
 <thead><tr><th>#</th><th>Quantity</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
 <tbody>
-<tr><td>1</td><td>Road wheel angle</td><td><span class="mono">δ_road = 0.333° + steer / 15.015</span> (deg)</td><td class="mono">vehicle_model.m:260</td></tr>
+<tr><td>1</td><td>Road wheel angle</td><td><span class="mono">δ_road = 0.222° + steer / 15.015</span> (deg; 0.222° = the MPC's steering_bias)</td><td class="mono">vehicle_model.m:260</td></tr>
 <tr><td>1</td><td>Ackermann + toe</td><td><span class="mono">δ_FL = LUT_left(δ_road) − toe_f</span>, <span class="mono">δ_FR = LUT_right(δ_road) + toe_f</span>, <span class="mono">δ_RL = −toe_r</span>, <span class="mono">δ_RR = toe_r</span>. LUT = <span class="mono">yaw_moment/ackerman_sweep_50.xlsx</span> (road_deg → left_deg, right_deg, linear interpolation), toe in deg with − = out (YMD_calc.m convention), toe_f = toe_r = 0 for now (yaw_moment.m: −0.451°). Bicycle <span class="mono">δ = (δ_FL + δ_FR)/2</span>.</td><td class="mono">:43, 79–80, 261–266</td></tr>
 <tr><td>2</td><td>Tire frame velocity</td><td><span class="mono">tireKin</span>: corner speed <span class="mono">Vx_c = v_x ∓ r·t/2</span> (left −, right +), lateral <span class="mono">Vy_c = v_y + l_f·r</span> (front) or <span class="mono">v_y − l_r·r</span> (rear), rotated by δ<sub>i</sub>: <span class="mono">Vx_t = Vx_c cosδ_i + Vy_c sinδ_i</span>, <span class="mono">Vy_t = −Vx_c sinδ_i + Vy_c cosδ_i</span>. t<sub>f</sub> 1.639 m, t<sub>r</sub> 1.524 m, l<sub>f</sub> 1.724 m, l<sub>r</sub> 1.248 m. Slip angles NaN (C++: 0, slip_angle_valid false) below v<sub>x</sub> 4 m/s (<span class="mono">vxMin</span>).</td><td class="mono">:284, 1030</td></tr>
 <tr><td>2</td><td>Slip angle per tire</td><td><span class="mono">α_i = −atan2(Vy_t, Vx_t)</span> (α &gt; 0 → F<sub>y</sub> &gt; 0). With the localization v<sub>y</sub> this is the reference; with an observer v<sub>y</sub> it is that observer's slip (same function).</td><td class="mono">:291</td></tr>
 <tr><td>2</td><td>Slip angle per axle</td><td><span class="mono">α_f = δ − atan2(v_y + l_f·r, v_x)</span>, <span class="mono">α_r = −atan2(v_y − l_r·r, v_x)</span></td><td class="mono">:294–295</td></tr>
-<tr><td>2</td><td>Slip ratio (kinematic)</td><td><span class="mono">s_x = clamp((Vw − Vx_t)/max(|Vw|, 1 m/s), ±1)</span>, <span class="mono">s_y = clamp(−Vy_t/max(|Vw|, 1 m/s), ±1)</span> (the ABS input; floor <span class="mono">vwMin</span>, clamp <span class="mono">slipRatioMax</span>, as the current <span class="mono">slip_ratio_calc</span>), <span class="mono">κ_i = (Vw_i − Vx_t,i)/|Vx_t,i|</span>; all NaN below v<sub>x</sub> 1 m/s (<span class="mono">vxMinRatio</span>), slip_ratio_valid per tire = |Vw| ≥ 1 m/s; a wheel with κ &lt; −0.5 (<span class="mono">kappaLock</span>) is locked</td><td class="mono">:297–317</td></tr>
+<tr><td>2</td><td>Slip ratio (kinematic)</td><td><span class="mono">s_x = clamp((Vw − Vx_t)/max(|Vw|, 1 m/s), ±1)</span>, <span class="mono">s_y = clamp(−Vy_t/max(|Vw|, 1 m/s), ±1)</span> (the ABS input; floor <span class="mono">vwMin</span>, clamp <span class="mono">slipRatioMax</span>, as the current <span class="mono">slip_ratio_calc</span>), <span class="mono">κ_i = (Vw_i − Vx_t,i)/|Vx_t,i|</span>; all NaN below v<sub>x</sub> 1 m/s (<span class="mono">vxMinRatio</span>), slip_ratio_valid = v<sub>x</sub> &gt; 1 m/s for every tire (vehicle speed only: a locked wheel keeps s<sub>x</sub> = −1 and stays valid for the ABS); a wheel with κ &lt; −0.5 (<span class="mono">kappaLock</span>) is locked</td><td class="mono">:297–317</td></tr>
 </tbody></table></div>
 
 <!-- ============================== 2. NORMAL LOAD ============================== -->
@@ -634,7 +658,7 @@ pre.code code { background: none; padding: 0; }
 <!-- inputs -->
 <g class="b sen"><rect x="16" y="40" width="150" height="34" rx="17"/><text class="fm" x="91" y="61" text-anchor="middle">odom quaternion q</text></g>
 <g class="b sen"><rect x="16" y="86" width="150" height="34" rx="17"/><text class="fm" x="91" y="107" text-anchor="middle">odom vx</text></g>
-<g class="b sen"><rect x="16" y="132" width="150" height="34" rx="17"/><text class="fm" x="91" y="153" text-anchor="middle">odom vy</text></g>
+<g class="b sen"><rect x="16" y="132" width="150" height="34" rx="17"/><text class="fm" x="91" y="153" text-anchor="middle">IMU ay</text></g>
 <g class="b sen"><rect x="16" y="178" width="150" height="34" rx="17"/><text class="fm" x="91" y="199" text-anchor="middle">odom yaw rate r</text></g>
 <g class="b sen"><rect x="16" y="224" width="150" height="34" rx="17"/><text class="fm" x="91" y="245" text-anchor="middle">IMU ax</text></g>
 <path class="w" d="M166,57 H206" marker-end="url(#a1)"/>
@@ -668,13 +692,13 @@ pre.code code { background: none; padding: 0; }
 
 <!-- 3 accelerations -->
 <path class="w" d="M516,57 H566" marker-end="url(#a1)"/><text class="lb" x="541" y="50" text-anchor="middle">θ, φ</text>
-<path class="w" d="M306,150 H566" marker-end="url(#a1)"/><text class="lb" x="436" y="142" text-anchor="middle">vx, vy, r, ax</text>
+<path class="w" d="M306,150 H566" marker-end="url(#a1)"/><text class="lb" x="436" y="142" text-anchor="middle">vx, r, ax, ay</text>
 <g class="b"><rect x="566" y="32" width="260" height="168" rx="4"/>
   <text class="ti" x="696" y="54" text-anchor="middle">Accelerations</text>
-  <text class="fm" x="580" y="84">ay = vx·r + dvy/dt + g·cosθ·sinφ</text>
+  <text class="fm" x="580" y="84">ay = measured a_y (accel_filtered)</text>
   <text class="fm" x="580" y="110">ax_long = ax + g·sinθ</text>
   <text class="fm" x="580" y="136">az_road = g·cosθ·cosφ − vx·r·sinφ</text>
-  <text class="sm" x="580" y="162">dvy/dt = backward difference of LPF vy</text>
+  <text class="sm" x="580" y="162">no bank term in ay (roll reads ≈ −1° at rest)</text>
   <text class="sm" x="580" y="180">g = 9.81 m/s²</text></g>
 <g class="bdg"><circle cx="580" cy="46" r="9"/><text x="580" y="49.5" text-anchor="middle">3</text></g>
 
@@ -715,14 +739,14 @@ pre.code code { background: none; padding: 0; }
 <path class="w" d="M1266,161 H1340" marker-end="url(#a1)"/><text class="lb" x="1272" y="153">Fz_model</text>
 </svg>
 </div>
-<figcaption>Fig. 1a. Every input goes through one 0.3 Hz low pass first, then the load is pure algebra. The model sees odom v<sub>y</sub> only through its derivative in a<sub>y</sub>. Output: the predicted load on each of the four tires.</figcaption>
+<figcaption>Fig. 1a. Every input goes through one 0.3 Hz low pass first, then the load is pure algebra. The lateral transfer uses the measured a<sub>y</sub> (accel_filtered); odom v<sub>y</sub> is not used. Output: the predicted load on each of the four tires.</figcaption>
 </figure>
 <div class="tbl"><table>
 <thead><tr><th>#</th><th>Block</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
 <tbody>
 <tr><td>1</td><td>LPF 0.3 Hz</td><td>Tustin low pass on odom v<sub>x</sub>, v<sub>y</sub>, r, a<sub>x</sub> and the quaternion, the load model inputs only</td><td class="mono">vehicle_model.m:228–235</td></tr>
 <tr><td>2</td><td>Attitude</td><td><span class="mono">quat2eul(q, "ZYX")</span>, θ = −eul(:,2), φ = eul(:,3)</td><td class="mono">:233–235</td></tr>
-<tr><td>3</td><td>Accelerations</td><td><span class="mono">a_y = v_x·r + dv_y/dt + g·cosθ·sinφ</span>, <span class="mono">a_x,long = a_x + g·sinθ</span>, <span class="mono">a_z,road = g·cosθ·cosφ − v_x·r·sinφ</span> (gravity plus the bank centripetal term)</td><td class="mono">:325–327</td></tr>
+<tr><td>3</td><td>Accelerations</td><td><span class="mono">a_y</span> = the measured accel_filtered a<sub>y</sub> at 0.3 Hz (no bank term, 2026-10-05), <span class="mono">a_x,long = a_x + g·sinθ</span>, <span class="mono">a_z,road = g·cosθ·cosφ − v_x·r·sinφ</span> (gravity plus the bank centripetal term)</td><td class="mono">:323–325</td></tr>
 <tr><td>4</td><td>Downforce</td><td><span class="mono">DF = ½·1.225·0.58·v_x²</span>, front share 0.33</td><td class="mono">:329–330</td></tr>
 <tr><td>5</td><td>Lateral transfer</td><td><span class="mono">LT_f = m·a_y/t_f·(h_roll·s_f + l_r·rc_f/L)</span>, <span class="mono">LT_r = m·a_y/t_r·(h_roll·(1−s_f) + l_f·rc_r/L)</span>, s<sub>f</sub> = front roll stiffness share (k = wheel rate·t²/2, ARB<sub>f</sub> = 0), <span class="mono">h_roll = h − roll axis height at the CG</span>, rc<sub>f</sub> 0.120 m, rc<sub>r</sub> 0.002 m</td><td class="mono">:337–343</td></tr>
 <tr><td>6</td><td>Axle loads</td><td><span class="mono">Fz_f = m·a_z·l_r/L − m·a_x·h/L + 0.33·DF</span>, <span class="mono">Fz_r = m·a_z·l_f/L + m·a_x·h/L + 0.67·DF</span>; m 815 kg, L 2.9718 m, h 0.35 m</td><td class="mono">:332–333</td></tr>
@@ -760,11 +784,7 @@ pre.code code { background: none; padding: 0; }
   <text class="ti" x="286" y="266" text-anchor="middle">LPF 0.5 Hz</text>
   <text class="sm" x="286" y="284" text-anchor="middle">fcObsGage</text></g>
 <g class="bdg"><circle cx="226" cy="246" r="8"/><text x="226" y="249.5" text-anchor="middle">2</text></g>
-<path class="w" d="M346,270 H396" marker-end="url(#a2)"/>
-<g class="b"><rect x="396" y="246" width="120" height="48" rx="4"/>
-  <text class="ti" x="456" y="266" text-anchor="middle">− gageOffset</text>
-  <text class="sm" x="456" y="284" text-anchor="middle">constant per tire</text></g>
-<path class="w" d="M516,270 H566" marker-end="url(#a2)"/><text class="lb" x="541" y="262" text-anchor="middle">Fz_meas</text>
+<path class="w" d="M346,270 H566" marker-end="url(#a2)"/><text class="lb" x="456" y="262" text-anchor="middle">Fz_meas</text>
 <g class="b flt"><rect x="566" y="246" width="120" height="48" rx="4"/>
   <text class="ti" x="626" y="266" text-anchor="middle">Δ per sample</text>
   <text class="fm" x="626" y="284" text-anchor="middle">x(k) − x(k−1)</text></g>
@@ -794,7 +814,7 @@ pre.code code { background: none; padding: 0; }
 <text class="sg" x="1172" y="60">+</text>
 <text class="sg" x="1210" y="104">+</text>
 <path class="w" d="M1216,70 H1310" marker-end="url(#a2)"/><text class="lb" x="1263" y="62" text-anchor="middle">Fz_obs</text>
-<text class="sm" x="1310" y="92" text-anchor="end">not clamped</text>
+<text class="sm" x="1310" y="92" text-anchor="end">max(·, 0)</text>
 </svg>
 </div>
 <figcaption>Fig. 1b. The correction only carries what the gages see and the model misses, below 0.5 Hz. The leaky integrator turns the rate difference back into a load and lets it decay to the model with τ = 8 s, so <span class="mono">c ≈ K·HP<sub>τ</sub>(LP<sub>0.5</sub>(gage) − LP<sub>0.5</sub>(model))</span>: active from about 0.02 Hz (1/2πτ) up to 0.5 Hz.</figcaption>
@@ -803,7 +823,7 @@ pre.code code { background: none; padding: 0; }
 <thead><tr><th>#</th><th>Block</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
 <tbody>
 <tr><td>1</td><td>Model through the gage filter</td><td><span class="mono">Fz_cmp = lpf(Fz_model, 0.5 Hz)</span>, so the two rates are compared like for like</td><td class="mono">vehicle_model.m:427, 477</td></tr>
-<tr><td>2</td><td>Gage filter and offset</td><td><span class="mono">Fz_meas = lpf(gage, 0.5 Hz) − gageOffset</span>, offset = gage (3 Hz LPF) at sample 100 − static corner load, a calibration constant (on the car: taken at startup at rest, or a parameter); the Δ removes it. A missing gage sample gives a zero rate, so the correction decays toward the model</td><td class="mono">:185–186, 218–221</td></tr>
+<tr><td>2</td><td>Gage filter</td><td><span class="mono">Fz_meas = lpf(gage, 0.5 Hz)</span>. No zero offset: the observer uses only the change ΔFz_meas, so a constant offset cancels (the offset calibration was removed 2026-10-05, the outputs did not change, &lt; 1e-11 N). A missing gage sample gives a zero rate, so the correction decays toward the model</td><td class="mono">:216–220</td></tr>
 <tr><td>3</td><td>Gain</td><td><span class="mono">u(k) = ΔFz_meas(k) − ΔFz_cmp(k)</span>, K = 1.1</td><td class="mono">:115, 988</td></tr>
 <tr><td>4</td><td>Leaky integrator</td><td><span class="mono">c(k) = τ/(τ+dt)·(c(k−1) + K·u(k))</span>, τ = 8 s, <span class="mono">Fz_obs = max(Fz_model + c, 0)</span>: clamped at 0, a tire can not pull on the road (the correction c itself is not clamped). Two copies with their own state: the bicycle model runs it per axle on the axle model and the axle gage sums (<span class="mono">Fz_bike_obs</span>), the dual track model per tire (<span class="mono">Fz_dual_obs</span>). Each model's tire models use its own observer (<span class="mono">FzB</span>, <span class="mono">FzT</span>, :429, 479); before the clamp the observer is linear, so the axle observer equals the sum of the tire observers until a tire reaches 0.</td><td class="mono">:422–430, 474–481, 980</td></tr>
 </tbody></table></div>
@@ -813,7 +833,7 @@ pre.code code { background: none; padding: 0; }
 <div class="tbl"><table>
 <thead><tr><th>#</th><th>Quantity</th><th>Exactly what it computes</th><th>Code</th></tr></thead>
 <tbody>
-<tr><td>5</td><td>Axle F<sub>y</sub> (force and yaw moment balance)</td><td><span class="mono">a_y,tire = v_x·r + dv_y/dt + g·cosθ·sinφ</span> (3 Hz signals); <span class="mono">Fy_f,veh = (m·l_r·a_y + I_z·ṙ)/L</span>, <span class="mono">Fy_r = (m·l_f·a_y − I_z·ṙ)/L</span>, front into its tire frame <span class="mono">Fy_f = (Fy_f,veh − Fx_f·sinδ)/cosδ</span>; I<sub>z</sub> = 1000 kg m² (placeholder)</td><td class="mono">vehicle_model.m:278, 408–410</td></tr>
+<tr><td>5</td><td>Axle F<sub>y</sub> (force and yaw moment balance)</td><td><span class="mono">a_y</span> = the measured accel_filtered a<sub>y</sub> (3 Hz), as the old bicycle node; no bank term: the localization roll reads about −1° even at rest and its <span class="mono">g·sin(roll)</span> put −40 / −60 N on F<sub>y</sub> on the straights (removed 2026-10-05, straights now +10 N); <span class="mono">Fy_f,veh = (m·l_r·a_y + I_z·ṙ)/L</span>, <span class="mono">Fy_r = (m·l_f·a_y − I_z·ṙ)/L</span>, front into its tire frame <span class="mono">Fy_f = (Fy_f,veh − Fx_f·sinδ)/cosδ</span>; I<sub>z</sub> = 1000 kg m² (placeholder)</td><td class="mono">vehicle_model.m:276, 408–410</td></tr>
 <tr><td>5</td><td>F<sub>x</sub> total (IMU)</td><td><span class="mono">Fx_total = m·a_x + ½ρ·CdA·v_x|v_x| + m·g·sinθ</span>; check against the wheels <span class="mono">Fx_f·cosδ − Fy_f·sinδ + Fx_r</span></td><td class="mono">:557–559</td></tr>
 <tr><td>6</td><td>F<sub>x</sub> per tire (wheel dynamics)</td><td><span class="mono">Fx_i = (T_d,i − T_b,i − I_w·ω̇_i)/R</span>; <span class="mono">T_b = P·4486 mm²·0.444·0.134 m/1000</span>; rear <span class="mono">T_d = G·T_engine(rpm, throttle)·η</span> split ½ / ½ (open diff), minus the engine inertia term; I<sub>w</sub> = thick ring + 0.25 kg m²; throttle fraction = (throttle − idle)/(100 − idle), ≤ 0.05 is closed (idle = calibration parameter); a locked wheel is capped at μ<sub>x</sub>·F<sub>z</sub> with the load <em>model</em> F<sub>z</sub> (not an observer), so F<sub>x</sub> and the force balance stay stateless functions of the inputs that both models share</td><td class="mono">:357–403</td></tr>
 <tr><td>–</td><td>F<sub>x</sub> IMU split (comparison)</td><td>Fx_total split per tire: drive all rear, braking by the caliper pressure bias (0.53 below 75 kPa) with engine braking rear, 50 / 50 left / right</td><td class="mono">:561–576</td></tr>
@@ -1105,7 +1125,7 @@ pre.code code { background: none; padding: 0; }
 <g class="b out"><rect x="158" y="1054" width="784" height="70" rx="4"/></g>
 <text class="ti" x="550" y="1073" text-anchor="middle">Understeer gradient (the MPC formula)</text>
 <text class="fm" x="550" y="1097" text-anchor="middle">k_us = m·(lr·C_r − lf·C_f) / (L·C_f·C_r)</text>
-<text class="sm" x="550" y="1114" text-anchor="middle">m 815 kg, lf 1.724 m, lr 1.248 m, L 2.972 m · NaN where |v_x·r| ≤ 4 m/s² or v_x ≤ 10 m/s</text>
+<text class="sm" x="550" y="1114" text-anchor="middle">m 815 kg, lf 1.724 m, lr 1.248 m, L 2.972 m · static fallback 0.00034 where |v_x·r| ≤ 4 m/s² or v_x ≤ 10 m/s</text>
 <g class="bdg"><circle cx="170" cy="1067" r="10"/><text x="170" y="1070.5" text-anchor="middle">10</text></g>
 <path class="w" d="M942,1089 L990,1089" marker-end="url(#a4)"/>
 <path class="brk" d="M146,78 V696"/>
@@ -1155,12 +1175,13 @@ pre.code code { background: none; padding: 0; }
 <tr><td>6</td><td>Observer</td><td>Fig. 2 blocks 4–5, gain 1, τ 0.2 s</td><td class="mono">:1090–1091</td></tr>
 <tr><td>7</td><td>Slip per tire</td><td><span class="mono">α_i = −atan2(Vy_t, Vx_t)</span> from tireKin with the observed v<sub>y</sub> and δ<sub>i</sub>; axle slip = mean of the two tires (left minus right differs by 0.08° rms front, the mean equals the axle centre slip to 0.001°)</td><td class="mono">:512–514, 1093–1094</td></tr>
 <tr><td>8–9</td><td>Axle stiffness</td><td>dual track <span class="mono">C = (|F_L| + |F_R|)/tan(max(|α_axle|, 0.1°))</span>, <span class="mono">F_i = brush(max(|α_i|, 0.1°), Fz_i, μ, Cα_i(Fz_i))</span>; bicycle <span class="mono">C = |brush(α_axle, Fz_axle, μ, Cα_axle(Fz_axle))|/tan α_axle</span> at the bicycle observer slip</td><td class="mono">:452–458, 520, 1099</td></tr>
-<tr><td>10</td><td>k<sub>us</sub></td><td><span class="mono">k_us = m·(l_r·C_r − l_f·C_f)/(L·C_f·C_r)</span>, m 815 kg, l<sub>f</sub> 1.724 m, l<sub>r</sub> 1.248 m; only where v<sub>x</sub> &gt; 10 m/s and |v<sub>x</sub>·r| &gt; 4 m/s². Measured reference <span class="mono">(α_f − α_r − offset)/a_y</span> from the localization slips, offset = median on straights.</td><td class="mono">:419, 521</td></tr>
+<tr><td>10</td><td>k<sub>us</sub></td><td><span class="mono">k_us = m·(l_r·C_r − l_f·C_f)/(L·C_f·C_r)</span>, m 815 kg, l<sub>f</sub> 1.724 m, l<sub>r</sub> 1.248 m; dynamic where v<sub>x</sub> &gt; 10 m/s and |v<sub>x</sub>·r| &gt; 4 m/s², else the static fallback <span class="mono">k_us_static</span> = 0.00034 (the linear k<sub>us</sub> of the brush at the static corner loads, 0.000337), so k<sub>us</sub> is always published and k_us_valid tells the two apart. Measured reference <span class="mono">(α_f − α_r − offset)/a_y</span> from the localization slips, offset = median on straights.</td><td class="mono">:419, 521</td></tr>
 </tbody></table></div>
 <p class="note prose">2026-09-03 log, v<sub>x</sub> &gt; 10 m/s: v<sub>y</sub> rms against the localization 0.202 m/s (bicycle) and 0.190 m/s (dual track); per tire slip 0.32° rms; k<sub>us</sub> median |error| against the measured 0.00027 (bicycle) and 0.00026 (dual track), fastest lap 0.00031 for the dual track. With the load sensitive brush the two k<sub>us</sub> agree: the dual track no longer doubles in the high load transfer corners (C10 median 0.00141 with a fixed Cα per tire; the light inside front saturated at ~2°).</p>
 <p class="note prose">History on this log: fixed Cα per tire and conditioning weights gave v<sub>y</sub> 0.172 m/s but a dual track k<sub>us</sub> error of 0.00046 (0.00079 above 12 m/s²) and a bicycle k<sub>us</sub> error of 0.00021. The scores are against the localization v<sub>y</sub> and the measured k<sub>us</sub>; neither is ground truth, and the tire model is set from the rig data, not from them.</p>
 <p class="note prose">Coupling (changed 2026-10-04): step 1 used the bicycle observer slip α<sub>i</sub><sup>B</sup> before, which tied the two models together. The dual track observer does the same without it: 0.172 → 0.173 m/s v<sub>y</sub> rms and 0.00045 → 0.00046 k<sub>us</sub> |error| with its own previous-sample slip (the plain normal load split gives 0.168 m/s, 0.00046). <code>vehicle_model.m</code> now uses its own previous-sample slip, the bicycle model uses its own axle F<sub>z</sub> observer, and the locked wheel F<sub>x</sub> cap uses the load model, so the two models share only stateless functions of the inputs (Fig. P2).</p>
-<p class="note warn prose">One path to the localization stays: the axle F<sub>y</sub> uses <span class="mono">a_y,tire = v_x·r + dv_y/dt − g_y</span>, and dv<sub>y</sub>/dt is the derivative of the localization v<sub>y</sub>. The observers never use its level.</p>
+<p class="note prose"><b>Back pocket (tested 2026-10-05, not in the package):</b> <code>compare_observer_variants.m</code> keeps three alternatives to this observer, see README 9b. (1) A forward model observer (scalar EKF: the measured steering and yaw rate drive each tire's brush at its observed load to predict v<sub>y</sub>, the accelerometer a<sub>y</sub> corrects it, no tire inverse): v<sub>y</sub> 0.184 m/s, slips 0.30° (0.237 m/s, 0.41° above |v<sub>x</sub>·r| 12 m/s²), the best estimator tried. (2) This inverse observer as a Kalman filter (P += Q, each tire a measurement with R ∝ 1/c<sub>i</sub><sup>2</sup> from the brush slope <span class="mono">dF/dα = Cα_i·c_i·sec²α_i</span>): 0.207 m/s; the slope based R distrusts the inverse too much in the corners, and with equal R it is this observer again. (3) k<sub>us</sub> at the MPC's commanded a<sub>lat</sub>: 0.00041 |error|, saturates at turn in. k<sub>us</sub> is 0.00026 for the observers (1), (2) and this one. The package keeps this inverse observer.</p>
+<p class="note prose">The localization v<sub>y</sub> is only used for the kinematic reference slips: the axle F<sub>y</sub> and the load model take the measured a<sub>y</sub> (2026-10-05), and no observer uses the localization v<sub>y</sub>.</p>
 
 <!-- ============================== 6. OUTPUTS ============================== -->
 <h2>6 · Outputs of the package</h2>
@@ -1180,7 +1201,7 @@ pre.code code { background: none; padding: 0; }
 <tr><td>10</td><td>Validity flags and intermediates</td><td class="mono">dbgB; dbgD</td><td>bicycle; dual track</td><td class="mono">bicycle/debug; dualtrack/debug</td></tr>
 <tr><td>–</td><td>k<sub>us</sub> measured, F<sub>x</sub> IMU split, F<sub>x</sub> total</td><td class="mono">k_us_meas, Fx_*_fb, Fx_total</td><td>–</td><td>MATLAB checks only, not published</td></tr>
 </tbody></table></div>
-<p class="note prose">Debug flags (<code>vehicle_model.m:460–472, 523–535</code>): moving = v<sub>x</sub> &gt; 4 m/s (else the kinematic slips are NaN); slip ratio valid = v<sub>x</sub> &gt; 1 m/s and the wheel speed it divides by ≥ 1 m/s (as the current ABS slip ratio); observer running = v<sub>x</sub> &gt; 10 m/s with every input finite (else v<sub>y</sub> = 0); F<sub>z</sub> observer active = gages present; k<sub>us</sub> valid = running and |v<sub>x</sub>·r| &gt; 4 m/s²; lifted = observed F<sub>z</sub> &lt; 300 N; locked = κ &lt; −0.5; saturated = brush conditioning 0. On the 2026 log: moving 66.5 %, both observers running 59.6 % of the samples</p>
+<p class="note prose">Debug flags (<code>vehicle_model.m:460–472, 523–535</code>): moving = v<sub>x</sub> &gt; 4 m/s (else the kinematic slips are NaN); slip ratio valid = v<sub>x</sub> &gt; 1 m/s, the vehicle speed only (a locked wheel stays valid, the ABS needs it; 2026-10-05); observer running = v<sub>x</sub> &gt; 10 m/s with every input finite (else v<sub>y</sub> = 0); F<sub>z</sub> observer active = gages present; k<sub>us</sub> valid (dynamic, else the static fallback) = running and |v<sub>x</sub>·r| &gt; 4 m/s²; lifted = observed F<sub>z</sub> &lt; 300 N; locked = κ &lt; −0.5; saturated = brush conditioning 0. On the 2026 log: moving 66.5 %, both observers running 59.6 % of the samples</p>
 <p class="note prose"><b>Saturated</b> means the tire's F<sub>y</sub> is at or above what its brush can give at its load, |F<sub>y,i</sub>| ≥ μ·F<sub>z,i</sub> (μ 1.6): the brush inverse has no unique slip (it returns the peak slip). It is a flag on the tire model, not proof the tire slides, and since the observer now uses equal weights it does not change v<sub>y</sub>. With the rig brush (load sensitive Cα) on the 2026 log: FL 4.1 %, FR 4.3 %, RL 2.0 %, RR 1.4 % of observer samples (7.1 / 7.4 / 3.5 / 2.4 % above |a<sub>y</sub>| 4 m/s²), 71 % of them the inner tire at a median 310 N. With the fixed Cα it was 15 / 10 / 6 / 3 %, because a light tire saturated at ~2° slip.</p>
 
 <!-- ============================== 7. BUILD PLAN ============================== -->
@@ -1219,7 +1240,7 @@ pre.code code { background: none; padding: 0; }
 <li><b>.hpp declares, .cpp executes.</b> Headers hold structs, classes, function signatures and member variables (including the parameter and LUT structs); the bodies live in the matching .cpp. Only one-line getters and setters inline in the header, as in <span class="mono">AccelerationInterface</span>.</li>
 <li><b>Parameters and LUTs</b> are declared as structs in <code>include/</code> and filled from <code>config/params.yaml</code> and the CSVs by the node (or a provider class, as <span class="mono">RosIceStateProvider</span> loads the engine map). The model classes never touch ROS.</li>
 <li><b>Clean and short:</b> minimal comments, in the style of <code>vehicle_model.m</code> and the current <code>vehicle_model</code> / <code>acceleration_interface</code> sources: a one-line comment per block, <span class="mono">// ASSUMPTION:</span> where the MATLAB has one, a short <span class="mono">/** @brief */</span> on public functions as in <code>acceleration_interface.hpp</code>. Names follow MATLAB where possible (<span class="mono">fz_bike_obs</span>, <span class="mono">vy_dual_obs</span>, <span class="mono">alpha_obs</span>, <span class="mono">k_us</span>).</li>
-<li>C++17 or 20 as acceleration_interface (<span class="mono">CMAKE_CXX_STANDARD 20</span>), <span class="mono">-Wall -Wextra -Wpedantic</span> clean, doubles, <span class="mono">std::array&lt;double, 4&gt;</span> for per tire values in FL, FR, RL, RR order and <span class="mono">std::array&lt;double, 2&gt;</span> for front, rear.</li>
+<li>C++17 or 20 as acceleration_interface (<span class="mono">CMAKE_CXX_STANDARD 20</span>), <span class="mono">-Wall -Wextra -Wpedantic</span> clean, doubles, no index notation for tires or axles: per tire and per axle values are structs with explicit names that mirror the messages (<span class="mono">fx.fx_fl</span>, <span class="mono">fy.fy_front</span>), locals named <span class="mono">fz_fl</span>, <span class="mono">ca_front</span>, and params.yaml uses explicit keys (<span class="mono">mu_front</span>, <span class="mono">wheel_cal_fl</span>); arrays only for tables (gear ratios, LUTs).</li>
 </ul>
 
 <h3>7.3 · The node (same structure as <code>acceleration_interface_node.cpp</code>)</h3>
@@ -1297,16 +1318,16 @@ private:
 class DualTrackModel { ... same API ...                // per tire Fz observer, Fy split, v_y observer, slips, k_us
     FzObserver fz_observer_;                             // 4 channels, its own state
     VyObserver vy_observer_;
-    std::array&lt;double, 4&gt; alpha_prev_{};                // tire slips of the previous sample (Fy split correction)
+    TireSlipAngle alpha_prev_;                           // tire slips of the previous sample (Fy split correction)
 };</code></pre>
-<p class="prose"><span class="mono">VehicleModelInput</span> carries the conditioned sample both models read: v<sub>x</sub>, v<sub>y</sub>, r, roll, pitch, a<sub>x</sub>, a<sub>y</sub>, the 0.3 Hz load model copies (v<sub>x</sub>, v<sub>y</sub>, r, a<sub>x</sub>, roll, pitch), dv<sub>y</sub>/dt and ṙ, δ<sub>i</sub>[4] and δ, wheel speeds[4] (m/s, calibrated), gage loads[4] (0.5 Hz, offset removed), brake pressures (zeroed), rpm, throttle fraction, gear, dt.</p>
+<p class="prose"><span class="mono">VehicleModelInput</span> carries the conditioned sample both models read: v<sub>x</sub>, v<sub>y</sub>, r, roll, pitch, a<sub>x</sub>, a<sub>y</sub>, the 0.3 Hz load model copies (v<sub>x</sub>, r, a<sub>x</sub>, a<sub>y</sub>, roll, pitch), ṙ, δ<sub>i</sub>[4] and δ, wheel speeds[4] (m/s, calibrated), gage loads[4] (0.5 Hz, raw level), brake pressures (zeroed), rpm, throttle fraction, gear, dt.</p>
 
 <h3>7.5 · MATLAB to C++ map</h3>
 <div class="tbl"><table>
 <thead><tr><th><code>vehicle_model.m</code></th><th>Line</th><th>C++</th></tr></thead>
 <tbody>
 <tr><td>vehicle parameters</td><td class="mono">:45</td><td>config/params.yaml → parameter structs in vehicle_model_types.hpp</td></tr>
-<tr><td>calibrations (wheelCal, R_f, R_r, brake zero, throttle idle, gage offset)</td><td class="mono">:139</td><td>offline: computed in MATLAB, printed, stored in params.yaml <span class="mono">calibration:</span>. The gage offset may also be taken at startup with the car at rest (gage − static corner load)</td></tr>
+<tr><td>calibrations (wheelCal, R_f, R_r, brake zero, throttle idle)</td><td class="mono">:139</td><td>offline: computed in MATLAB, printed, stored in params.yaml <span class="mono">calibration:</span>. No gage offset: the F<sub>z</sub> observers use only the gage change</td></tr>
 <tr><td>input conditioning</td><td class="mono">:197</td><td>node: <span class="mono">InputConditioner</span> (owns the <span class="mono">TustinLPF</span> states) → <span class="mono">VehicleModelInput</span></td></tr>
 <tr><td>SHARED: road wheel angles</td><td class="mono">:256</td><td>shared/road_wheel_angles + lut/AckermannLut (linear interpolation, linear extrapolation as <span class="mono">interp1 "extrap"</span>)</td></tr>
 <tr><td>SHARED: accelerations</td><td class="mono">:268</td><td>shared/load_model, shared/force_balance (<span class="mono">ddt</span> = backward difference of the filtered signal over dt)</td></tr>
@@ -1353,20 +1374,20 @@ class DualTrackModel { ... same API ...                // per tire Fz observer, 
 <div class="phase"><span class="tag">Phase 3</span><h4>Verify: replay the comp2 bag through the node, compare with <code>vehicle_model.m</code></h4>
 <ol>
 <li>MATLAB side: <code>vehicle_model.m</code> on <code>bags/lagoona/comp2/compition_bags/2026-09-03_121638_merged.csv</code>, which is <code>rosbag2_merged_2026-09-03_121638</code> merged by <code>merge_rosbag2_folder_to_csv_v3.py</code> onto a 0.01 s grid (merge report: t0 = 1788463010.696 s, no filter).</li>
-<li>C++ side: <span class="mono">ros2 bag play rosbag2_merged_2026-09-03_121638 --clock</span> <b>at 1× speed</b> (the node runs on a 100 Hz timer and checks message timeouts, so a faster replay is not the same experiment), playing only the input topics (leave the bag's own <span class="mono">/control/vehicle_model/*</span> out), with the node on <span class="mono">use_sim_time:=true</span>; <span class="mono">ros2 bag record --use-sim-time</span> the four output topics and <span class="mono">/control/vehicle_model/errors</span> (the merge script times every sample by the recorder's log time, so the recorder must run on bag time too).</li>
-<li>Same numbers on both sides: <code>params.yaml</code> holds the <code>vehicle_model.m</code> parameters and the calibrations it prints (<span class="mono">calibration: wheelCal, R_f, R_r, brake zero, throttle idle, gage offset</span>). Replay from the start of the bag, so the node starts its observers (and any startup gage zero) on the same samples as MATLAB.</li>
+<li>C++ side: <span class="mono">ros2 bag play rosbag2_merged_2026-09-03_121638 --clock 200</span> <b>at 1× speed</b> (/clock at 200 Hz, the default 40 Hz is coarser than the node's timer) (the node runs on a 100 Hz timer and checks message timeouts, so a faster replay is not the same experiment), playing only the input topics (leave the bag's own <span class="mono">/control/vehicle_model/*</span> out), with the node on <span class="mono">use_sim_time:=true</span>; <span class="mono">ros2 bag record --use-sim-time -s mcap</span> (the merge script reads mcap only) the four output topics and <span class="mono">/control/vehicle_model/errors</span> (the merge script times every sample by the recorder's log time, so the recorder must run on bag time too).</li>
+<li>Same numbers on both sides: <code>params.yaml</code> holds the <code>vehicle_model.m</code> parameters and the calibrations it prints (<span class="mono">calibration: wheelCal, R_f, R_r, brake zero, throttle idle</span>). Replay from the start of the bag, so the node starts its observers on the same samples as MATLAB.</li>
 <li>Convert the recorded bag: <span class="mono">python3 merge_rosbag2_folder_to_csv_v3.py -i &lt;recording&gt; -o &lt;out&gt; -t 0.01 --time-mode union --topics-file vehicle_model_node_topics.yaml</span>, with the workspace sourced so the new <code>blackandgold_msgs</code> types decode, and no <span class="mono">-f</span> (that filter is zero phase and would change the outputs). <code>vehicle_model_node_topics.yaml</code> (in <code>Vehicle_modeling/</code>) maps every message field to a CSV column; if the messages change, change it and the signal list in the comparison script together. The CSV <span class="mono">time_s</span> is absolute bag time, the same clock as the comp2 CSV (which starts at 1788463010.696 s).</li>
 <li>Compare in MATLAB with plots: node vs <code>vehicle_model.m</code> for every output (road wheel angles, slips, slip ratios, F<sub>z</sub>, F<sub>x</sub>, F<sub>y</sub>, v<sub>y</sub>, observed slips, k<sub>us</sub>, debug flags), overlay plus the difference, whole log and the fastest lap with C1 to C11 marked: <code>compare_vehicle_model_node.m</code>. It runs <code>vehicle_model.m</code> (plots off), reads the node CSV (<span class="mono">nodeCsv</span> at the top), interpolates it onto the MATLAB samples (linear, flags previous), scores only where MATLAB is finite, and prints per signal: rms and p99 of node − MATLAB, rms / rms, the best lag within ±0.5 s and the rms at that lag (a pure timing offset shows as a lag with a small rms at lag; a math error keeps a large rms at lag), and the % of samples where each debug flag disagrees. Tabs: summary bars, one tab per group (overlay | difference), fastest lap. Tested on a synthetic node CSV (10 ms delay, noise, a 5 % k<sub>us</sub> error, flipped flags, a missing column): all four were found.</li>
 <li>What to expect: the MATLAB inputs are linearly interpolated onto a fixed 10 ms grid while the node sees each message at its own rate and steps on its own 100 Hz timer with the latest values, so the two differ at the noise level even when the code is right. A real mismatch shows as an offset, a sign, a lag, a drift or a diverging observer in the difference trace.</li>
 </ol></div>
-<div class="phase"><span class="tag">Phase 4</span><h4>Second log, shadow mode, migration</h4>
+<div class="phase"><span class="tag">Phase 4</span><h4>Second log, shadow mode, migration (done 2026-10-05: comp2 replay and live old vs new check instead of the second log; readers moved, old nodes and messages removed)</h4>
 <ol>
 <li>The same replay comparison on a second log (2025 comp) to check that nothing was tuned to one session.</li>
 
 <li>On the car in shadow mode: published, not used by the controller.</li>
-<li>Migrate the readers before retiring the old topics: <code>acceleration_interface</code> ABS to <span class="mono">dualtrack/state</span> slip_ratio_x and <span class="mono">dualtrack/debug</span> slip_ratio_valid (same s<sub>x</sub> definition, checked on the bench before the switch to the Ackermann δ<sub>i</sub>); <code>telemetry_web</code>, <code>basestation_com_v2</code>, <code>slip_vs_force_plot</code> to <span class="mono">bicycle/state</span>. Publish old and new topics side by side for one test day, then remove output, output_filtered, vehicle_state, dualtrack/output, dualtrack/output_filtered.</li>
+<li>Migrate the readers before retiring the old topics: <code>acceleration_interface</code> ABS to <span class="mono">dualtrack/state</span> slip_ratio_x, valid while the vehicle v<sub>x</sub> is above the ABS minimum (same s<sub>x</sub> definition, checked on the bench before the switch to the Ackermann δ<sub>i</sub>); <code>telemetry_web</code>, <code>basestation_com_v2</code>, <code>slip_vs_force_plot</code> to <span class="mono">bicycle/state</span>. Publish old and new topics side by side for one test day, then remove output, output_filtered, vehicle_state, dualtrack/output, dualtrack/output_filtered.</li>
 </ol></div>
-<div class="phase"><span class="tag">Phase 5</span><h4>Use in the MPC</h4>
+<div class="phase"><span class="tag">Phase 5</span><h4>Use in the MPC (next: Step 2 of the status section, a k<sub>us</sub> switch branch first)</h4>
 <ol>
 <li><code>fbl_mpc_controller</code>: take the bicycle k<sub>us</sub> (or the observed axle F<sub>z</sub> and slip into its own <code>effective_stiffness</code>) in place of the fixed load brush, and its own brush with the same load sensitive Cα (a fixed Cα at the observed load would not be the tire model the k<sub>us</sub> was computed with); replace the 0.0012 clamp with a hold or rate limit when |F|/μF<sub>z</sub> &gt; ~0.9.</li>
 </ol></div>
