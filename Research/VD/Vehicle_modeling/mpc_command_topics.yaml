@@ -1,0 +1,12 @@
+# merge_rosbag2_folder_to_csv_v3.py --topics-file for the fbl_mpc lateral command and the understeer gradient it used
+# a_lat command = desired_yawrate * max(v_mpc, 8), v_mpc = 0.7 v_mpc + 0.3 odom vx (fbl_mpc.cpp curr_vel_cb)
+# debug_understeer = [k_ug used (after the clamp), Ca_front_eff, Ca_rear_eff, clamped]
+
+/control/fbl_mpc/desired_yawrate:
+  mpc_desired_yawrate: data
+
+/control/fbl_mpc/debug_understeer:
+  mpc_k_ug: data[0]
+  mpc_ca_f_eff: data[1]
+  mpc_ca_r_eff: data[2]
+  mpc_k_clamped: data[3]

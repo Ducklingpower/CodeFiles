@@ -1,0 +1,126 @@
+# merge_rosbag2_folder_to_csv_v3.py --topics-file for plot_vehicle_model_validation.m: the vehicle_model node outputs
+# (same columns as vehicle_model_node_topics.yaml) plus the acceleration_interface ABS debug replayed next to it
+
+/control/vehicle_model/bicycle/state:
+  bike_delta: delta
+  bike_vy_obs: vy_hat
+  bike_k_us: k_us
+  bike_slip_angle_kin_f: slip_angle_kin.alpha_front
+  bike_slip_angle_kin_r: slip_angle_kin.alpha_rear
+  bike_slip_angle_obs_f: slip_angle_hat.alpha_front
+  bike_slip_angle_obs_r: slip_angle_hat.alpha_rear
+  bike_slip_ratio_f: slip_ratio.sx_front
+  bike_slip_ratio_r: slip_ratio.sx_rear
+  bike_fz_model_f: fz_model.fz_front
+  bike_fz_model_r: fz_model.fz_rear
+  bike_fz_obs_f: fz_hat.fz_front
+  bike_fz_obs_r: fz_hat.fz_rear
+  bike_fx_f: fx.fx_front
+  bike_fx_r: fx.fx_rear
+  bike_fy_f: fy.fy_front
+  bike_fy_r: fy.fy_rear
+
+/control/vehicle_model/bicycle/debug:
+  bikedbg_moving: moving
+  bikedbg_slip_angle_valid: slip_angle_valid
+  bikedbg_observer_running: observer_running
+  bikedbg_fz_observer_active: fz_observer_active
+  bikedbg_k_us_valid: k_us_valid
+  bikedbg_vy_tire_model: vy_tire_model
+  bikedbg_slip_ratio_valid_f: slip_ratio_valid.sx_valid_front
+  bikedbg_slip_ratio_valid_r: slip_ratio_valid.sx_valid_rear
+  bikedbg_brush_slip_f: brush_slip.alpha_front
+  bikedbg_brush_slip_r: brush_slip.alpha_rear
+  bikedbg_conditioning_f: conditioning.conditioning_front
+  bikedbg_conditioning_r: conditioning.conditioning_rear
+  bikedbg_saturated_f: saturated.saturated_front
+  bikedbg_saturated_r: saturated.saturated_rear
+
+/control/vehicle_model/dualtrack/state:
+  dual_vy_obs: vy_hat
+  dual_k_us: k_us
+  dual_delta_fl: delta.delta_fl
+  dual_delta_fr: delta.delta_fr
+  dual_delta_rl: delta.delta_rl
+  dual_delta_rr: delta.delta_rr
+  dual_slip_angle_kin_fl: slip_angle_kin.alpha_fl
+  dual_slip_angle_kin_fr: slip_angle_kin.alpha_fr
+  dual_slip_angle_kin_rl: slip_angle_kin.alpha_rl
+  dual_slip_angle_kin_rr: slip_angle_kin.alpha_rr
+  dual_slip_angle_obs_fl: slip_angle_hat.alpha_fl
+  dual_slip_angle_obs_fr: slip_angle_hat.alpha_fr
+  dual_slip_angle_obs_rl: slip_angle_hat.alpha_rl
+  dual_slip_angle_obs_rr: slip_angle_hat.alpha_rr
+  dual_kappa_fl: kappa.kappa_fl
+  dual_kappa_fr: kappa.kappa_fr
+  dual_kappa_rl: kappa.kappa_rl
+  dual_kappa_rr: kappa.kappa_rr
+  dual_slip_ratio_x_fl: slip_ratio_x.sx_fl
+  dual_slip_ratio_x_fr: slip_ratio_x.sx_fr
+  dual_slip_ratio_x_rl: slip_ratio_x.sx_rl
+  dual_slip_ratio_x_rr: slip_ratio_x.sx_rr
+  dual_slip_ratio_y_fl: slip_ratio_y.sy_fl
+  dual_slip_ratio_y_fr: slip_ratio_y.sy_fr
+  dual_slip_ratio_y_rl: slip_ratio_y.sy_rl
+  dual_slip_ratio_y_rr: slip_ratio_y.sy_rr
+  dual_fz_model_fl: fz_model.fz_fl
+  dual_fz_model_fr: fz_model.fz_fr
+  dual_fz_model_rl: fz_model.fz_rl
+  dual_fz_model_rr: fz_model.fz_rr
+  dual_fz_obs_fl: fz_hat.fz_fl
+  dual_fz_obs_fr: fz_hat.fz_fr
+  dual_fz_obs_rl: fz_hat.fz_rl
+  dual_fz_obs_rr: fz_hat.fz_rr
+  dual_fx_fl: fx.fx_fl
+  dual_fx_fr: fx.fx_fr
+  dual_fx_rl: fx.fx_rl
+  dual_fx_rr: fx.fx_rr
+  dual_fy_load_split_fl: fy_load_split.fy_fl
+  dual_fy_load_split_fr: fy_load_split.fy_fr
+  dual_fy_load_split_rl: fy_load_split.fy_rl
+  dual_fy_load_split_rr: fy_load_split.fy_rr
+  dual_fy_corrected_fl: fy_corrected.fy_fl
+  dual_fy_corrected_fr: fy_corrected.fy_fr
+  dual_fy_corrected_rl: fy_corrected.fy_rl
+  dual_fy_corrected_rr: fy_corrected.fy_rr
+
+/control/vehicle_model/dualtrack/debug:
+  dualdbg_moving: moving
+  dualdbg_observer_running: observer_running
+  dualdbg_fz_observer_active: fz_observer_active
+  dualdbg_k_us_valid: k_us_valid
+  dualdbg_slip_angle_valid_fl: slip_angle_valid.alpha_valid_fl
+  dualdbg_slip_angle_valid_fr: slip_angle_valid.alpha_valid_fr
+  dualdbg_slip_angle_valid_rl: slip_angle_valid.alpha_valid_rl
+  dualdbg_slip_angle_valid_rr: slip_angle_valid.alpha_valid_rr
+  dualdbg_slip_ratio_valid_fl: slip_ratio_valid.sx_valid_fl
+  dualdbg_slip_ratio_valid_fr: slip_ratio_valid.sx_valid_fr
+  dualdbg_slip_ratio_valid_rl: slip_ratio_valid.sx_valid_rl
+  dualdbg_slip_ratio_valid_rr: slip_ratio_valid.sx_valid_rr
+  dualdbg_lifted_fl: lifted.lifted_fl
+  dualdbg_lifted_fr: lifted.lifted_fr
+  dualdbg_lifted_rl: lifted.lifted_rl
+  dualdbg_lifted_rr: lifted.lifted_rr
+  dualdbg_locked_fl: locked.locked_fl
+  dualdbg_locked_fr: locked.locked_fr
+  dualdbg_locked_rl: locked.locked_rl
+  dualdbg_locked_rr: locked.locked_rr
+  dualdbg_saturated_fl: saturated.saturated_fl
+  dualdbg_saturated_fr: saturated.saturated_fr
+  dualdbg_saturated_rl: saturated.saturated_rl
+  dualdbg_saturated_rr: saturated.saturated_rr
+  dualdbg_conditioning_fl: conditioning.conditioning_fl
+  dualdbg_conditioning_fr: conditioning.conditioning_fr
+  dualdbg_conditioning_rl: conditioning.conditioning_rl
+  dualdbg_conditioning_rr: conditioning.conditioning_rr
+
+# acceleration_interface (MPC) replayed next to the node: ABS activations and the brake command it sends
+/control/fbl_mpc/acceleration_interface/debug_abs_front_trigger_count:
+  abs_front_count: data
+
+/control/fbl_mpc/acceleration_interface/debug_abs_rear_trigger_count:
+  abs_rear_count: data
+
+/control/fbl_mpc/replay_fbl_mpc_command:
+  cmd_frt_brake: frt_brake_cmd
+  cmd_rear_brake: rear_brake_cmd

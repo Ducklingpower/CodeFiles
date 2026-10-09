@@ -1,0 +1,83 @@
+# merge_rosbag2_folder_to_csv_v3.py --topics-file for analyze_sim_kus.m: the sim k_us switch test
+# (fbl_mpc with its own / the vehicle model bicycle / dual track k_us, selected on the base station)
+
+/control/fbl_mpc/debug_understeer_source:
+  kus_used: data[0]
+  kus_src: data[1]
+  kus_mpc: data[2]
+  kus_bike: data[3]
+  kus_dual: data[4]
+
+/control/fbl_mpc/mpc_debug_lateral_error:
+  lat_err: data[0]
+
+/control/fbl_mpc/mpc_debug_lateral_error_vel:
+  lat_err_vel: data[0]
+
+/control/fbl_mpc/desired_yawrate:
+  r_des: data
+
+/control/fbl_mpc/desired_acceleration:
+  ax_des: data
+
+/control/fbl_mpc/yaw_rate_feedback_steering:
+  steer_fb: data
+
+/control/fbl_mpc/fbl_mpc_acc_command:
+  steer_cmd_deg: steering_cmd
+  accel_cmd: accelerator_cmd
+
+/odometry/global_filtered:
+  px: pose.pose.position.x
+  py: pose.pose.position.y
+  vx: twist.twist.linear.x
+  vy: twist.twist.linear.y
+  wz: twist.twist.angular.z
+
+/novatel_bottom/accel_filtered:
+  ax: accel.linear.x
+  ay: accel.linear.y
+
+/raptor_dbw_interface/steering_extended_report:
+  steer_fbk_deg: primary_steering_angle_fbk
+
+/raptor_dbw_interface/tire_report:
+  gage_fl: fl_wheel_load
+  gage_fr: fr_wheel_load
+  gage_rl: rl_wheel_load
+  gage_rr: rr_wheel_load
+
+/control/vehicle_model/bicycle/state:
+  bike_alpha_f: slip_angle_hat.alpha_front
+  bike_alpha_r: slip_angle_hat.alpha_rear
+  bike_alpha_kin_f: slip_angle_kin.alpha_front
+  bike_alpha_kin_r: slip_angle_kin.alpha_rear
+  bike_fz_f: fz_hat.fz_front
+  bike_fz_r: fz_hat.fz_rear
+  bike_fz_model_f: fz_model.fz_front
+  bike_fz_model_r: fz_model.fz_rear
+  bike_fy_f: fy.fy_front
+  bike_fy_r: fy.fy_rear
+  bike_vy: vy_hat
+
+/control/vehicle_model/bicycle/debug:
+  bike_running: observer_running
+  bike_kus_valid: k_us_valid
+  bike_cond_f: conditioning.conditioning_front
+  bike_cond_r: conditioning.conditioning_rear
+
+/control/vehicle_model/dualtrack/state:
+  dual_fz_fl: fz_hat.fz_fl
+  dual_fz_fr: fz_hat.fz_fr
+  dual_fz_rl: fz_hat.fz_rl
+  dual_fz_rr: fz_hat.fz_rr
+  dual_alpha_fl: slip_angle_hat.alpha_fl
+  dual_alpha_fr: slip_angle_hat.alpha_fr
+  dual_alpha_rl: slip_angle_hat.alpha_rl
+  dual_alpha_rr: slip_angle_hat.alpha_rr
+
+/planning/current_frenet_s:
+  frenet_s: data
+
+/basestation/command:
+  speed_scale: velocity_profile_scale

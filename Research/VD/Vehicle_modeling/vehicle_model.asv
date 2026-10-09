@@ -1,0 +1,934 @@
+clc
+close all
+clear
+% vehicle model foundation - bicycle and dual track
+% model reference: brake_anylisis/notmal_force_estimation.m
+
+%% settings
+
+% dataFile      =
+% "/home/elijah/bag_files/VD/laguna/comp/2025-07-24_175839_merged.csv"; %
+% laptop file location old com
+dataFile = "comp2/compition_bags/2026-09-03_121638_merged.csv"; % fastes lap data recent comp
+dataFile = "comp2/compition_bags/2026-09-03_121638_merged.csv"; % same data file laptop old comp
+engineMapFile = "/home/elijah/PurdueRacing/on-vehicle/on-vehicle/src/control/acceleration_interface/config/engine_map_30psi.csv";
+
+fc         = 1.3;       % low pass cutoff [Hz], first order Tustin, used by every signal
+timeWindow = [730 830];   % [s] from start of recording
+vxMin      = 4;         % [m/s] slip is NaN below this speed
+
+saveFitData    = false; % write fitDataFile for tire_fit.m, run with timeWindow = [0 Inf]
+fitDataFile    = "/home/elijah/code/Research/VD/Vehicle_modeling/tire_fit_data.mat";
+
+
+%% load file
+
+data  = readtable(dataFile);
+t_all = data.time_s - data.time_s(1);
+Ts    = median(diff(t_all));   % sample period (s)
+
+% engine map: rows rpm, columns throttle fraction from the header
+mapLines    = readlines(engineMapFile);
+mapThrottle = str2double(split(mapLines(1), ","))';
+mapThrottle = mapThrottle(2:end);
+engineMap   = readmatrix(engineMapFile, "NumHeaderLines", 1);
+
+engineTorque = griddedInterpolant({engineMap(:,1), mapThrottle}, engineMap(:,2:end), "linear", "nearest");
+
+%% vehicle parameters
+
+vehicleParams.m           = 815;            % mass (kg)
+vehicleParams.wheelbase   = 2.9718;         % (m)
+vehicleParams.w_dist_f    = 0.42;           % front static weight share (-)
+vehicleParams.t_f         = 1.638762;       % front track (m)
+vehicleParams.t_r         = 1.5239686;      % rear track (m)
+vehicleParams.cg_z        = 0.35;           % CG height (m) - MEASURE THIS
+vehicleParams.rc_f        = 0.1202436;      % roll center front (m)
+vehicleParams.rc_r        = 0.0016628;      % roll center rear (m)
+vehicleParams.wheelRate_f = 2.985553732e5;  % (N/m)
+vehicleParams.wheelRate_r = 2.941321827e5;  % (N/m)
+vehicleParams.ARB_f       = 0;              % (Nm/rad) TBD
+vehicleParams.ARB_r       = 0;              % (Nm/rad) no rear bar
+vehicleParams.Iz          = 1000;           % yaw inertia (kg m^2) TBD
+% R_r from engine speed, R_f from the front wheel speed channel (see calibration)
+
+vehicleParams.steerRatio  = 15.015;         % steering wheel -> road wheel
+vehicleParams.steerOffset = 0.333;          % road wheel angle offset (deg)
+
+vehicleParams.ClA         = 0.58;           % downforce area*coef (m^2)
+vehicleParams.CdA         = 1.33;           % drag area*coef (m^2)
+vehicleParams.aeroBal_f   = 0.33;           % front share of downforce (-)
+vehicleParams.rho         = 1.225;          % air density (kg/m^3)
+
+% brakes, acceleration_interface params.yaml, T_wheel = P*A*mu*R/1000
+vehicleParams.A_caliper   = 4486;           % (mm^2)
+vehicleParams.mu_pad      = 0.444;          % pad kinetic friction (-), fit to force balance (yaml 0.4)
+vehicleParams.R_brake     = 0.134;          % effective rotor radius (m)
+
+% driveline, acceleration_interface params.yaml
+vehicleParams.gearRatio   = [2.9167, 1.8667, 1.3750, 1.1111, 0.9524, 0.8889];
+vehicleParams.gearEff     = [0.91,   0.91,   0.91,   0.96,   0.96,   0.96  ];
+vehicleParams.diffRatio   = 3.0;
+vehicleParams.diffEff     = 0.99;
+
+% rotating inertia
+% tires, from the tire files
+vehicleParams.m_tire_f    = 6.852;          % (kg) 275 wide
+vehicleParams.m_tire_r    = 8.323;          % (kg) 385 wide
+vehicleParams.R0_f        = 0.3006;         % unloaded radius (m)
+vehicleParams.R0_r        = 0.3132;         % unloaded radius (m)
+vehicleParams.R_rim       = 0.1905;         % rim radius (m)
+
+vehicleParams.I_rest      = 0.25;           % rim + rotor + hub per wheel (kg m^2) TODO
+vehicleParams.R_logger_f  = 0.30;           % radius the logger uses for the front wheel speed (params.yaml)
+vehicleParams.I_engine    = 0.15;           % crank + flywheel + clutch + gearbox input (kg m^2) TODO
+
+% tire friction best guesses, axle level (brake_anylisis/brake_bias_schedule.m)
+vehicleParams.muY_f       = 1.50;           % lateral (-), log p95 reads 1.385
+vehicleParams.muY_r       = 1.75;           % lateral (-), log p95 reads 1.531
+vehicleParams.muX_f       = 0.95;           % braking (-)
+vehicleParams.muX_r       = 1.35;           % braking (-)
+
+% tire model, Pacejka 1987 (tires.pdf) fitted by tire_fit.m, c = [C a1 ... a8]
+% Fz in kN, Fy: alpha in deg, Fx: kappa in %
+vehicleParams.pacFy_f = [1.38647 -118.34 1811.47 2151.79 1.7772 0.234877 -9.347e-06 -0.0965232 -0.522357];
+vehicleParams.pacFy_r = [1.34447 -88.2193 1827.23 3077.61 1.48426 0.258451 0.0004593 0.135989 -2.18797];
+vehicleParams.pacFx_f = [1.65709 -54.6203 1182.06 129.073 1004.47 0.16167 0.000621126 0.0684044 -0.33824];
+vehicleParams.pacFx_r = [1.53503 -64.3706 1568.17 55.3548 884.368 0.087884 -0.00211899 -0.0255783 0.120776];
+
+vehicleParams.staticCornerLoad = [1679, 1679, 2318.6, 2318.6];   % [FL FR RL RR] (N) - corner scales
+
+g = 9.81;
+
+%% wheel speed calibration (full recording, free rolling)
+% free rolling wheel has zero slip, so each wheel speed must read ground speed
+
+vx_cal = lpf(data.odom_vx_mps, fc, Ts);
+
+freeRolling = abs(lpf(data.a_x, fc, Ts))                 < 0.6 ...
+            & abs(lpf(data.a_y, fc, Ts))                 < 0.5 ...
+            & abs(lpf(data.steer_wheel_ang_deg, fc, Ts)) < 2   ...
+            & lpf(data.front_brake_pressure_kpa, fc, Ts) < 60  ...
+            & lpf(data.rear_brake_pressure_kpa,  fc, Ts) < 60  ...
+            & vx_cal > 12;
+
+wheelCh  = ["fl_speed_kmh", "fr_speed_kmh", "rl_speed_kmh", "rr_speed_kmh"];
+wheelCal = ones(1,4);
+
+if sum(freeRolling) >= 300
+    for i = 1:4
+        vw = lpf(data.(wheelCh(i)), fc, Ts) ./ 3.6;
+        wheelCal(i) = mean(vw(freeRolling) ./ vx_cal(freeRolling), "omitnan");
+    end
+else
+    warning("only %d free rolling samples, wheel speeds left uncalibrated", sum(freeRolling));
+end
+
+% rear rolling radius from engine speed, free rolling in gear: R = V*G/omega_engine
+gearCal = round(data.current_gear);
+inGearCal = freeRolling & gearCal >= 1 & gearCal <= 6 & abs(data.current_gear - gearCal) < 0.01;
+
+G_cal = zeros(height(data), 1);
+G_cal(inGearCal) = vehicleParams.gearRatio(gearCal(inGearCal)) .* vehicleParams.diffRatio;
+
+omega_engine_cal  = lpf(data.engine_rpm, fc, Ts) .* 2*pi/60;
+vehicleParams.R_r = median(vx_cal(inGearCal) .* G_cal(inGearCal) ./ omega_engine_cal(inGearCal), "omitnan");
+vehicleParams.R_f = vehicleParams.R_logger_f / mean(wheelCal(1:2));   % logger uses 0.30 f / 0.31 r, not one radius
+
+%% brake pressure zero (full recording, throttle on so no braking)
+
+throttleOn = lpf(data.throttle_pct, fc, Ts) > 20;
+Pf_all     = lpf(data.front_brake_pressure_kpa, fc, Ts);
+Pr_all     = lpf(data.rear_brake_pressure_kpa,  fc, Ts);
+
+Pf_zero = median(Pf_all(throttleOn));
+Pr_zero = median(Pr_all(throttleOn));
+
+%% strain gage zero (full recording)
+
+gageZero = lpf([data.fl_load_n, data.fr_load_n, data.rl_load_n, data.rr_load_n], fc, Ts);
+gageZero = gageZero(min(100, height(data)), :);
+
+gageOffset = gageZero - vehicleParams.staticCornerLoad;
+
+%% time window
+
+keep = t_all >= timeWindow(1) & t_all <= timeWindow(2);
+data = data(keep, :);
+t    = t_all(keep);
+
+%% filtered signals
+
+Fvx   = lpf(data.odom_vx_mps,  fc, Ts);
+Fvy   = lpf(data.odom_vy_mps,  fc, Ts);
+Fwz   = lpf(data.odom_wz_rads, fc, Ts);
+
+Fax   = lpf(data.a_x, fc, Ts);
+steer = lpf(data.steer_wheel_ang_deg, fc, Ts);
+Pf    = max(lpf(data.front_brake_pressure_kpa, fc, Ts) - Pf_zero, 0);
+Pr    = max(lpf(data.rear_brake_pressure_kpa,  fc, Ts) - Pr_zero, 0);
+gear  = round(data.current_gear);   % integer, not filtered
+
+Frpm      = lpf(data.engine_rpm,   fc, Ts);
+Fthrottle = lpf(data.throttle_pct, fc, Ts);
+
+Vw_fl = lpf(data.fl_speed_kmh, fc, Ts) ./ 3.6 ./ wheelCal(1);
+Vw_fr = lpf(data.fr_speed_kmh, fc, Ts) ./ 3.6 ./ wheelCal(2);
+Vw_rl = lpf(data.rl_speed_kmh, fc, Ts) ./ 3.6 ./ wheelCal(3);
+Vw_rr = lpf(data.rr_speed_kmh, fc, Ts) ./ 3.6 ./ wheelCal(4);
+
+Fz_fl_meas = lpf(data.fl_load_n, fc, Ts) - gageOffset(1);
+Fz_fr_meas = lpf(data.fr_load_n, fc, Ts) - gageOffset(2);
+Fz_rl_meas = lpf(data.rl_load_n, fc, Ts) - gageOffset(3);
+Fz_rr_meas = lpf(data.rr_load_n, fc, Ts) - gageOffset(4);
+
+Fq    = lpf([data.odom_qw, data.odom_qx, data.odom_qy, data.odom_qz], fc, Ts);
+Feul  = quat2eul(Fq, "ZYX");   % [yaw pitch roll]
+pitch = -Feul(:,2);
+roll  =  Feul(:,3);
+
+%% geometry
+
+m   = vehicleParams.m;
+L   = vehicleParams.wheelbase;
+lf  = (1 - vehicleParams.w_dist_f) * L;   % CG -> front axle (long one, car is rear heavy)
+lr  = vehicleParams.w_dist_f * L;         % CG -> rear axle
+h   = vehicleParams.cg_z;
+ft  = vehicleParams.t_f;
+rt  = vehicleParams.t_r;
+Iz  = vehicleParams.Iz;
+R_f = vehicleParams.R_f;
+R_r = vehicleParams.R_r;
+rho = vehicleParams.rho;
+
+delta = deg2rad(vehicleParams.steerOffset + steer ./ vehicleParams.steerRatio);
+
+%% accelerations at the tires
+% a_x, a_y channels are gravity compensated, gravity is added back here
+% a_z channel not used (wheel hop), normal accel from attitude and yaw rate
+
+dt = [Ts; diff(t)];
+dt(dt <= 0) = Ts;
+ddt = @(x) [0; diff(x)] ./ dt;          % backward difference of the filtered signal, causal
+
+dvy_dt = ddt(Fvy);
+rdot   = ddt(Fwz);
+
+g_y_body = -g .* cos(pitch) .* sin(roll);
+
+ay_tire  = Fvx .* Fwz + dvy_dt - g_y_body;          % lateral, bank corrected
+ax_long  = Fax + g .* sin(pitch);                   % longitudinal, grade included
+az_road  = g .* cos(pitch) .* cos(roll) - Fvx .* Fwz .* sin(roll);   % normal, gravity + bank centripetal
+
+%% tire frame velocities
+
+Vx = Fvx;
+Vx(abs(Vx) < vxMin) = NaN;
+
+Vw_front = 0.5 .* (Vw_fl + Vw_fr);
+Vw_rear  = 0.5 .* (Vw_rl + Vw_rr);
+
+Vx_fl_c = Vx - Fwz .* (ft/2);
+Vx_fr_c = Vx + Fwz .* (ft/2);
+Vx_rl_c = Vx - Fwz .* (rt/2);
+Vx_rr_c = Vx + Fwz .* (rt/2);
+
+Vy_front_c = Fvy + Fwz .* lf;
+Vy_rear_c  = Fvy - Fwz .* lr;
+
+% Front corners are rotated into the steered tire frame.
+Vx_tire_fl =  Vx_fl_c .* cos(delta) + Vy_front_c .* sin(delta);
+Vx_tire_fr =  Vx_fr_c .* cos(delta) + Vy_front_c .* sin(delta);
+Vx_tire_rl =  Vx_rl_c;
+Vx_tire_rr =  Vx_rr_c;
+
+Vy_tire_fl = -Vx_fl_c .* sin(delta) + Vy_front_c .* cos(delta);
+Vy_tire_fr = -Vx_fr_c .* sin(delta) + Vy_front_c .* cos(delta);
+Vy_tire_rl =  Vy_rear_c;
+Vy_tire_rr =  Vy_rear_c;
+
+%% slip angles
+
+alpha_fl = -atan2(Vy_tire_fl, Vx_tire_fl);
+alpha_fr = -atan2(Vy_tire_fr, Vx_tire_fr);
+alpha_rl = -atan2(Vy_tire_rl, Vx_tire_rl);
+alpha_rr = -atan2(Vy_tire_rr, Vx_tire_rr);
+
+% bicycle, per axle
+alpha_f = delta - atan2(Vy_front_c, Vx);
+alpha_r =       - atan2(Vy_rear_c,  Vx);
+
+%% slip ratios sx sy (wheel speed referenced)
+
+sx_fl = (Vw_fl - Vx_tire_fl) ./ Vw_fl;
+sx_fr = (Vw_fr - Vx_tire_fr) ./ Vw_fr;
+sx_rl = (Vw_rl - Vx_tire_rl) ./ Vw_rl;
+sx_rr = (Vw_rr - Vx_tire_rr) ./ Vw_rr;
+
+sy_fl = -Vy_tire_fl ./ Vw_fl;
+sy_fr = -Vy_tire_fr ./ Vw_fr;
+sy_rl = -Vy_tire_rl ./ Vw_rl;
+sy_rr = -Vy_tire_rr ./ Vw_rr;
+
+% bicycle, per axle
+sx_f = (Vw_front - Vx) ./ Vw_front;
+sx_r = (Vw_rear  - Vx) ./ Vw_rear;
+
+%% longitudinal slip kappa (MF definition) and lockup
+% kappa = (Vw - Vx)/|Vx|, -1 = locked, stays finite at lock where sx blows up
+% ASSUMPTION: a wheel below half of its ground speed (kappa < -0.5) is locked
+
+kappa_fl = (Vw_fl - Vx_tire_fl) ./ abs(Vx_tire_fl);
+kappa_fr = (Vw_fr - Vx_tire_fr) ./ abs(Vx_tire_fr);
+kappa_rl = (Vw_rl - Vx_tire_rl) ./ abs(Vx_tire_rl);
+kappa_rr = (Vw_rr - Vx_tire_rr) ./ abs(Vx_tire_rr);
+
+locked_fl = kappa_fl < -0.5;
+locked_fr = kappa_fr < -0.5;
+locked_rl = kappa_rl < -0.5;
+locked_rr = kappa_rr < -0.5;
+
+%% normal forces bicycle model
+% ASSUMPTION: rigid body pitch transfer, m*ax*h/L, no suspension dynamics
+% ASSUMPTION: CG height 0.35 m (past ~0.5 m the axle that runs out of grip first flips)
+% ASSUMPTION: aero balance fixed at 33% front, no ride height or speed shift
+% ASSUMPTION: no aero drag pitching moment
+% ASSUMPTION: no crest/dip term, pitch rate too noisy and a_z is wheel hop
+% ASSUMPTION: bank centripetal term -vx*r*sin(roll), odom roll is negative on a favourable bank
+% TODO: measure cg_z and aero balance
+
+downforce = 0.5 .* rho .* vehicleParams.ClA .* Fvx.^2;
+aeroBal_f = vehicleParams.aeroBal_f;
+
+Fz_f = m .* az_road .* lr ./ L - m .* ax_long .* h ./ L +      aeroBal_f  .* downforce;
+Fz_r = m .* az_road .* lf ./ L + m .* ax_long .* h ./ L + (1 - aeroBal_f) .* downforce;
+
+%% normal forces dual track model
+% ASSUMPTION: steady state roll, no roll damping or roll inertia
+% ASSUMPTION: roll stiffness from wheel rates at 0 mm travel, no ARB yet
+% ASSUMPTION: lateral transfer scales with ay only, not with aero or bank/crest load
+% ASSUMPTION: axle split left/right by static corner loads (currently symmetric, not measured)
+% TODO: corner scales for staticCornerLoad (cross weight)
+% TODO: front ARB rate in Nm/rad
+
+rc_f = vehicleParams.rc_f;
+rc_r = vehicleParams.rc_r;
+
+k_phi_f = vehicleParams.wheelRate_f * ft^2 / 2 + vehicleParams.ARB_f;
+k_phi_r = vehicleParams.wheelRate_r * rt^2 / 2 + vehicleParams.ARB_r;
+rollShare_f = k_phi_f / (k_phi_f + k_phi_r);
+
+h_roll = h - (rc_f + (rc_r - rc_f) * lf / L);   % CG -> roll axis
+
+latTransfer_f = m .* ay_tire ./ ft .* (h_roll *      rollShare_f  + lr * rc_f / L);
+latTransfer_r = m .* ay_tire ./ rt .* (h_roll * (1 - rollShare_f) + lf * rc_r / L);
+
+cornerLoad = vehicleParams.staticCornerLoad;
+share_fl = cornerLoad(1) / (cornerLoad(1) + cornerLoad(2));
+share_fr = cornerLoad(2) / (cornerLoad(1) + cornerLoad(2));
+share_rl = cornerLoad(3) / (cornerLoad(3) + cornerLoad(4));
+share_rr = cornerLoad(4) / (cornerLoad(3) + cornerLoad(4));
+
+Fz_fl = Fz_f .* share_fl - latTransfer_f;
+Fz_fr = Fz_f .* share_fr + latTransfer_f;
+Fz_rl = Fz_r .* share_rl - latTransfer_r;
+Fz_rr = Fz_r .* share_rr + latTransfer_r;
+
+%% normal force observers (derivative term)
+% model sets the level, strain gages only add their rate
+% ASSUMPTION: gage bias drifts slowly, so its rate is trustworthy but its level is not
+% TODO: tune K and tau
+
+K   = 1.5;   % gain on (gage rate - model rate)
+tau = 1.0;   % (s) correction decays back to the model
+
+Fz_bike_meas  = [Fz_fl_meas + Fz_fr_meas, Fz_rl_meas + Fz_rr_meas];
+Fz_bike_model = [Fz_f, Fz_r];
+Fz_bike_obs   = fzDerivativeObserver(Fz_bike_model, Fz_bike_meas, t, K, tau);
+
+Fz_dual_meas  = [Fz_fl_meas, Fz_fr_meas, Fz_rl_meas, Fz_rr_meas];
+Fz_dual_model = [Fz_fl, Fz_fr, Fz_rl, Fz_rr];
+Fz_dual_obs   = fzDerivativeObserver(Fz_dual_model, Fz_dual_meas, t, K, tau);
+
+%% force calcs per wheel Fx (wheel dynamics, Rezaeian eq 1)
+% Iw*omega_dot = Td - Tb - R*Fx  ->  Fx = (Td - Tb - Iw*omega_dot) / R
+% ASSUMPTION: same caliper, pad and rotor front/rear, left = right
+% ASSUMPTION: pad mu constant (0.444, fit on Laguna comp log), no temperature or speed effect
+% ASSUMPTION: open diff, equal drive torque left/right, no diff friction
+% ASSUMPTION: tire inertia as a uniform thick ring (tire file mass), rim + rotor + hub is a guess
+% ASSUMPTION: front wheel speed channel is built with R = 0.30 (params.yaml), rear with 0.31
+% ASSUMPTION: engine + gearbox inertia reflected to the diff by G^2, acts on the rear average
+% ASSUMPTION: clutch engaged whenever in gear, no drive torque in neutral
+% ASSUMPTION: efficiency multiplies drive torque, divides motoring torque (power wheel -> engine)
+% ASSUMPTION: throttle below 5% (after removing the idle reading) is closed, map 0 column
+% ASSUMPTION: map 0 throttle column is the true motoring torque
+% ASSUMPTION: no rolling resistance
+% TODO: weigh rim, rotor, hub for I_rest, find I_engine
+% TODO: pad mu vs temperature, check sum of Fx against Fx_total each session
+
+% tire as a thick ring between rim and tread, plus rim/rotor/hub
+Iw_f = 0.5 * vehicleParams.m_tire_f * (vehicleParams.R0_f^2 + vehicleParams.R_rim^2) + vehicleParams.I_rest;
+Iw_r = 0.5 * vehicleParams.m_tire_r * (vehicleParams.R0_r^2 + vehicleParams.R_rim^2) + vehicleParams.I_rest;
+
+domega_fl = ddt(Vw_fl ./ R_f);
+domega_fr = ddt(Vw_fr ./ R_f);
+domega_rl = ddt(Vw_rl ./ R_r);
+domega_rr = ddt(Vw_rr ./ R_r);
+
+domega_rear = 0.5 .* (domega_rl + domega_rr);
+
+% brake torque per wheel
+brakeGain = vehicleParams.A_caliper * vehicleParams.mu_pad * vehicleParams.R_brake / 1000;   % (Nm/kPa)
+
+Tb_f = brakeGain .* Pf;
+Tb_r = brakeGain .* Pr;
+
+% drive torque at the rear axle
+throttleIdle  = prctile(Fthrottle, 1);
+throttle_frac = max(0, (Fthrottle - throttleIdle) ./ (100 - throttleIdle));
+throttle_frac(throttle_frac <= 0.05) = 0;
+
+T_engine = engineTorque(Frpm, throttle_frac);
+
+inGear = gear >= 1 & gear <= 6;
+G   = zeros(size(t));
+eta = ones(size(t));
+G(inGear)   = vehicleParams.gearRatio(gear(inGear))' .* vehicleParams.diffRatio;
+eta(inGear) = vehicleParams.gearEff(gear(inGear))'   .* vehicleParams.diffEff;
+
+Td_axle = G .* T_engine .* eta;
+motoring = T_engine < 0;
+Td_axle(motoring) = G(motoring) .* T_engine(motoring) ./ eta(motoring);
+
+Td_axle = Td_axle - vehicleParams.I_engine .* G.^2 .* domega_rear;
+
+% longitudinal force per wheel
+Fx_fl = (              - Tb_f - Iw_f .* domega_fl) ./ R_f;
+Fx_fr = (              - Tb_f - Iw_f .* domega_fr) ./ R_f;
+Fx_rl = (Td_axle ./ 2  - Tb_r - Iw_r .* domega_rl) ./ R_r;
+Fx_rr = (Td_axle ./ 2  - Tb_r - Iw_r .* domega_rr) ./ R_r;
+
+% locked wheel: pressure only sets brake capacity, so Fx is limited to sliding friction
+% ASSUMPTION: sliding mu = braking mu best guess
+Fx_fl(locked_fl) = max(Fx_fl(locked_fl), -vehicleParams.muX_f .* Fz_dual_obs(locked_fl,1));
+Fx_fr(locked_fr) = max(Fx_fr(locked_fr), -vehicleParams.muX_f .* Fz_dual_obs(locked_fr,2));
+Fx_rl(locked_rl) = max(Fx_rl(locked_rl), -vehicleParams.muX_r .* Fz_dual_obs(locked_rl,3));
+Fx_rr(locked_rr) = max(Fx_rr(locked_rr), -vehicleParams.muX_r .* Fz_dual_obs(locked_rr,4));
+
+%% force calcs bicycle model
+% ASSUMPTION: left and right tires on an axle lumped into one axle force
+% ASSUMPTION: Iz = 1000 is a placeholder, rdot term scales directly with it
+% TODO: measure Iz, CdA
+
+% longitudinal, axle sums of the wheel forces (tire frame)
+Fxf = Fx_fl + Fx_fr;
+Fxr = Fx_rl + Fx_rr;
+
+% lateral, yaw moment balance (vehicle frame) -> front into the steered tire frame
+Fyf_vehicle = (m .* lr .* ay_tire + Iz .* rdot) ./ L;
+Fyr         = (m .* lf .* ay_tire - Iz .* rdot) ./ L;
+
+Fyf = (Fyf_vehicle - Fxf .* sin(delta)) ./ cos(delta);
+
+% check: wheel forces vs force balance (Rezaeian eq 10)
+Fdrag    = 0.5 .* rho .* vehicleParams.CdA .* Fvx .* abs(Fvx);
+Fgrade   = m .* g .* sin(pitch);
+Fx_total = m .* Fax + Fdrag + Fgrade;
+
+Fx_wheels = Fxf .* cos(delta) - Fyf .* sin(delta) + Fxr;
+
+%% force balance split per tire (previous assumptions, comparison only)
+% ASSUMPTION: drive (Fx_total > 0) all rear
+% ASSUMPTION: braking, caliper share split by pressure bias, engine braking all rear
+% ASSUMPTION: below 75 kPa (f + r) the bias is 0.53
+% ASSUMPTION: each axle split evenly left/right
+
+biasF = (Tb_f ./ R_f) ./ (Tb_f ./ R_f + Tb_r ./ R_r);
+biasF(Pf + Pr < 75) = 0.53;
+
+braking    = Fx_total < 0;
+Fx_engine  = Td_axle ./ R_r;
+Fx_caliper = Fx_total - Fx_engine;
+
+overshoot = braking & Fx_caliper > 0;           % calipers can't push forward
+Fx_caliper(overshoot) = 0;
+Fx_engine(overshoot)  = Fx_total(overshoot);
+
+Fxf_fb = zeros(size(Fx_total));
+Fxr_fb = Fx_total;
+
+Fxf_fb(braking) =      biasF(braking)  .* Fx_caliper(braking);
+Fxr_fb(braking) = (1 - biasF(braking)) .* Fx_caliper(braking) + Fx_engine(braking);
+
+Fx_fl_fb = Fxf_fb ./ 2;
+Fx_fr_fb = Fxf_fb ./ 2;
+Fx_rl_fb = Fxr_fb ./ 2;
+Fx_rr_fb = Fxr_fb ./ 2;
+
+%% lateral force per axle (random walk Kalman filter, Rezaeian eqs 38-53)
+% states are the axle Fy corrections to a load-share prior: x = [Fyf - Fyf_temp; Fyr - Fyr_temp]
+% measurements: force balance x, force balance y, yaw moment (eq 49)
+% ASSUMPTION: parallel steering, both front wheels at delta
+% ASSUMPTION: per wheel Fx is exact (paper eq 50)
+% ASSUMPTION: states have no dynamics, random walk with process noise Q
+% ASSUMPTION: Iz = 1000 placeholder, the yaw row leans on it directly
+% ASSUMPTION: no camber or aligning moment
+% TODO: tune Q and R, measure Iz
+
+Q_fy = diag([200, 200].^2);          % (N^2) per sample, how fast axle Fy can leave the prior
+R_fy = diag([800, 250, 400].^2);     % (N^2, N^2, Nm^2) x row, y row, yaw row
+
+Fz_sum   = sum(Fz_dual_obs, 2);
+Fyf_temp = (Fz_dual_obs(:,1) + Fz_dual_obs(:,2)) ./ Fz_sum .* m .* ay_tire;   % eq 41
+Fyr_temp = (Fz_dual_obs(:,3) + Fz_dual_obs(:,4)) ./ Fz_sum .* m .* ay_tire;   % eq 42
+
+y_fy = [Fx_total     - (Fxf .* cos(delta) + Fxr - Fyf_temp .* sin(delta)), ...
+        m .* ay_tire - (Fyf_temp .* cos(delta) + Fyr_temp + Fxf .* sin(delta)), ...
+        Iz .* rdot   - ((Fyf_temp .* cos(delta) + Fxf .* sin(delta)) .* lf - Fyr_temp .* lr)];
+
+x_fy = fyKalman(y_fy, delta, lf, lr, Q_fy, R_fy);
+
+Fyf_kf = Fyf_temp + x_fy(:,1);
+Fyr_kf = Fyr_temp + x_fy(:,2);
+
+%% save data for the tire fit (tire_fit.m)
+
+if saveFitData
+    save(fitDataFile, "t", "Fvx", "Fax", "ay_tire", "az_road", "delta", "gear", "Pf", "Pr", "Fthrottle", ...
+        "alpha_fl", "alpha_fr", "alpha_rl", "alpha_rr", "alpha_f", "alpha_r", ...
+        "kappa_fl", "kappa_fr", "kappa_rl", "kappa_rr", ...
+        "locked_fl", "locked_fr", "locked_rl", "locked_rr", ...
+        "Vx_tire_fl", "Vx_tire_fr", "Vx_tire_rl", "Vx_tire_rr", ...
+        "Fz_dual_obs", "Fz_dual_meas", "Fyf_kf", "Fyr_kf", ...
+        "Fx_fl", "Fx_fr", "Fx_rl", "Fx_rr", "vehicleParams");
+    fprintf("tire fit data saved: %s (%d samples)\n", fitDataFile, numel(t));
+end
+
+%% lateral force per tire (split by normal force, Rezaeian eqs 55-58)
+% ASSUMPTION: lateral force follows load left/right, no slip angle difference
+% ASSUMPTION: axle with no load (car on jacks) splits 50/50
+
+fyShare_fl = Fz_dual_obs(:,1) ./ (Fz_dual_obs(:,1) + Fz_dual_obs(:,2));
+fyShare_rl = Fz_dual_obs(:,3) ./ (Fz_dual_obs(:,3) + Fz_dual_obs(:,4));
+fyShare_fl(~isfinite(fyShare_fl)) = 0.5;
+fyShare_rl(~isfinite(fyShare_rl)) = 0.5;
+
+Fy_fl = Fyf_kf .*      fyShare_fl;
+Fy_fr = Fyf_kf .* (1 - fyShare_fl);
+Fy_rl = Fyr_kf .*      fyShare_rl;
+Fy_rr = Fyr_kf .* (1 - fyShare_rl);
+
+% comparison: yaw balance axle Fy split the same way
+Fy_fl_yb = Fyf .*      fyShare_fl;
+Fy_fr_yb = Fyf .* (1 - fyShare_fl);
+Fy_rl_yb = Fyr .*      fyShare_rl;
+Fy_rr_yb = Fyr .* (1 - fyShare_rl);
+
+%% lateral force per tire (split by remaining friction circle)
+% lateral capacity left once Fx is used: sqrt((mu*Fz)^2 - Fx^2)
+% ASSUMPTION: circular friction limit, same mu in x and y, constant mu per axle
+% ASSUMPTION: axle total from the Kalman filter, only the left/right split changes
+% ASSUMPTION: no load sensitivity, capacity is linear in Fz
+
+cap_fl = sqrt(max((vehicleParams.muY_f .* Fz_dual_obs(:,1)).^2 - Fx_fl.^2, 0));
+cap_fr = sqrt(max((vehicleParams.muY_f .* Fz_dual_obs(:,2)).^2 - Fx_fr.^2, 0));
+cap_rl = sqrt(max((vehicleParams.muY_r .* Fz_dual_obs(:,3)).^2 - Fx_rl.^2, 0));
+cap_rr = sqrt(max((vehicleParams.muY_r .* Fz_dual_obs(:,4)).^2 - Fx_rr.^2, 0));
+
+fcShare_fl = cap_fl ./ (cap_fl + cap_fr);
+fcShare_rl = cap_rl ./ (cap_rl + cap_rr);
+fcShare_fl(~isfinite(fcShare_fl)) = 0.5;
+fcShare_rl(~isfinite(fcShare_rl)) = 0.5;
+
+Fy_fl_fc = Fyf_kf .*      fcShare_fl;
+Fy_fr_fc = Fyf_kf .* (1 - fcShare_fl);
+Fy_rl_fc = Fyr_kf .*      fcShare_rl;
+Fy_rr_fc = Fyr_kf .* (1 - fcShare_rl);
+
+%% lateral force per tire (Pacejka 1987 tire model split, Jung & Choi 2018)
+% each tire's model force at its own alpha and Fz sets the left/right shape,
+% the Kalman filter axle total sets the level
+% ASSUMPTION: steady state, no relaxation length yet
+% ASSUMPTION: coefficients from tire_fit.m (adjusted .tir, rig load sensitivity kept)
+% ASSUMPTION: combined slip by the friction ellipse, Fy = Fy0*sqrt(1 - (Fx/Dx)^2), Dx = peak Fx of the model
+% ASSUMPTION: residual to the axle total spread by prior uncertainty P = (sigA + sigR*|Fy|)^2
+% TODO: relaxation length, camber
+
+Fz_kN  = Fz_dual_obs / 1000;
+alphaD = rad2deg([alpha_fl, alpha_fr, alpha_rl, alpha_rr]);
+Fx_all = [Fx_fl, Fx_fr, Fx_rl, Fx_rr];
+pacFy  = [vehicleParams.pacFy_f; vehicleParams.pacFy_f; vehicleParams.pacFy_r; vehicleParams.pacFy_r];
+pacFx  = [vehicleParams.pacFx_f; vehicleParams.pacFx_f; vehicleParams.pacFx_r; vehicleParams.pacFx_r];
+
+Fy_mf = zeros(numel(t), 4);
+
+for i = 1:4
+    Fy0 = pac87Fy(pacFy(i,:), alphaD(:,i), Fz_kN(:,i));
+    Dx  = pacFx(i,2) .* Fz_kN(:,i).^2 + pacFx(i,3) .* Fz_kN(:,i);
+    Fy_mf(:,i) = Fy0 .* sqrt(max(1 - (Fx_all(:,i) ./ Dx).^2, 0));
+end
+
+Fy_mf(~isfinite(Fy_mf)) = 0;   % below vxMin alpha is NaN
+
+% correct to the Kalman filter axle totals
+sigA = 200;    % (N) prior uncertainty floor of each tire's MF force
+sigR = 0.2;    % (-) prior uncertainty, fraction of each tire's MF force
+
+[Fy_fl_mf, Fy_fr_mf] = axleCorrect(Fyf_kf, Fy_mf(:,1), Fy_mf(:,2), sigA, sigR);
+[Fy_rl_mf, Fy_rr_mf] = axleCorrect(Fyr_kf, Fy_mf(:,3), Fy_mf(:,4), sigA, sigR);
+
+%% plots colours
+
+cFz = [0.85 0.33 0.10];   % orange, normal force split
+cFc = [0.00 0.45 0.74];   % blue, friction circle split
+cMf = [0.47 0.67 0.19];   % green, Pacejka tire model split
+
+%% plots bicycle model forces
+
+figure("Name", "Bicycle model forces");
+tl = tiledlayout(2, 1, "TileSpacing", "compact");
+
+axF(1) = nexttile(tl);
+hold on
+plot(t, Fxf);
+plot(t, Fxr);
+plot(t, Fx_wheels);
+plot(t, Fx_total);
+grid on
+title("Longitudinal");
+ylabel("F_x [N]");
+legend("front", "rear", "sum of wheels", "force balance", "Location", "best");
+
+axF(2) = nexttile(tl);
+hold on
+plot(t, Fyf);
+plot(t, Fyr);
+grid on
+title("Lateral (front in tire frame)");
+ylabel("F_y [N]");
+legend("front", "rear", "Location", "best");
+
+xlabel(tl, "Time [s]");
+linkaxes(axF, "x");
+
+%% plots tire Fx, wheel dynamics vs force balance
+
+fxNames = ["FL", "FR", "RL", "RR", "Front axle (FL + FR)", "Rear axle (RL + RR)"];
+Fx_wd   = [Fx_fl,    Fx_fr,    Fx_rl,    Fx_rr,    Fxf,    Fxr   ];
+Fx_fb   = [Fx_fl_fb, Fx_fr_fb, Fx_rl_fb, Fx_rr_fb, Fxf_fb, Fxr_fb];
+
+figure("Name", "Tire Fx - wheel dynamics vs force balance");
+tl = tiledlayout(3, 2, "TileSpacing", "compact");
+axFx = gobjects(6,1);
+
+for i = 1:6
+    axFx(i) = nexttile(tl);
+    hold on
+    plot(t, Fx_wd(:,i));
+    plot(t, Fx_fb(:,i));
+    plot(t, Fx_wd(:,i) - Fx_fb(:,i));
+    grid on
+    title(fxNames(i));
+    ylabel("F_x [N]");
+end
+
+legend(axFx(1), "wheel dynamics", "force balance split", "difference", "Location", "best");
+xlabel(tl, "Time [s]");
+linkaxes(axFx, "x");
+
+%% plots tire Fy, Kalman filter vs yaw balance
+
+fyNames = ["FL", "FR", "RL", "RR", "Front axle (FL + FR)", "Rear axle (RL + RR)"];
+Fy_kf_all = [Fy_fl,    Fy_fr,    Fy_rl,    Fy_rr,    Fyf_kf, Fyr_kf];
+Fy_yb_all = [Fy_fl_yb, Fy_fr_yb, Fy_rl_yb, Fy_rr_yb, Fyf,    Fyr   ];
+
+figure("Name", "Tire Fy - Kalman filter vs yaw balance");
+tl = tiledlayout(3, 2, "TileSpacing", "compact");
+axFy = gobjects(6,1);
+
+for i = 1:6
+    axFy(i) = nexttile(tl);
+    hold on
+    plot(t, Fy_kf_all(:,i));
+    plot(t, Fy_yb_all(:,i));
+    plot(t, Fy_kf_all(:,i) - Fy_yb_all(:,i));
+    grid on
+    title(fyNames(i));
+    ylabel("F_y [N]");
+end
+
+legend(axFy(1), "Kalman filter", "yaw balance split", "difference", "Location", "best");
+xlabel(tl, "Time [s]");
+linkaxes(axFy, "x");
+
+%% plots tire Fy, normal force split vs friction circle split vs Pacejka split
+
+Fy_fz_all = [Fy_fl,    Fy_fr,    Fy_rl,    Fy_rr   ];
+Fy_fc_all = [Fy_fl_fc, Fy_fr_fc, Fy_rl_fc, Fy_rr_fc];
+Fy_mf_all = [Fy_fl_mf, Fy_fr_mf, Fy_rl_mf, Fy_rr_mf];
+
+figure("Name", "Tire Fy - normal force vs friction circle vs Pacejka split");
+tl = tiledlayout(2, 2, "TileSpacing", "compact");
+axFc = gobjects(4,1);
+
+for i = 1:4
+    axFc(i) = nexttile(tl);
+    hold on
+    plot(t, Fy_fz_all(:,i), "Color", cFz);
+    plot(t, Fy_fc_all(:,i), "Color", cFc);
+    plot(t, Fy_mf_all(:,i), "Color", cMf);
+    grid on
+    title(fyNames(i));
+    ylabel("F_y [N]");
+end
+
+legend(axFc(1), "normal force split", "friction circle split", "Pacejka split", "Location", "best");
+xlabel(tl, "Time [s]");
+linkaxes(axFc, "x");
+
+%% plots axle Fy, Kalman filter vs Pacejka prediction (before correction)
+% how well the fitted tire matches the measured axle force
+
+figure("Name", "Axle Fy - Kalman filter vs Pacejka prediction");
+tl = tiledlayout(2, 1, "TileSpacing", "compact");
+axMf = gobjects(2,1);
+
+axMf(1) = nexttile(tl);
+hold on
+plot(t, Fyf_kf);
+plot(t, Fy_mf(:,1) + Fy_mf(:,2), "Color", cMf);
+grid on
+title("Front axle");
+ylabel("F_y [N]");
+legend("Kalman filter", "Pacejka FL + FR", "Location", "best");
+
+axMf(2) = nexttile(tl);
+hold on
+plot(t, Fyr_kf);
+plot(t, Fy_mf(:,3) + Fy_mf(:,4), "Color", cMf);
+grid on
+title("Rear axle");
+ylabel("F_y [N]");
+
+xlabel(tl, "Time [s]");
+linkaxes(axMf, "x");
+
+%% plots slip ratio vs Fx per tire, wheel dynamics vs force balance
+
+sxNames = ["FL", "FR", "RL", "RR"];
+sx_all  = [sx_fl,    sx_fr,    sx_rl,    sx_rr   ];
+Fx_wd4  = [Fx_fl,    Fx_fr,    Fx_rl,    Fx_rr   ];
+Fx_fb4  = [Fx_fl_fb, Fx_fr_fb, Fx_rl_fb, Fx_rr_fb];
+
+figure("Name", "Slip ratio vs Fx per tire");
+tl = tiledlayout(2, 2, "TileSpacing", "compact");
+axSx = gobjects(4,1);
+
+for i = 1:4
+    axSx(i) = nexttile(tl);
+    hold on
+    plot(sx_all(:,i), Fx_fb4(:,i), ".", "Color", [0.85 0.33 0.10]);   % orange
+    plot(sx_all(:,i), Fx_wd4(:,i), ".", "Color", [0.00 0.45 0.74]);   % blue
+    grid on
+    xlim(prctile(sx_all(:,i), [0.5 99.5]));
+    title(sxNames(i));
+    xlabel("s_x [-]");
+    ylabel("F_x [N]");
+end
+
+legend(axSx(1), "force balance split (F = ma)", "wheel dynamics", "Location", "best");
+
+%% plots slip angle vs Fy per tire, normal force vs friction circle vs Pacejka split
+
+alpha_all = rad2deg([alpha_fl, alpha_fr, alpha_rl, alpha_rr]);
+
+figure("Name", "Slip angle vs Fy per tire");
+tl = tiledlayout(2, 2, "TileSpacing", "compact");
+axAl = gobjects(4,1);
+
+for i = 1:4
+    axAl(i) = nexttile(tl);
+    hold on
+    plot(alpha_all(:,i), Fy_fz_all(:,i), ".", "Color", cFz);
+    plot(alpha_all(:,i), Fy_fc_all(:,i), ".", "Color", cFc);
+    plot(alpha_all(:,i), Fy_mf_all(:,i), ".", "Color", cMf);
+    grid on
+    xlim(prctile(alpha_all(:,i), [0.5 99.5]));
+    title(sxNames(i));
+    xlabel("\alpha [deg]");
+    ylabel("F_y [N]");
+end
+
+legend(axAl(1), "normal force split", "friction circle split", "Pacejka split", "Location", "best");
+
+%% plots normalized slip curves, Fx/Fz and Fy/Fz (observed Fz)
+% ASSUMPTION: tires under 200 N observed load are left out (lifted, ratio blows up)
+
+Fz_norm = Fz_dual_obs;
+Fz_norm(Fz_norm < 200) = NaN;
+
+figure("Name", "Slip ratio vs Fx/Fz per tire");
+tl = tiledlayout(2, 2, "TileSpacing", "compact");
+axSxN = gobjects(4,1);
+
+for i = 1:4
+    axSxN(i) = nexttile(tl);
+    hold on
+    plot(sx_all(:,i), Fx_fb4(:,i) ./ Fz_norm(:,i), ".", "Color", [0.85 0.33 0.10]);   % orange
+    plot(sx_all(:,i), Fx_wd4(:,i) ./ Fz_norm(:,i), ".", "Color", [0.00 0.45 0.74]);   % blue
+    grid on
+    xlim(prctile(sx_all(:,i), [0.5 99.5]));
+    title(sxNames(i));
+    xlabel("s_x [-]");
+    ylabel("F_x / F_z [-]");
+end
+
+legend(axSxN(1), "force balance split (F = ma)", "wheel dynamics", "Location", "best");
+
+figure("Name", "Slip angle vs Fy/Fz per tire");
+tl = tiledlayout(2, 2, "TileSpacing", "compact");
+axAlN = gobjects(4,1);
+
+for i = 1:4
+    axAlN(i) = nexttile(tl);
+    hold on
+    plot(alpha_all(:,i), Fy_fz_all(:,i) ./ Fz_norm(:,i), ".", "Color", cFz);
+    plot(alpha_all(:,i), Fy_fc_all(:,i) ./ Fz_norm(:,i), ".", "Color", cFc);
+    plot(alpha_all(:,i), Fy_mf_all(:,i) ./ Fz_norm(:,i), ".", "Color", cMf);
+    grid on
+    xlim(prctile(alpha_all(:,i), [0.5 99.5]));
+    title(sxNames(i));
+    xlabel("\alpha [deg]");
+    ylabel("F_y / F_z [-]");
+end
+
+legend(axAlN(1), "normal force split", "friction circle split", "Pacejka split", "Location", "best");
+
+%% plots normal force observers
+
+names =["FL", "FR", "RL", "RR", "Front axle", "Rear axle"];
+meas  = [Fz_dual_meas,  Fz_bike_meas];
+model = [Fz_dual_model, Fz_bike_model];
+obs   = [Fz_dual_obs,   Fz_bike_obs];
+
+figure("Name", "Normal force observers");
+tl = tiledlayout(3, 2, "TileSpacing", "compact");
+ax = gobjects(6,1);
+
+for i = 1:6
+    ax(i) = nexttile(tl);
+    hold on
+    plot(t, meas(:,i),  "Color", [0.90 0.55 0.55]);
+    plot(t, model(:,i));
+    plot(t, obs(:,i));
+    grid on
+    title(names(i));
+    ylabel("F_z [N]");
+end
+
+legend(ax(1), "gage (zeroed)", "model", "observer", "Location", "best");
+xlabel(tl, "Time [s]");
+linkaxes(ax, "x");
+
+
+function Fz_obs = fzDerivativeObserver(Fz_model, Fz_meas, t, K, tau)
+% leaky integral of (gage change - model change), added on top of the model
+
+    Fz_model = fillmissing(Fz_model, "nearest");
+    Fz_meas  = fillmissing(Fz_meas,  "nearest");
+
+    correction = zeros(size(Fz_model));
+
+    for k = 2:numel(t)
+        dt        = t(k) - t(k-1);
+        rateError = (Fz_meas(k,:) - Fz_meas(k-1,:)) - (Fz_model(k,:) - Fz_model(k-1,:));
+
+        correction(k,:) = tau / (tau + dt) .* (correction(k-1,:) + K .* rateError);
+    end
+
+    Fz_obs = max(Fz_model + correction, 0);
+end
+
+
+function x_hat = fyKalman(y, delta, lf, lr, Q, R)
+% random walk Kalman filter, A = I, measurement y = C(delta)*x (Rezaeian eq 53)
+
+    N     = numel(delta);
+    x     = [0; 0];
+    P     = Q;
+    x_hat = zeros(N, 2);
+
+    for k = 1:N
+        P = P + Q;                                        % predict
+
+        C = [-sin(delta(k)),        0;
+              cos(delta(k)),        1;
+              lf * cos(delta(k)), -lr];
+
+        if all(isfinite(y(k,:))) && isfinite(delta(k))    % update
+            K = P * C' / (C * P * C' + R);
+            x = x + K * (y(k,:)' - C * x);
+            P = (eye(2) - K * C) * P;
+        end
+
+        x_hat(k,:) = x';
+    end
+end
+
+
+function y = lpf(x, fc, Ts)
+% first order low pass, Tustin with prewarp (same as acceleration_interface computeTustinLowPassCoeffs)
+% causal, runs down each column, missing samples hold the last input
+
+    K  = tan(pi * fc * Ts);
+    a1 = (1 - K) / (1 + K);
+    b  =      K  / (1 + K);
+
+    x = fillmissing(x, "previous");
+    y = x;
+
+    for k = 2:size(x, 1)
+        y(k,:) = a1 .* y(k-1,:) + b .* (x(k,:) + x(k-1,:));
+
+        reset = ~isfinite(y(k,:));   % start once the signal first appears
+        y(k,reset) = x(k,reset);
+    end
+end
+
+
+function [fL, fR] = axleCorrect(S, fL, fR, sigA, sigR)
+% spread the axle residual S - (fL + fR) by each tire's prior variance (weighted projection)
+
+    PL = (sigA + sigR .* abs(fL)).^2;
+    PR = (sigA + sigR .* abs(fR)).^2;
+    r  = S - (fL + fR);
+
+    fL = fL + r .* PL ./ (PL + PR);
+    fR = fR + r .* PR ./ (PL + PR);
+end
+
+
+function Fy = pac87Fy(c, alpha, Fz)
+% Bakker, Nyborg, Pacejka 1987 (tires.pdf), alpha in deg, Fz in kN, c = [C a1 ... a8]
+
+    Fz  = max(Fz, 0.01);
+    D   = c(2) .* Fz.^2 + c(3) .* Fz;
+    BCD = c(4) .* sin(c(5) .* atan(c(6) .* Fz));
+    B   = BCD ./ (c(1) .* D);
+    E   = c(7) .* Fz.^2 + c(8) .* Fz + c(9);
+    phi = (1 - E) .* alpha + E ./ B .* atan(B .* alpha);
+    Fy  = D .* sin(c(1) .* atan(B .* phi));
+end
+
+
+function Fx = pac87Fx(c, kappa, Fz)
+% Bakker, Nyborg, Pacejka 1987 (tires.pdf), kappa in %, Fz in kN, c = [C a1 ... a8]
+
+    Fz  = max(Fz, 0.01);
+    D   = c(2) .* Fz.^2 + c(3) .* Fz;
+    BCD = (c(4) .* Fz.^2 + c(5) .* Fz) .* exp(-c(6) .* Fz);
+    B   = BCD ./ (c(1) .* D);
+    E   = c(7) .* Fz.^2 + c(8) .* Fz + c(9);
+    phi = (1 - E) .* kappa + E ./ B .* atan(B .* kappa);
+    Fx  = D .* sin(c(1) .* atan(B .* phi));
+end
