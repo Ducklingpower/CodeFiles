@@ -1,0 +1,94 @@
+# merge_rosbag2_folder_to_csv_v3.py --topics-file for analyze_sim_kus_aware.m: the sim comparison of the fbl_mpc models
+# (native MPC with its own / the vehicle model bicycle / dual track k_us, the K_us aware bicycle and dual track model MPCs)
+
+/control/fbl_mpc/mpc_model:
+  mpc_model: data                 # 0 native, 1 bicycle model MPC, 2 dual track model MPC
+
+/control/fbl_mpc/debug_understeer_source:   # native MPC only
+  kus_used: data[0]
+  kus_src: data[1]
+  kus_mpc: data[2]
+  kus_bike: data[3]
+  kus_dual: data[4]
+
+/control/fbl_mpc/kus_aware/bicycle:         # [active, K_us law, c, b_hat, K_us knot 10, K_us meas, a_t, u_f, u_r]
+  ka_bike_active: data[0]
+  ka_bike_kus_law: data[1]
+  ka_bike_c: data[2]
+  ka_bike_b: data[3]
+  ka_bike_kus10: data[4]
+  ka_bike_kus_meas: data[5]
+  ka_bike_a_t: data[6]
+  ka_bike_u_f: data[7]
+  ka_bike_u_r: data[8]
+
+/control/fbl_mpc/kus_aware/dualtrack:
+  ka_dual_active: data[0]
+  ka_dual_kus_law: data[1]
+  ka_dual_c: data[2]
+  ka_dual_b: data[3]
+  ka_dual_kus10: data[4]
+  ka_dual_kus_meas: data[5]
+  ka_dual_a_t: data[6]
+  ka_dual_u_f: data[7]
+  ka_dual_u_r: data[8]
+
+/control/fbl_mpc/mpc_debug_lateral_error:
+  lat_err: data[0]
+  lat_err_k5: data[5]             # predicted at knot 5 (0.3 s)
+  lat_err_k10: data[10]           # predicted at knot 10 (0.6 s)
+
+/control/fbl_mpc/mpc_debug_lateral_error_vel:
+  lat_err_vel: data[0]
+
+/control/fbl_mpc/desired_yawrate:
+  r_des: data
+
+/control/fbl_mpc/desired_acceleration:
+  ax_des: data
+
+/control/fbl_mpc/yaw_rate_feedback_steering:
+  steer_fb: data
+
+/control/fbl_mpc/fbl_mpc_acc_command:
+  steer_cmd_deg: steering_cmd
+  accel_cmd: accelerator_cmd
+
+/odometry/global_filtered:
+  px: pose.pose.position.x
+  py: pose.pose.position.y
+  vx: twist.twist.linear.x
+  vy: twist.twist.linear.y
+  wz: twist.twist.angular.z
+
+/novatel_bottom/accel_filtered:
+  ax: accel.linear.x
+  ay: accel.linear.y
+
+/raptor_dbw_interface/steering_extended_report:
+  steer_fbk_deg: primary_steering_angle_fbk
+
+/control/vehicle_model/bicycle/state:
+  vm_kus_bike: k_us               # vehicle_model package k_us (the static 0.00034 where k_us_valid is false)
+  bike_vy: vy_hat
+  bike_fz_f: fz_hat.fz_front
+  bike_fz_r: fz_hat.fz_rear
+
+/control/vehicle_model/bicycle/debug:
+  vm_kus_bike_valid: k_us_valid
+
+/control/vehicle_model/dualtrack/debug:
+  vm_kus_dual_valid: k_us_valid
+
+/control/vehicle_model/dualtrack/state:
+  vm_kus_dual: k_us
+  dual_fz_fl: fz_hat.fz_fl
+  dual_fz_fr: fz_hat.fz_fr
+  dual_fz_rl: fz_hat.fz_rl
+  dual_fz_rr: fz_hat.fz_rr
+
+/planning/current_frenet_s:
+  frenet_s: data
+
+/basestation/command:
+  speed_scale: velocity_profile_scale
